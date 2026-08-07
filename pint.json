@@ -1,0 +1,24 @@
+{
+    "exclude": [
+        "tests",
+        "vendor"
+    ],
+    "preset": "laravel",
+    "blank_line_after_namespace": true,
+    "single_quote": true,
+    "array_syntax": "short",
+    "classes_opening_brace": "next_line_unless_newline_at_signature_end",
+    "class_attributes_separation":
+    {"const":"one", "method":"one", "property":"one", "trait_import":"none", "case":"none"},
+    "anonymous_classes_opening_brace": "next_line_unless_newline_at_signature_end",
+    "anonymous_functions_opening_brace": "next_line_unless_newline_at_signature_end",
+    "control_structures_opening_brace": "next_line_unless_newline_at_signature_end",
+    "functions_opening_brace": "next_line_unless_newline_at_signature_end",
+    "array_indentation": true,
+    "no_unused_imports": true,
+    "no_whitespace_in_blank_line": true,
+    "no_whitespace_before_comma_in_array": true,
+    "include": true,
+    "no_empty_comment": true,
+    "single_line_comment_style": true
+}

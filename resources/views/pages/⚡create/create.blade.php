@@ -1,0 +1,260 @@
+<div>
+    <x-slot:headerActions>
+        <flux:button variant="primary" icon="check" type="submit" form="form-nota">
+            Salvar
+        </flux:button>
+    </x-slot:headerActions>
+
+    <form id="form-nota" wire:submit="save" class="mx-auto max-w-[800px] space-y-8 pb-32">
+        <div class="mt-4 space-y-4">
+            <input
+                type="text"
+                wire:model="notes.title"
+                placeholder="Título da Anotação..."
+                class="text-on-surface w-full border-none bg-transparent p-0 text-4xl font-bold outline-none focus:ring-0"
+            />
+            <flux:error name="notes.title" />
+
+            <div class="text-on-surface-variant flex flex-wrap items-center gap-4">
+                <div class="border-surface-variant bg-surface-container flex items-center gap-1.5 rounded border px-2 py-1">
+                    <flux:icon name="calendar" class="size-4" />
+                    <flux:text size="sm">Hoje, {{ now()->format('H:i') }}</flux:text>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="w-64 shrink-0">
+                        <flux:select wire:model="notes.discipline_id" wire:key="discipline-select">
+                            <flux:select.option value="">Selecione uma disciplina</flux:select.option>
+                            @foreach($this->disciplines as $discipline)
+                                <flux:select.option value="{{ $discipline->id }}" wire:key="discipline-option-{{ $discipline->id }}">
+                                    {{ $discipline->title }}
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+
+                        <flux:error name="notes.discipline_id" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="space-y-4">
+            <section class="space-y-4">
+                <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
+                    <flux:icon name="hashtag" class="text-primary size-5" />
+                    <flux:heading size="sm">TAGS</flux:heading>
+                </div>
+
+                <div class="border-surface-variant bg-surface-container-lowest overflow-hidden rounded-xl border shadow-sm p-4 transition-colors duration-300">
+                    <flux:text size="sm" class="mb-3 text-on-surface-variant">Selecione as tags que melhor descrevem esta anotação:</flux:text>
+
+                    <div class="flex flex-wrap gap-2 mxax-h-48 overflow-y-auto pr-2">
+                        @foreach ($this->tags as $tag)
+                            <button
+                                type="button"
+                                wire:click="addTag('{{ $tag->title }}')"
+                                class="rounded-full border px-3 py-1.5 text-sm transition-all focus:outline-none
+                                {{ in_array($tag->title, $notes->tags ?? [])
+                                ? 'border-primary bg-primary text-white'
+                                : 'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' }}"
+                            >
+                                {{ $tag->title }}
+                            </button>
+                        @endforeach
+                    </div>
+
+                    @error('notes.tags')
+                    <span class="text-sm text-red-500 mt-2 block">{{ $message }}</span>
+                    @enderror
+                </div>
+            </section>
+
+            <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
+                <flux:icon name="light-bulb" class="text-primary size-5" />
+                <flux:heading size="sm">CONCEITOS</flux:heading>
+            </div>
+
+            <div class="border-surface-variant bg-surface-container-lowest overflow-hidden rounded-xl border shadow-sm">
+                @foreach ($notes->concepts ?? [] as $index => $concept)
+                    <div
+                        wire:key="concept-{{ $index }}"
+                        class="border-surface-variant flex flex-col border-b sm:flex-row"
+                    >
+                        <div class="border-surface-variant bg-surface-container-low/50 border-b p-3 sm:w-1/3 sm:border-r sm:border-b-0">
+                            <input
+                                type="text"
+                                wire:model="notes.concepts.{{ $index }}.term"
+                                wire:input.debounce.500ms="verifyExistence({{ $index }})"
+                                placeholder="Termo ou Palavra-chave"
+                                class="text-on-surface w-full border-none bg-transparent p-0 outline-none focus:ring-0"
+                            />
+                        </div>
+                        <div class="group relative bg-transparent p-3 sm:w-2/3">
+                            <textarea
+                                wire:model="notes.concepts.{{ $index }}.definition"
+                                placeholder="Definição ou explicação do conceito..."
+                                rows="2"
+                                class="text-on-surface-variant w-full resize-none border-none bg-transparent p-0 outline-none focus:ring-0"
+                            ></textarea>
+                            @if (count($notes->concepts ?? []) > 1)
+                                <button
+                                    type="button"
+                                    wire:click="removeConcept({{ $index }})"
+                                    class="text-on-surface-variant hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
+                                    title="Remover"
+                                >
+                                    <flux:icon name="x-mark" class="size-4" />
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+
+                <button
+                    type="button"
+                    wire:click="addConcept"
+                    class="bg-surface-container-low/30 text-primary-container hover:bg-surface-container-low flex w-full items-center justify-center gap-2 py-3 tracking-wider uppercase transition-colors"
+                >
+                    <flux:icon name="plus-circle" class="size-4" />
+                    <flux:text size="sm" class="font-bold">Adicionar Conceito</flux:text>
+                </button>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
+                <flux:icon name="hand-raised" class="text-secondary size-5" />
+                <flux:heading size="sm">CONSELHOS PASTORAIS</flux:heading>
+            </div>
+
+            <div class="border-surface-variant bg-surface-container-lowest overflow-hidden rounded-xl border shadow-sm">
+                @foreach ($notes->pastoral_advice ?? [] as $index => $pastoral)
+                    <div
+                        wire:key="pastoral-{{ $index }}"
+                        class="border-surface-variant flex flex-col border-b sm:flex-row"
+                    >
+                        <div class="border-surface-variant bg-surface-container-low/50 border-b p-3 sm:w-1/3 sm:border-r sm:border-b-0">
+                            <input
+                                type="text"
+                                wire:model="notes.pastoral_advice.{{ $index }}.category"
+                                placeholder="Categoria ou Tema"
+                                class="text-on-surface w-full border-none bg-transparent p-0 outline-none focus:ring-0"
+                            />
+                        </div>
+                        <div class="group relative bg-transparent p-3 sm:w-2/3">
+                            <textarea
+                                wire:model="notes.pastoral_advice.{{ $index }}.advice"
+                                placeholder="Aplicações práticas, conselhos ou observações..."
+                                rows="2"
+                                class="text-on-surface-variant w-full resize-none border-none bg-transparent p-0 outline-none focus:ring-0"
+                            ></textarea>
+                            @if (count($notes->pastoral_advice ?? []) > 1)
+                                <button
+                                    type="button"
+                                    wire:click="removePastoralAdvice({{ $index }})"
+                                    class="text-on-surface-variant hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
+                                    title="Remover"
+                                >
+                                    <flux:icon name="x-mark" class="size-4" />
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+
+                <button
+                    type="button"
+                    wire:click="addPastoralAdvice"
+                    class="bg-surface-container-low/30 text-secondary hover:bg-surface-container-low flex w-full items-center justify-center gap-2 py-3 tracking-wider uppercase transition-colors"
+                >
+                    <flux:icon name="plus-circle" class="size-4" />
+                    <flux:text size="sm" class="font-bold">Adicionar Conselho</flux:text>
+                </button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+            <section class="border-surface-variant bg-surface-container-lowest flex flex-col overflow-hidden rounded-xl border shadow-sm transition-colors duration-300">
+                <div class="border-surface-variant bg-surface-container-low/80 flex items-center gap-2 border-b p-3">
+                    <flux:icon name="sparkles" class="text-tertiary size-4" />
+                    <flux:heading size="sm">IMPRESSÕES</flux:heading>
+                </div>
+                <div wire:ignore class="flex-1">
+                    <div x-data="markdownEditor($wire.entangle('notes.impressions'))">
+                        <textarea x-ref="textarea" placeholder="Suas impressões pessoais, dúvidas ou reflexões imediatas sobre o tema..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="border-surface-variant bg-surface-container-lowest flex flex-col overflow-hidden rounded-xl border shadow-sm transition-colors duration-300">
+                <div class="border-surface-variant bg-surface-container-low/80 flex items-center gap-2 border-b p-3">
+                    <flux:icon name="book-open" class="text-tertiary size-4" />
+                    <flux:heading size="sm">EXPERIÊNCIAS DE VIDA</flux:heading>
+                </div>
+                <div wire:ignore class="flex-1">
+                    <div x-data="markdownEditor($wire.entangle('notes.life_experiences'))">
+                        <textarea x-ref="textarea" placeholder="Como este conteúdo se relaciona com vivências passadas ou observações cotidianas?"></textarea>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="space-y-4">
+            <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
+                <flux:icon name="link" class="text-on-surface-variant size-5" />
+                <flux:heading size="sm">REFERÊNCIAS</flux:heading>
+            </div>
+
+            <div class="border-surface-variant bg-surface-container-lowest overflow-hidden rounded-xl border shadow-sm">
+                @foreach ($notes->references ?? [] as $index => $reference)
+                    <div
+                        wire:key="reference-{{ $index }}"
+                        class="border-surface-variant flex flex-col border-b sm:flex-row"
+                    >
+                        <div class="border-surface-variant bg-surface-container-low/50 border-b p-3 sm:w-1/3 sm:border-r sm:border-b-0 flex items-center">
+                            <flux:select
+                                wire:model="notes.references.{{ $index }}.type"
+                                placeholder="Tipo de referência"
+                                class="w-full border-none! bg-transparent! shadow-none! focus:ring-0!"
+                            >
+                                @foreach (App\Enums\ReferencesIcon::cases() as $iconCase)
+                                    <flux:select.option value="{{ $iconCase->value }}" icon="{{ $iconCase->value }}">
+                                        {{ $iconCase->label() }}
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                        <div class="group relative bg-transparent p-3 sm:w-2/3">
+                            <textarea
+                                wire:model="notes.references.{{ $index }}.reference_text"
+                                placeholder="Ex: Romanos 8:28, Link de um artigo, Livro (pág. 42)..."
+                                rows="2"
+                                class="text-on-surface-variant w-full resize-none border-none bg-transparent p-0 outline-none focus:ring-0"
+                            ></textarea>
+
+                            @if (count($notes->references ?? []) > 1)
+                                <button
+                                    type="button"
+                                    wire:click="removeReference({{ $index }})"
+                                    class="text-on-surface-variant hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
+                                    title="Remover"
+                                >
+                                    <flux:icon name="x-mark" class="size-4" />
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+
+                <button
+                    type="button"
+                    wire:click="addReference"
+                    class="bg-surface-container-low/30 text-on-surface-variant hover:bg-surface-container-low flex w-full items-center justify-center gap-2 py-3 tracking-wider uppercase transition-colors"
+                >
+                    <flux:icon name="plus-circle" class="size-4" />
+                    <flux:text size="sm" class="font-bold">Adicionar Referência</flux:text>
+                </button>
+            </div>
+        </section>
+    </form>
+</div>

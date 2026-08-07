@@ -1,0 +1,98 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Mocha Studio palette — see mocha_studio/DESIGN.md */
+    --color-surface: #111222;
+    --color-surface-bright: #37384a;
+    --color-surface-container-lowest: #0b0d1d;
+    --color-surface-container-low: #191a2b;
+    --color-surface-container: #1d1e2f;
+    --color-surface-container-high: #27293a;
+    --color-surface-container-highest: #323345;
+    --color-surface-variant: #323345;
+
+    --color-on-surface: #e1e0f8;
+    --color-on-surface-variant: #cdc3d1;
+    --color-outline: #968e9a;
+    --color-outline-variant: #4a444f;
+
+    --color-primary: #e2c7ff;
+    --color-on-primary: #3f1e66;
+    --color-primary-container: #cba6f7;
+    --color-on-primary-container: #57377f;
+
+    --color-secondary: #bac3ff;
+    --color-on-secondary-container: #abb5f4;
+    --color-secondary-container: #3b457c;
+
+    --color-tertiary: #bad2ff;
+    --color-tertiary-container: #8cb7fd;
+    --color-on-tertiary-container: #0e4786;
+
+    --color-error: #ffb4ab;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-on-error-container: #ffdad6;
+
+    --color-background: #111222;
+    --color-on-background: #e1e0f8;
+}
+
+.editor-toolbar::before, .editor-toolbar::after {
+    display: none !important;
+}
+
+.editor-toolbar {
+    @apply !bg-transparent !border-surface-variant !border-b;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    opacity: 1 !important;
+}
+
+.editor-toolbar button {
+    @apply !text-on-surface-variant;
+    border: none !important;
+}
+
+.editor-toolbar button:hover, .editor-toolbar button.active {
+    @apply !bg-surface-container-low !text-primary;
+    border: none !important;
+}
+
+.editor-toolbar i.separator {
+    @apply !border-surface-variant;
+    border-left: none !important;
+    border-right-width: 1px !important;
+}
+
+.CodeMirror {
+    @apply !bg-transparent !text-on-surface-variant;
+    border: none !important;
+    font-family: inherit !important;
+    padding: 1rem !important;
+}
+
+.CodeMirror-cursor {
+    border-left: 1px solid currentColor !important;
+}
+
+.CodeMirror-placeholder {
+    @apply !text-on-surface-variant/40;
+}
+
+@layer base {
+    body {
+        background-color: var(--color-background);
+        color: var(--color-on-background);
+    }
+}
