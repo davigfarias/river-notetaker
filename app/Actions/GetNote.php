@@ -10,12 +10,14 @@ use Illuminate\Support\Facades\Log;
 
 final readonly class GetNote
 {
-    public function __construct(private AppRepository $appRepository) {}
+    public function __construct(
+        private AppRepository $appRepository
+    ) {}
 
-    public function handle(int $id): Outcome
+    public function handle(int $id, int $accessTokenId): Outcome
     {
         try {
-            $data = $this->appRepository->getNoteById($id);
+            $data = $this->appRepository->getNoteById($id, $accessTokenId);
 
             return Outcome::noViewMessage(data: $data);
         } catch (\Exception $e) {

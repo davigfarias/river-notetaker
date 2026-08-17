@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\DTO\AccessTokenDTO;
 use App\DTO\AdvicesDTO;
 use App\DTO\ConceptsDTO;
 use App\DTO\DisciplinesDTO;
 use App\DTO\NotesDTO;
 use App\DTO\ReferencesDTO;
 use App\DTO\TagsDTO;
+use App\Models\AccessToken;
 use App\Models\Concepts;
 use App\Models\Disciplines;
 use App\Models\Notes;
@@ -68,9 +70,11 @@ readonly class AppRepository
             ->map(fn (Disciplines $discipline): DisciplinesDTO => DisciplinesDTO::fromModel($discipline));
     }
 
-    public function getNoteById(int $id): ?NotesDTO
+    public function getNoteById(int $id, int $accessTokenId): ?NotesDTO
     {
-        $note = Notes::with(['concepts', 'pastoral_advice', 'references'])->find($id);
+        $note = Notes::with(['concepts', 'pastoral_advice', 'references'])
+            ->where('access_token_id', $accessTokenId)
+            ->find($id);
 
         return $note ? NotesDTO::fromModel($note) : null;
     }
@@ -78,10 +82,11 @@ readonly class AppRepository
     /**
      * @return Collection<int, NotesDTO>
      */
-    public function getNotesByDisciplineId(int $disciplineId): Collection
+    public function getNotesByDisciplineId(int $disciplineId, int $accessTokenId): Collection
     {
         return Notes::with(['concepts', 'pastoral_advice', 'references'])
             ->where('discipline_id', $disciplineId)
+            ->where('access_token_id', $accessTokenId)
             ->get()
             ->map(fn (Notes $note): NotesDTO => NotesDTO::fromModel($note));
     }
@@ -94,7 +99,61 @@ readonly class AppRepository
             'tags' => $data->tags,
             'impressions' => $data->impressions,
             'life_experiences' => $data->life_experiences,
+            'access_token_id' => $data->access_token_id,
         ]);
+    }
+
+    /**
+     * @return array{plainTextToken: string, token: AccessTokenDTO}
+     */
+    public function createAccessToken(string $name): array
+    {
+        $plainText = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+
+        $token = AccessToken::create([
+            'name' => $name,
+            'token' => hash('sha256', $plainText),
+        ]);
+
+        return ['plainTextToken' => $plainText, 'token' => AccessTokenDTO::fromModel($token)];
+    }
+
+    /**
+     * @return Collection<int, AccessTokenDTO>
+     */
+    public function listAccessTokens(): Collection
+    {
+        return AccessToken::orderByDesc('created_at')
+            ->get()
+            ->map(fn (AccessToken $token): AccessTokenDTO => AccessTokenDTO::fromModel($token));
+    }
+
+    public function findValidAccessTokenByPlainText(string $plainText): ?AccessTokenDTO
+    {
+        $token = AccessToken::where('token', hash('sha256', $plainText))
+            ->whereNull('revoked_at')
+            ->first();
+
+        return $token ? AccessTokenDTO::fromModel($token) : null;
+    }
+
+    public function isAccessTokenActive(int $id): bool
+    {
+        return AccessToken::where('id', $id)
+            ->whereNull('revoked_at')
+            ->exists();
+    }
+
+    public function touchAccessTokenLastUsed(int $id): void
+    {
+        AccessToken::where('id', $id)->update(['last_used_at' => now()]);
+    }
+
+    public function revokeAccessToken(int $id): bool
+    {
+        return (bool) AccessToken::where('id', $id)
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now()]);
     }
 
     public function createConcept(int $noteId, ConceptsDTO $data): Concepts

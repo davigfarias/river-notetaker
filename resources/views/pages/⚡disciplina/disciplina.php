@@ -42,8 +42,7 @@ new #[Title('Disciplinas')] class extends Component
 
         $firstNote = $this->notes->first();
 
-        if ($firstNote)
-        {
+        if ($firstNote) {
             $this->selectedNoteId = $firstNote->id;
         }
     }
@@ -55,7 +54,7 @@ new #[Title('Disciplinas')] class extends Component
     public function notes(): Collection
     {
         return collect(
-            $this->disciplineNotes->handle($this->disciplineDTO->id)->data ?? []
+            $this->disciplineNotes->handle($this->disciplineDTO->id, (int) session('access_token_id'))->data ?? []
         );
     }
 

@@ -20,6 +20,7 @@ class NotesDTO implements Arrayable, Wireable
     public function __construct(
         public int|string|null $id = null,
         public ?int $discipline_id = null,
+        public ?int $access_token_id = null,
         public ?string $title = null,
         public ?array $tags = null,
         public ?array $concepts = null,
@@ -50,6 +51,7 @@ class NotesDTO implements Arrayable, Wireable
         return [
             'id' => $this->id,
             'discipline_id' => $this->discipline_id,
+            'access_token_id' => $this->access_token_id,
             'title' => $this->title,
             'tags' => $this->tags,
             'concepts' => $this->concepts
@@ -75,6 +77,7 @@ class NotesDTO implements Arrayable, Wireable
         return new self(
             id: $model->id,
             discipline_id: $model->discipline_id,
+            access_token_id: $model->access_token_id,
             title: $model->title,
             tags: $model->tags,
 
@@ -97,6 +100,7 @@ class NotesDTO implements Arrayable, Wireable
         return new self(
             id: $value['id'] ?? null,
             discipline_id: $value['discipline_id'] ?? null,
+            access_token_id: $value['access_token_id'] ?? null,
             title: $value['title'] ?? null,
             tags: $value['tags'] ?? null,
 

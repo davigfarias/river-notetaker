@@ -8,22 +8,22 @@ use App\Repository\AppRepository;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
-final readonly class GetDisciplineNotes
+final readonly class ListAccessTokens
 {
     public function __construct(
         private AppRepository $appRepository
     ) {}
 
-    public function handle(int $disciplineId, int $accessTokenId): Outcome
+    public function handle(): Outcome
     {
         try {
-            $data = $this->appRepository->getNotesByDisciplineId($disciplineId, $accessTokenId);
+            $data = $this->appRepository->listAccessTokens();
 
             return Outcome::noViewMessage(data: $data);
         } catch (\Exception $e) {
             Log::error("Erro: {$e->getMessage()}");
 
-            return Outcome::failure(message: 'Não foi possível carregar as notas da disciplina.');
+            return Outcome::failure(message: 'Não foi possível listar os tokens.');
         }
     }
 }

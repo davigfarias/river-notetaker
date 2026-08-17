@@ -1,11 +1,17 @@
 <?php
 
-use App\Actions\{GetAllDisciplines, GetTags, ObserveTerm};
+use App\Actions\GetAllDisciplines;
+use App\Actions\GetTags;
+use App\Actions\ObserveTerm;
 use App\Actions\Orchestrators\SaveNote;
-use App\DTO\{AdvicesDTO, ConceptsDTO, NotesDTO, ReferencesDTO};
+use App\DTO\AdvicesDTO;
+use App\DTO\ConceptsDTO;
+use App\DTO\NotesDTO;
+use App\DTO\ReferencesDTO;
 use App\Enums\ReferencesIcon;
 use Flux\Flux;
-use Livewire\Attributes\{Computed, Title};
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Criar uma Nova Nota')] class extends Component
@@ -77,16 +83,14 @@ new #[Title('Criar uma Nova Nota')] class extends Component
     {
         $typed = $this->notes->concepts[$index] ?? null;
 
-        if (! $typed)
-        {
+        if (! $typed) {
             return;
         }
 
         $check = $action
             ->handle(trim($typed->term));
 
-        match ($check->data)
-        {
+        match ($check->data) {
             true => Flux::toast(text: 'O conceito já está registrado no sistema!', variant: 'alert'),
             false => null,
         };
@@ -119,8 +123,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
     private function filterConcepts(): array
     {
-        $concepts = array_filter($this->notes->concepts ?? [], function ($concept)
-        {
+        $concepts = array_filter($this->notes->concepts ?? [], function ($concept) {
             return ! empty(trim($concept->term ?? ''))
                 && ! empty(trim($concept->definition ?? ''));
         });
@@ -130,8 +133,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
     private function filterPastoralAdvice(): array
     {
-        $advices = array_filter($this->notes->pastoral_advice ?? [], function ($pastoral)
-        {
+        $advices = array_filter($this->notes->pastoral_advice ?? [], function ($pastoral) {
             return ! empty(trim($pastoral->category ?? ''))
                 && ! empty(trim($pastoral->advice ?? ''));
         });
@@ -141,8 +143,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
     private function filterReferences(): array
     {
-        $refs = array_filter($this->notes->references ?? [], function ($ref)
-        {
+        $refs = array_filter($this->notes->references ?? [], function ($ref) {
             return ! empty(trim($ref->type ?? ''))
                 && ! empty(trim($ref->reference_text ?? ''));
         });
@@ -155,8 +156,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
     {
         $check = $action->handle();
 
-        match ($check->success)
-        {
+        match ($check->success) {
             true => $this->tags = $check->data,
             false => $this->tags = null,
         };
@@ -178,15 +178,14 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         $this->notes->concepts = $this->filterConcepts();
         $this->notes->pastoral_advice = $this->filterPastoralAdvice();
         $this->notes->references = $this->filterReferences();
+        $this->notes->access_token_id = (int) session('access_token_id');
 
         $outcome = $action->handle($this->notes);
 
-        if ($outcome->success)
-        {
+        if ($outcome->success) {
             Flux::toast(text: 'Anotação salva com sucesso.', variant: 'success');
             $this->redirectRoute('dashboard', navigate: true);
-        } else
-        {
+        } else {
             Flux::toast(text: $outcome->message, variant: 'danger');
         }
     }

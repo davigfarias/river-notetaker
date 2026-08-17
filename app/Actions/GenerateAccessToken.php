@@ -8,22 +8,22 @@ use App\Repository\AppRepository;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
-final readonly class GetDisciplineNotes
+final readonly class GenerateAccessToken
 {
     public function __construct(
         private AppRepository $appRepository
     ) {}
 
-    public function handle(int $disciplineId, int $accessTokenId): Outcome
+    public function handle(string $name): Outcome
     {
         try {
-            $data = $this->appRepository->getNotesByDisciplineId($disciplineId, $accessTokenId);
+            $result = $this->appRepository->createAccessToken($name);
 
-            return Outcome::noViewMessage(data: $data);
+            return Outcome::success(message: 'Token gerado com sucesso.', data: $result);
         } catch (\Exception $e) {
             Log::error("Erro: {$e->getMessage()}");
 
-            return Outcome::failure(message: 'Não foi possível carregar as notas da disciplina.');
+            return Outcome::failure(message: 'Não foi possível gerar o token.');
         }
     }
 }
