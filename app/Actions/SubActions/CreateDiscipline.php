@@ -7,7 +7,6 @@ namespace App\Actions\SubActions;
 use App\Repository\AppRepository;
 use App\Support\Outcome;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 final readonly class CreateDiscipline
@@ -21,8 +20,6 @@ final readonly class CreateDiscipline
         try {
             $this->appRepository
                 ->createDiscipline($title, $icon);
-
-            Cache::forget('disciplines');
 
             return Outcome::success('Agora ela estará disponível no seu painel');
         } catch (UniqueConstraintViolationException $e) {

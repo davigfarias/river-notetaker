@@ -6,7 +6,6 @@ namespace App\Actions;
 
 use App\Repository\AppRepository;
 use App\Support\Outcome;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 final readonly class GetDisciplines
@@ -18,9 +17,7 @@ final readonly class GetDisciplines
     public function handle(): Outcome
     {
         try {
-            $data = Cache::remember('disciplines',
-                now()->addHour(),
-                fn () => $this->appRepository->getDisciplines());
+            $data = $this->appRepository->getDisciplines();
 
             return Outcome::noViewMessage($data);
         } catch (\Exception $e) {

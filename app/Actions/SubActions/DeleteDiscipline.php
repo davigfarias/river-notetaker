@@ -7,7 +7,6 @@ namespace App\Actions\SubActions;
 use App\Repository\AppRepository;
 use App\Support\Outcome;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 final readonly class DeleteDiscipline
@@ -20,8 +19,6 @@ final readonly class DeleteDiscipline
     {
         try {
             $this->appRepository->deleteDisciplines($id);
-
-            Cache::forget('disciplines');
 
             return Outcome::success('Disciplina removida com sucesso!');
         } catch (QueryException $e) {
