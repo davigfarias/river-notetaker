@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Generators;
 
+use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(name: 'make:repository')]
-#[\Illuminate\Console\Attributes\Description('Cria uma nova classe de Repository')]
+#[Description('Cria uma nova classe de Repository')]
 class RepositoryMakeCommand extends GeneratorCommand
 {
     protected $name = 'make:repository';

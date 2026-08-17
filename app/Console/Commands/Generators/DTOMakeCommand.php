@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Generators;
 
+use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(name: 'make:dto')]
-#[\Illuminate\Console\Attributes\Description('Cria um novo DTO (Data Transfer Object)')]
+#[Description('Cria um novo DTO (Data Transfer Object)')]
 class DTOMakeCommand extends GeneratorCommand
 {
     protected $name = 'make:dto';

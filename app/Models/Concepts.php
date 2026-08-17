@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Scout\Searchable;
@@ -12,12 +14,12 @@ use Laravel\Scout\Searchable;
  * @property string $term
  * @property string $definition
  */
-#[\Illuminate\Database\Eloquent\Attributes\Fillable([
+#[Fillable([
     'note_id',
     'term',       // Corrigido
     'definition', // Corrigido
 ])]
-#[\Illuminate\Database\Eloquent\Attributes\Table(name: 'concepts')]
+#[Table(name: 'concepts')]
 class Concepts extends Model
 {
     use Searchable;

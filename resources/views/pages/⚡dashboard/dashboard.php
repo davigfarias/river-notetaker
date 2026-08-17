@@ -1,12 +1,15 @@
 <?php
 
-use App\Actions\{GetDisciplines, SubActions\DeleteDiscipline, SubActions\CreateDiscipline};
+use App\Actions\GetDisciplines;
+use App\Actions\SubActions\CreateDiscipline;
+use App\Actions\SubActions\DeleteDiscipline;
 use App\DTO\DisciplinesDTO;
 use App\Enums\DisciplineIcon;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\{Computed, Title};
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Dashboard')] class extends Component
@@ -69,8 +72,7 @@ new #[Title('Dashboard')] class extends Component
         $check = $action
             ->handle();
 
-        match ($check->success)
-        {
+        match ($check->success) {
             true => $this->disciplines = $check->data,
             false => $this->disciplines = null
         };
@@ -100,8 +102,7 @@ new #[Title('Dashboard')] class extends Component
 
         $this->disciplines($getDisciplines);
 
-        match ($check->success)
-        {
+        match ($check->success) {
             true => Flux::toast(heading: 'Disciplina criada', text: $check->message, variant: 'success'),
             false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
@@ -116,8 +117,7 @@ new #[Title('Dashboard')] class extends Component
 
         $this->disciplines($getDisciplines);
 
-        match ($check->success)
-        {
+        match ($check->success) {
             true => Flux::toast(text: $check->message, variant: 'success'),
             false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };

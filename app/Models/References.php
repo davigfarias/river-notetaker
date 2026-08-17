@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Scout\Searchable;
@@ -12,12 +14,12 @@ use Laravel\Scout\Searchable;
  * @property string $type
  * @property string $reference_text
  */
-#[\Illuminate\Database\Eloquent\Attributes\Fillable([
+#[Fillable([
     'note_id',
     'type',
     'reference_text',
 ])]
-#[\Illuminate\Database\Eloquent\Attributes\Table(name: 'references')]
+#[Table(name: 'references')]
 class References extends Model
 {
     use Searchable;

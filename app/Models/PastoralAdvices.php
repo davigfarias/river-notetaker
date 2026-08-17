@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Scout\Searchable;
@@ -14,12 +16,12 @@ use Laravel\Scout\Searchable;
  * @property string $category,
  * @property string $advice
  */
-#[\Illuminate\Database\Eloquent\Attributes\Fillable([
+#[Fillable([
     'note_id',
     'category',
     'advice',
 ])]
-#[\Illuminate\Database\Eloquent\Attributes\Table(name: 'pastoral_advices')]
+#[Table(name: 'pastoral_advices')]
 class PastoralAdvices extends Model
 {
     use Searchable;

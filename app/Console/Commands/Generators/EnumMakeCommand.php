@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Generators;
 
+use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(name: 'make:enum')]
-#[\Illuminate\Console\Attributes\Description('Cria um novo Enum')]
+#[Description('Cria um novo Enum')]
 class EnumMakeCommand extends GeneratorCommand
 {
     protected $name = 'make:enum';

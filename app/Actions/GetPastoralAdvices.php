@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 

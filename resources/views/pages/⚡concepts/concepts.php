@@ -1,8 +1,12 @@
 <?php
 
-use App\Actions\{GetConceptsByLetter, GetRecentConcepts, SearchConcept};
+use App\Actions\GetConceptsByLetter;
+use App\Actions\GetRecentConcepts;
+use App\Actions\SearchConcept;
 use Illuminate\Support\Collection;
-use Livewire\Attributes\{Computed, Title, Url};
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new #[Title('Conceitos')] class extends Component

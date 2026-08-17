@@ -30,7 +30,7 @@ readonly class Date extends ValueObject
     {
         $parsed = Carbon::createFromFormat($format, $date);
 
-        if (!$parsed instanceof \Carbon\Carbon) {
+        if (! $parsed instanceof Carbon) {
             throw new InvalidArgumentException("A data informada é inválida: {$date}");
         }
 

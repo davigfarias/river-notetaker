@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 use Sushi\Sushi;
@@ -12,7 +13,7 @@ use Sushi\Sushi;
  * @property-read int|string $id
  * @property-read string $title
  */
-#[\Illuminate\Database\Eloquent\Attributes\Table(name: 'tags')]
+#[Table(name: 'tags')]
 class Tags extends Model
 {
     use Searchable, Sushi;

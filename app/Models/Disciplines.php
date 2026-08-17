@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\DisciplineFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,12 +18,12 @@ use Laravel\Scout\Searchable;
  * @property string $icon
  */
 #[UseFactory(DisciplineFactory::class)]
-#[\Illuminate\Database\Eloquent\Attributes\Fillable([
+#[Fillable([
     'title',
     'slug',
     'icon',
 ])]
-#[\Illuminate\Database\Eloquent\Attributes\Table(name: 'disciplines')]
+#[Table(name: 'disciplines')]
 class Disciplines extends Model
 {
     /** @use HasFactory<DisciplineFactory> */
