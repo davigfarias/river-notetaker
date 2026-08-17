@@ -76,6 +76,14 @@
 }
 
 .CodeMirror {
+    border: none; 
+    border-bottom-left-radius: 0.75rem; /* rounded-xl do seu card */
+    border-bottom-right-radius: 0.75rem;
+    height: 100% !important;
+    min-height: 150px !important;
+}
+
+.CodeMirror {
     @apply !bg-transparent !text-on-surface-variant;
     border: none !important;
     font-family: inherit !important;

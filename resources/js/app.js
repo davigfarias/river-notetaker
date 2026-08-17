@@ -12,8 +12,9 @@ document.addEventListener('alpine:init', () => {
                 spellChecker: false,
                 status: false,
                 initialValue: this.content,
-                // Puxa o placeholder direto do HTML para ficar dinâmico
-                placeholder: this.$refs.textarea.getAttribute('placeholder')
+                placeholder: this.$refs.textarea.getAttribute('placeholder'),
+                minHeight: "200px",
+                maxHeight: "200px"
             });
 
             // Sincroniza JS -> Livewire
