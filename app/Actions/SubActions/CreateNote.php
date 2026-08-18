@@ -5,20 +5,23 @@ declare(strict_types=1);
 namespace App\Actions\SubActions;
 
 use App\DTO\NotesDTO;
-use App\Repository\AppRepository;
+use App\Models\Notes;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class CreateNote
 {
-    public function __construct(
-        private AppRepository $appRepository,
-    ) {}
-
     public function handle(NotesDTO $data): Outcome
     {
         try {
-            $note = $this->appRepository->saveNote($data);
+            $note = Notes::create([
+                'discipline_id' => $data->discipline_id,
+                'title' => $data->title,
+                'tags' => $data->tags,
+                'impressions' => $data->impressions,
+                'life_experiences' => $data->life_experiences,
+                'access_token_id' => $data->access_token_id,
+            ]);
 
             return Outcome::noViewMessage(data: $note);
 

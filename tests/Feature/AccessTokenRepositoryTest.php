@@ -1,12 +1,12 @@
 <?php
 
+use App\Actions\GenerateAccessToken;
+use App\Actions\RevokeAccessToken;
+use App\Actions\ValidateAccessToken;
 use App\Models\AccessToken;
-use App\Repository\AppRepository;
 
 test('createAccessToken returns the plaintext code once and stores only its hash', function () {
-    $repository = app(AppRepository::class);
-
-    $result = $repository->createAccessToken('davi-cli');
+    $result = app(GenerateAccessToken::class)->handle('davi-cli')->data;
 
     expect($result['plainTextToken'])->toMatch('/^\d{4}$/');
     expect($result['token']->name)->toBe('davi-cli');
@@ -16,25 +16,22 @@ test('createAccessToken returns the plaintext code once and stores only its hash
 });
 
 test('findValidAccessTokenByPlainText finds an active token and misses a revoked or unknown one', function () {
-    $repository = app(AppRepository::class);
-
-    $result = $repository->createAccessToken('ativo');
+    $result = app(GenerateAccessToken::class)->handle('ativo')->data;
     $revoked = AccessToken::factory()->revoked()->create();
 
-    expect($repository->findValidAccessTokenByPlainText($result['plainTextToken']))->not->toBeNull();
-    expect($repository->findValidAccessTokenByPlainText('0000'))->toBeNull();
+    expect(app(ValidateAccessToken::class)->handle($result['plainTextToken'])->success)->toBeTrue();
+    expect(app(ValidateAccessToken::class)->handle('0000')->success)->toBeFalse();
 
     $revokedPlainText = '9999';
     $revoked->update(['token' => hash('sha256', $revokedPlainText)]);
-    expect($repository->findValidAccessTokenByPlainText($revokedPlainText))->toBeNull();
+    expect(app(ValidateAccessToken::class)->handle($revokedPlainText)->success)->toBeFalse();
 });
 
 test('revokeAccessToken sets revoked_at and is idempotent', function () {
-    $repository = app(AppRepository::class);
     $token = AccessToken::factory()->create();
 
-    expect($repository->revokeAccessToken($token->id))->toBeTrue();
+    expect(app(RevokeAccessToken::class)->handle($token->id)->success)->toBeTrue();
     expect($token->fresh()->revoked_at)->not->toBeNull();
 
-    expect($repository->revokeAccessToken($token->id))->toBeFalse();
+    expect(app(RevokeAccessToken::class)->handle($token->id)->success)->toBeFalse();
 });

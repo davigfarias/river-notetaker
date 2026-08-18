@@ -4,21 +4,18 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
+use App\DTO\ConceptsDTO;
+use App\Models\Concepts;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class GetAllConcepts
 {
-    public function __construct(
-        private AppRepository $appRepository,
-    ) {}
-
     public function handle(): Outcome
     {
         try {
-            $data = $this->appRepository
-                ->getAllConcepts();
+            $data = Concepts::all()
+                ->map(fn (Concepts $concept): ConceptsDTO => ConceptsDTO::fromModel($concept));
 
             return Outcome::noViewMessage(data: $data);
         } catch (\Exception $e) {

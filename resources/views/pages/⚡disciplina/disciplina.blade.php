@@ -73,93 +73,111 @@
                     </div>
 
                     <div class="space-y-8">
-                        <section>
-                            <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                <flux:icon name="light-bulb" class="text-primary size-5" />
-                                <flux:heading size="sm">CONCEITOS</flux:heading>
-                            </div>
-                            <div class="space-y-3">
-                                @foreach ($this->selectedNote->concepts ?? [] as $concept)
-                                    <div class="border-surface-variant bg-surface-container-lowest rounded-lg border p-3">
-                                        <div class="font-semibold">{{ $concept->term }}</div>
-                                        <flux:text class="mt-1">{{ $concept->definition }}</flux:text>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </section>
-
-                        <section>
-                            <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                <flux:icon name="hand-raised" class="text-secondary size-5" />
-                                <flux:heading size="sm">CONSELHOS PASTORAIS</flux:heading>
-                            </div>
-                            <div class="space-y-3">
-                                @foreach($this->selectedNote->pastoral_advice ?? [] as $advice)
-                                    <div class="border-surface-variant bg-surface-container-lowest rounded-lg border p-3">
-                                        <div class="font-semibold">{{ $advice->category }}</div>
-                                        <flux:text class="mt-1">{{ $advice->advice }}</flux:text>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </section>
-
-
-                        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        @if(filled($this->selectedNote->concepts))
                             <section>
                                 <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                    <flux:icon name="sparkles" class="text-tertiary size-5" />
-                                    <flux:heading size="sm">IMPRESSÕES</flux:heading>
+                                    <flux:icon name="light-bulb" class="text-primary size-5" />
+                                    <flux:heading size="sm">CONCEITOS</flux:heading>
                                 </div>
-                                <div class="prose dark:prose-invert">
-                                    {!! Str::markdown($this->selectedNote->impressions) !!}
+                                <div class="space-y-3">
+                                    @foreach ($this->selectedNote->concepts ?? [] as $concept)
+                                        <div class="border-surface-variant bg-surface-container-lowest rounded-lg border p-3">
+                                            <div class="font-semibold">{{ $concept->term }}</div>
+                                            <flux:text class="mt-1">{{ $concept->definition }}</flux:text>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </section>
+                        @endif
 
+                        @if(filled($this->selectedNote->pastoral_advice))
                             <section>
                                 <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                    <flux:icon name="book-open" class="text-on-surface-variant size-5" />
-                                    <flux:heading size="sm">EXPERIÊNCIAS DE VIDA</flux:heading>
+                                    <flux:icon name="hand-raised" class="text-secondary size-5" />
+                                    <flux:heading size="sm">CONSELHOS PASTORAIS</flux:heading>
                                 </div>
-                                <div class="prose dark:prose-invert">
-                                    {!! Str::markdown($this->selectedNote->life_experiences) !!}
+                                <div class="space-y-3">
+                                    @foreach($this->selectedNote->pastoral_advice ?? [] as $advice)
+                                        <div class="border-surface-variant bg-surface-container-lowest rounded-lg border p-3">
+                                            <div class="font-semibold">{{ $advice->category }}</div>
+                                            <flux:text class="mt-1">{{ $advice->advice }}</flux:text>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </section>
-                        </div>
+                        @endif
 
-                        <section>
-                            <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                <flux:icon name="link" class="text-on-surface-variant size-5" />
-                                <flux:heading size="sm">REFERÊNCIAS</flux:heading>
+
+                        @php
+                            $hasImpressions = filled($this->selectedNote->impressions);
+                            $hasLifeExperiences = filled($this->selectedNote->life_experiences);
+                            $bothPresent = $hasImpressions && $hasLifeExperiences;
+                        @endphp
+
+                        @if ($hasImpressions || $hasLifeExperiences)
+                            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                @if ($hasImpressions)
+                                    <section class="{{ $bothPresent ? '' : 'lg:col-span-2' }}">
+                                        <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
+                                            <flux:icon name="sparkles" class="text-tertiary size-5" />
+                                            <flux:heading size="sm">IMPRESSÕES</flux:heading>
+                                        </div>
+                                        <div class="prose dark:prose-invert">
+                                            {!! Str::markdown($this->selectedNote->impressions) !!}
+                                        </div>
+                                    </section>
+                                @endif
+
+                                @if ($hasLifeExperiences)
+                                    <section class="{{ $bothPresent ? '' : 'lg:col-span-2' }}">
+                                        <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
+                                            <flux:icon name="book-open" class="text-on-surface-variant size-5" />
+                                            <flux:heading size="sm">EXPERIÊNCIAS DE VIDA</flux:heading>
+                                        </div>
+                                        <div class="prose dark:prose-invert">
+                                            {!! Str::markdown($this->selectedNote->life_experiences) !!}
+                                        </div>
+                                    </section>
+                                @endif
                             </div>
+                        @endif
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                @foreach($this->selectedNote->references ?? [] as $reference)
-                                    <div class="border-surface-variant bg-surface-container-lowest flex flex-col justify-between rounded-lg border p-3 shadow-sm transition-shadow hover:shadow-md h-full">
+                        @if(filled($this->selectedNote->references))
+                            <section>
+                                <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
+                                    <flux:icon name="link" class="text-on-surface-variant size-5" />
+                                    <flux:heading size="sm">REFERÊNCIAS</flux:heading>
+                                </div>
 
-                                        @php
-                                            $iconEnum = \App\Enums\ReferencesIcon::tryFrom($reference->type)
-                                                        ?? \App\Enums\ReferencesIcon::BookOpen;
-                                        @endphp
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    @foreach($this->selectedNote->references ?? [] as $reference)
+                                        <div class="border-surface-variant bg-surface-container-lowest flex flex-col justify-between rounded-lg border p-3 shadow-sm transition-shadow hover:shadow-md h-full">
 
-                                        <div class="flex items-center gap-2 mb-2">
-                                            <div class="bg-surface-variant/30 flex p-1.5 rounded-md">
-                                                <flux:icon :name="$iconEnum->value" class="size-4 text-on-surface-variant" />
+                                            @php
+                                                $iconEnum = \App\Enums\ReferencesIcon::tryFrom($reference->type)
+                                                            ?? \App\Enums\ReferencesIcon::BookOpen;
+                                            @endphp
+
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <div class="bg-surface-variant/30 flex p-1.5 rounded-md">
+                                                    <flux:icon :name="$iconEnum->value" class="size-4 text-on-surface-variant" />
+                                                </div>
+                                                <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">
+                                                    {{ $iconEnum->label() }}
+                                                </span>
                                             </div>
-                                            <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">
-                                                {{ $iconEnum->label() }}
-                                            </span>
-                                        </div>
 
-                                        <div class="mt-auto">
-                                            <flux:text class="text-xs font-medium leading-snug line-clamp-3" title="{{ $reference->reference_text }}">
-                                                {{ $reference->reference_text }}
-                                            </flux:text>
-                                        </div>
+                                            <div class="mt-auto">
+                                                <flux:text class="text-xs font-medium leading-snug line-clamp-3" title="{{ $reference->reference_text }}">
+                                                    {{ $reference->reference_text }}
+                                                </flux:text>
+                                            </div>
 
-                                    </div>
-                                @endforeach
-                            </div>
-                        </section>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
                     </div>
                 </div>
             @else

@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
+use App\DTO\NotesDTO;
+use App\Models\Notes;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class GetNote
 {
-    public function __construct(
-        private AppRepository $appRepository
-    ) {}
-
     public function handle(int $id, int $accessTokenId): Outcome
     {
         try {
-            $data = $this->appRepository->getNoteById($id, $accessTokenId);
+            $note = Notes::with(['concepts', 'pastoral_advice', 'references'])
+                ->where('access_token_id', $accessTokenId)
+                ->find($id);
+
+            $data = $note ? NotesDTO::fromModel($note) : null;
 
             return Outcome::noViewMessage(data: $data);
         } catch (\Exception $e) {

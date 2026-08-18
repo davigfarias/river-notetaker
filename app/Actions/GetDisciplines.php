@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
+use App\DTO\DisciplinesDTO;
+use App\Models\Disciplines;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class GetDisciplines
 {
-    public function __construct(
-        private AppRepository $appRepository,
-    ) {}
-
     public function handle(): Outcome
     {
         try {
-            $data = $this->appRepository->getDisciplines();
+            $data = Disciplines::all()
+                ->map(fn (Disciplines $discipline): DisciplinesDTO => DisciplinesDTO::fromModel($discipline));
 
             return Outcome::noViewMessage($data);
         } catch (\Exception $e) {

@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
+use App\Models\AccessToken;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class RevokeAccessToken
 {
-    public function __construct(
-        private AppRepository $appRepository
-    ) {}
-
     public function handle(int $id): Outcome
     {
         try {
-            $revoked = $this->appRepository->revokeAccessToken($id);
+            $revoked = (bool) AccessToken::where('id', $id)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
 
             if (! $revoked) {
                 return Outcome::failure(message: 'Token não encontrado ou já revogado.');

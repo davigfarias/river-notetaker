@@ -12,6 +12,12 @@
                 <flux:heading size="xl" level="1">Dicionário de Conceitos</flux:heading>
                 <flux:text class="mt-2">Visão geral e glossário de conceitos.</flux:text>
             </div>
+
+            <div>
+                <flux:modal.trigger name="add-concept">
+                    <flux:button>Adicionar um novo conceito</flux:button>
+                </flux:modal.trigger>
+            </div>
         </div>
 
         <div class="mb-8">
@@ -48,7 +54,7 @@
                     wire:click="selectLetter('{{ $letter }}')"
                     size="sm"
                     variant="{{ $selectedLetter === $letter ? 'primary' : 'subtle' }}"
-                    class="w-10 h-10 flex items-center justify-center !px-0"
+                    class="w-10 h-10 flex items-center justify-center px-0!"
                 >
                     {{ $letter }}
                 </flux:button>
@@ -125,10 +131,9 @@
                 @endforeach
             </div>
 
-            <!-- RENDERIZAÇÃO DAS MODAIS FORA DO GRID E DO OVERFLOW-HIDDEN -->
             @foreach ($this->conceptsDTO as $concept)
                 @if(mb_strlen($concept->definition) > 85)
-                    <flux:modal name="modal-concept-{{ $loop->index }}" class="min-w-[22rem] md:w-[32rem] space-y-6">
+                    <flux:modal name="modal-concept-{{ $loop->index }}" class="min-w-88 md:w-lg space-y-6">
                         <div>
                             <flux:heading size="xl" class="mb-4">{{ $concept->term }}</flux:heading>
 
@@ -147,5 +152,36 @@
             @endforeach
         @endif
 
+        <flux:modal name="add-concept" class="md:w-96">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Adicionar um novo conceito</flux:heading>
+                    <flux:text class="mt-2">Precisa de um conceito sem precisar de uma nota? Adicione diretamente aqui.</flux:text>
+                </div>
+
+                <flux:input 
+                    label="Termo" 
+                    wire:model='formConcept.term' 
+                    placeholder="Ex: Graça" />
+                <div>
+                    @error('form.term') <span class="error">{{ $message }}</span> @enderror
+                </div>
+                <flux:textarea
+                    label="Definição"
+                    wire:model='formConcept.definition'
+                    placeholder="Favor imerecido..."
+                />
+                <div>
+                    @error('formConcept.definition') <span class="error">{{ $message }}</span> @enderror
+                </div>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button 
+                        type="submit" 
+                        variant="primary" 
+                        wire:click="addSoleConcept">Adicionar Conceito</flux:button>
+                </div>
+            </div>
+        </flux:modal>
     </div>
 </div>

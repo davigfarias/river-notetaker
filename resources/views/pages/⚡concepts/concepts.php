@@ -1,13 +1,18 @@
 <?php
 
-use App\Actions\GetConceptsByLetter;
-use App\Actions\GetRecentConcepts;
-use App\Actions\SearchConcept;
+use App\Actions\{
+    GetConceptsByLetter, 
+    GetRecentConcepts, 
+    SearchConcept,
+    AddSoleConcept};
 use Illuminate\Support\Collection;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Url;
+use Livewire\Attributes\{
+    Computed, 
+    Title, 
+    Url};
+use App\DTO\SoleConceptDTO;
 use Livewire\Component;
+use Flux\Flux;
 
 new #[Title('Conceitos')] class extends Component
 {
@@ -18,6 +23,8 @@ new #[Title('Conceitos')] class extends Component
     public ?string $search = null;
 
     public ?Collection $conceptsDTO = null;
+
+    public SoleConceptDTO $formConcept;
 
     public function mount(GetConceptsByLetter $getByLetter, GetRecentConcepts $getRecent, SearchConcept $searchAction): void
     {
@@ -73,5 +80,21 @@ new #[Title('Conceitos')] class extends Component
     public function alphabet(): array
     {
         return range('A', 'Z');
+    }
+
+    public function addSoleConcept(AddSoleConcept $action)
+    {
+        $this->formConcept->validate();
+
+        $check = $action->handle($this->formConcept);
+
+        match ($check->success) {
+            true => Flux::toast(text: $check->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+        };
+
+        $this->modal('add-concept')->close();
+
+        $this->formConcept->reset();
     }
 };

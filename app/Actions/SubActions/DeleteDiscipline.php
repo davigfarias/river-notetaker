@@ -4,21 +4,17 @@ declare(strict_types=1);
 
 namespace App\Actions\SubActions;
 
-use App\Repository\AppRepository;
+use App\Models\Disciplines;
 use App\Support\Outcome;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 
 final readonly class DeleteDiscipline
 {
-    public function __construct(
-        private AppRepository $appRepository,
-    ) {}
-
     public function handle(int $id): Outcome
     {
         try {
-            $this->appRepository->deleteDisciplines($id);
+            Disciplines::where('id', $id)->delete();
 
             return Outcome::success('Disciplina removida com sucesso!');
         } catch (QueryException $e) {

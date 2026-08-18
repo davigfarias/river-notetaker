@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
+use App\DTO\TagsDTO;
+use App\Models\Tags;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class GetTags
 {
-    public function __construct(
-        private AppRepository $appRepository,
-    ) {}
-
     public function handle(): Outcome
     {
         try {
-            $data = $this->appRepository->getTags();
+            $data = Tags::all()
+                ->map(fn (Tags $tag): TagsDTO => TagsDTO::fromModel($tag));
 
             return Outcome::noViewMessage(data: $data);
         } catch (\Exception $e) {

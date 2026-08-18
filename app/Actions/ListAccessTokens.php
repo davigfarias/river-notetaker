@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
+use App\DTO\AccessTokenDTO;
+use App\Models\AccessToken;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class ListAccessTokens
 {
-    public function __construct(
-        private AppRepository $appRepository
-    ) {}
-
     public function handle(): Outcome
     {
         try {
-            $data = $this->appRepository->listAccessTokens();
+            $data = AccessToken::orderByDesc('created_at')
+                ->get()
+                ->map(fn (AccessToken $token): AccessTokenDTO => AccessTokenDTO::fromModel($token));
 
             return Outcome::noViewMessage(data: $data);
         } catch (\Exception $e) {

@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Actions\SubActions;
 
-use App\Repository\AppRepository;
+use App\Models\Disciplines;
 use App\Support\Outcome;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 final readonly class CreateDiscipline
 {
-    public function __construct(
-        private AppRepository $appRepository,
-    ) {}
-
     public function handle(string $title, string $icon): Outcome
     {
         try {
-            $this->appRepository
-                ->createDiscipline($title, $icon);
+            Disciplines::create([
+                'title' => $title,
+                'slug' => Str::slug($title),
+                'icon' => $icon,
+            ]);
 
             return Outcome::success('Agora ela estará disponível no seu painel');
         } catch (UniqueConstraintViolationException $e) {

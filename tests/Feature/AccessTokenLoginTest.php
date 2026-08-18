@@ -1,12 +1,11 @@
 <?php
 
-use App\Models\AccessToken;
-use App\Repository\AppRepository;
+use App\Actions\GenerateAccessToken;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
 
 test('a valid code logs the session in and redirects to the dashboard', function () {
-    $result = app(AppRepository::class)->createAccessToken('davi-cli');
+    $result = app(GenerateAccessToken::class)->handle('davi-cli')->data;
 
     Livewire::test('pages::entrar')
         ->set('code', $result['plainTextToken'])
@@ -31,7 +30,7 @@ test('repeated invalid attempts are throttled', function () {
         Livewire::test('pages::entrar')->set('code', '0000')->call('entrar');
     }
 
-    $result = app(AppRepository::class)->createAccessToken('valido');
+    $result = app(GenerateAccessToken::class)->handle('valido')->data;
 
     Livewire::test('pages::entrar')
         ->set('code', $result['plainTextToken'])

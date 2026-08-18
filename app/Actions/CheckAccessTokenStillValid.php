@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Repository\AppRepository;
+use App\Models\AccessToken;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
 final readonly class CheckAccessTokenStillValid
 {
-    public function __construct(
-        private AppRepository $appRepository
-    ) {}
-
     public function handle(int $id): Outcome
     {
         try {
-            if (! $this->appRepository->isAccessTokenActive($id)) {
+            $isActive = AccessToken::where('id', $id)
+                ->whereNull('revoked_at')
+                ->exists();
+
+            if (! $isActive) {
                 return Outcome::failure(message: 'Token inválido ou revogado.');
             }
 
