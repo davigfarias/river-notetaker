@@ -14,10 +14,10 @@ final readonly class ObserveTerm
     public function handle(string $term): Outcome
     {
         try {
-            $check = Concepts::whereRaw('LOWER(term) = ?', [Str::lower($term)])
-                ->exists();
+            $existing = Concepts::whereRaw('LOWER(term) = ?', [Str::lower($term)])
+                ->first();
 
-            return Outcome::success(data: $check);
+            return Outcome::success(data: $existing);
         } catch (\Exception $e) {
             Log::error("Erro: {$e->getMessage()}");
 

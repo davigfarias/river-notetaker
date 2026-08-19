@@ -4,13 +4,17 @@ use App\Actions\GetAllDisciplines;
 use App\Actions\GetTags;
 use App\Actions\ObserveTerm;
 use App\Actions\Orchestrators\SaveNote;
+use App\Actions\UpdateConcept;
 use App\DTO\AdvicesDTO;
 use App\DTO\ConceptsDTO;
 use App\DTO\NotesDTO;
 use App\DTO\ReferencesDTO;
+use App\DTO\SoleConceptDTO;
 use App\Enums\ReferencesIcon;
+use App\Models\Concepts;
 use Flux\Flux;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -19,6 +23,12 @@ new #[Title('Criar uma Nova Nota')] class extends Component
     public bool $showDeleteModal = false;
 
     public NotesDTO $notes;
+
+    public SoleConceptDTO $editConceptForm;
+
+    public ?int $editingConceptId = null;
+
+    public bool $editingConcept = false;
 
     protected function rules(): array
     {
@@ -90,10 +100,48 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         $check = $action
             ->handle(trim($typed->term));
 
-        match ($check->data) {
-            true => Flux::toast(text: 'O conceito já está registrado no sistema!', variant: 'alert'),
-            false => null,
+        if ($check->data) {
+            Flux::toast(
+                text: 'O conceito já está registrado no sistema!',
+                variant: 'alert',
+                link: [
+                    'text' => 'Editar conceito existente',
+                    'href' => '#edit-concept-'.$check->data->id,
+                    'navigate' => false,
+                ],
+            );
+        }
+    }
+
+    #[On('edit-concept-requested')]
+    public function openConceptEdit(int $id): void
+    {
+        $concept = Concepts::find($id);
+
+        if (! $concept) {
+            return;
+        }
+
+        $this->editingConceptId = $concept->id;
+        $this->editConceptForm->term = $concept->term;
+        $this->editConceptForm->definition = $concept->definition;
+        $this->editingConcept = true;
+    }
+
+    public function updateConcept(UpdateConcept $action): void
+    {
+        $this->editConceptForm->validate();
+
+        $check = $action->handle($this->editingConceptId, $this->editConceptForm);
+
+        match ($check->success) {
+            true => Flux::toast(text: $check->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
+
+        if ($check->success) {
+            $this->editingConcept = false;
+        }
     }
 
     public function addPastoralAdvice(): void

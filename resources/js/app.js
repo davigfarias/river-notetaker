@@ -1,6 +1,20 @@
 import EasyMDE from 'easymde';
 import 'easymde/dist/easymde.min.css';
 
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('a[href^="#edit-concept-"]');
+
+    if (!trigger) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const id = trigger.getAttribute('href').replace('#edit-concept-', '');
+
+    window.Livewire.dispatch('edit-concept-requested', { id: parseInt(id, 10) });
+});
+
 document.addEventListener('alpine:init', () => {
     // Registra o componente 'markdownEditor'
     Alpine.data('markdownEditor', (entangledContent) => ({

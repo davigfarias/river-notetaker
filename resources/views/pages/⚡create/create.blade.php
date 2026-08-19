@@ -257,4 +257,35 @@
             </div>
         </section>
     </form>
+
+    <flux:modal name="edit-concept" wire:model.self="editingConcept" class="md:w-96">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Editar conceito</flux:heading>
+            </div>
+
+            <flux:input
+                label="Termo"
+                wire:model="editConceptForm.term"
+                placeholder="Ex: Graça" />
+            <div>
+                @error('editConceptForm.term') <span class="error">{{ $message }}</span> @enderror
+            </div>
+            <flux:textarea
+                label="Definição"
+                wire:model="editConceptForm.definition"
+                placeholder="Favor imerecido..."
+            />
+            <div>
+                @error('editConceptForm.definition') <span class="error">{{ $message }}</span> @enderror
+            </div>
+            <div class="flex">
+                <flux:spacer />
+                <flux:button
+                    type="button"
+                    variant="primary"
+                    wire:click="updateConcept">Salvar</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>
