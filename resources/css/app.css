@@ -10,6 +10,19 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+    /* Flux hardcodes zinc-* throughout its stubs — remapped to Catppuccin Mocha's neutral scale so unpublished Flux components (modal, button, table, toast...) match the app. https://fluxui.dev/docs/theming */
+    --color-zinc-50: #cdd6f4;
+    --color-zinc-100: #bac2de;
+    --color-zinc-200: #a6adc8;
+    --color-zinc-300: #9399b2;
+    --color-zinc-400: #7f849c;
+    --color-zinc-500: #6c7086;
+    --color-zinc-600: #585b70;
+    --color-zinc-700: #45475a;
+    --color-zinc-800: #313244;
+    --color-zinc-900: #181825;
+    --color-zinc-950: #11111b;
+
     /* Mocha Studio palette — see mocha_studio/DESIGN.md */
     --color-surface: #111222;
     --color-surface-bright: #37384a;
@@ -30,6 +43,10 @@
     --color-primary-container: #cba6f7;
     --color-on-primary-container: #57377f;
 
+    --color-accent: var(--color-primary);
+    --color-accent-content: var(--color-primary-container);
+    --color-accent-foreground: var(--color-on-primary);
+
     --color-secondary: #bac3ff;
     --color-on-secondary-container: #abb5f4;
     --color-secondary-container: #3b457c;
@@ -45,6 +62,15 @@
 
     --color-background: #111222;
     --color-on-background: #e1e0f8;
+}
+
+/* Flux's own dist CSS sets --color-accent inside a .dark selector, which outranks the plain :root declaration from @theme above — this app is always .dark, so it needs the same treatment. https://fluxui.dev/docs/theming */
+@layer theme {
+    .dark {
+        --color-accent: var(--color-primary);
+        --color-accent-content: var(--color-primary-container);
+        --color-accent-foreground: var(--color-on-primary);
+    }
 }
 
 .editor-toolbar::before, .editor-toolbar::after {

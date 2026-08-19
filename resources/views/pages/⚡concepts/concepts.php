@@ -1,14 +1,16 @@
 <?php
 
 use App\Actions\{
-    GetConceptsByLetter, 
-    GetRecentConcepts, 
+    GetConceptsByLetter,
+    GetRecentConcepts,
     SearchConcept,
-    AddSoleConcept};
+    AddSoleConcept,
+    UpdateConcept};
+use App\DTO\ConceptsDTO;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\{
-    Computed, 
-    Title, 
+    Computed,
+    Title,
     Url};
 use App\DTO\SoleConceptDTO;
 use Livewire\Component;
@@ -25,6 +27,12 @@ new #[Title('Conceitos')] class extends Component
     public ?Collection $conceptsDTO = null;
 
     public SoleConceptDTO $formConcept;
+
+    public SoleConceptDTO $editConceptForm;
+
+    public ?int $editingConceptId = null;
+
+    public bool $editingConcept = false;
 
     public function mount(GetConceptsByLetter $getByLetter, GetRecentConcepts $getRecent, SearchConcept $searchAction): void
     {
@@ -96,5 +104,39 @@ new #[Title('Conceitos')] class extends Component
         $this->modal('add-concept')->close();
 
         $this->formConcept->reset();
+    }
+
+    public function edit(int $id): void
+    {
+        $concept = $this->conceptsDTO->firstWhere('id', $id);
+
+        Flux::modals()->close();
+
+        $this->editingConceptId = $id;
+        $this->editConceptForm->term = $concept->term;
+        $this->editConceptForm->definition = $concept->definition;
+        $this->editingConcept = true;
+    }
+
+    public function updateConcept(UpdateConcept $action): void
+    {
+        $this->editConceptForm->validate();
+
+        $check = $action->handle($this->editingConceptId, $this->editConceptForm);
+
+        match ($check->success) {
+            true => Flux::toast(text: $check->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+        };
+
+        if ($check->success) {
+            $this->conceptsDTO = $this->conceptsDTO->map(
+                fn (ConceptsDTO $concept): ConceptsDTO => $concept->id === $this->editingConceptId
+                    ? new ConceptsDTO($concept->id, $this->editConceptForm->term, $this->editConceptForm->definition)
+                    : $concept
+            );
+
+            $this->editingConcept = false;
+        }
     }
 };

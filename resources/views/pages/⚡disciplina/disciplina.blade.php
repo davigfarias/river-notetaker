@@ -64,49 +64,99 @@
 
                     </div>
 
-                    <flux:heading size="xl" level="1" class="mb-4">{{ $this->selectedNote->title }}</flux:heading>
+                    <section class="group relative mb-4">
+                        <flux:heading size="xl" level="1">{{ $this->selectedNote->title }}</flux:heading>
 
-                    <div class="mb-8 flex flex-wrap gap-2">
-                        @foreach ($this->selectedNote->tags ?? [] as $tag)
-                            <flux:badge>#{{ $tag }}</flux:badge>
-                        @endforeach
-                    </div>
+                        <button
+                            type="button"
+                            wire:click="edit('title')"
+                            class="text-on-surface-variant hover:text-primary absolute top-0 right-0 opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                            <flux:icon name="pencil" class="size-4" />
+                        </button>
+                    </section>
+
+                    <section class="mb-8">
+                        <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
+                            <flux:icon name="hashtag" class="text-primary size-5" />
+                            <flux:heading size="sm">TAGS</flux:heading>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($this->allTags as $tag)
+                                <button
+                                    type="button"
+                                    wire:click="toggleTag('{{ $tag->title }}')"
+                                    class="rounded-full border px-3 py-1.5 text-sm transition-all
+                                    {{ in_array($tag->title, $this->selectedNote->tags ?? [], true)
+                                        ? 'border-primary bg-primary text-white'
+                                        : 'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' }}"
+                                >
+                                    {{ $tag->title }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </section>
 
                     <div class="space-y-8">
-                        @if(filled($this->selectedNote->concepts))
-                            <section>
-                                <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                    <flux:icon name="light-bulb" class="text-primary size-5" />
-                                    <flux:heading size="sm">CONCEITOS</flux:heading>
-                                </div>
-                                <div class="space-y-3">
-                                    @foreach ($this->selectedNote->concepts ?? [] as $concept)
-                                        <div class="border-surface-variant bg-surface-container-lowest rounded-lg border p-3">
-                                            <div class="font-semibold">{{ $concept->term }}</div>
-                                            <flux:text class="mt-1">{{ $concept->definition }}</flux:text>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </section>
-                        @endif
+                        <section class="relative">
+                            <div class="group/header border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
+                                <flux:icon name="light-bulb" class="text-primary size-5" />
+                                <flux:heading size="sm">CONCEITOS</flux:heading>
+                                <flux:spacer />
+                                <button
+                                    type="button"
+                                    wire:click="$set('addingConcept', true)"
+                                    class="text-on-surface-variant hover:text-primary opacity-0 transition-opacity group-hover/header:opacity-100"
+                                >
+                                    <flux:icon name="plus" class="size-4" />
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                @foreach ($this->selectedNote->concepts ?? [] as $concept)
+                                    <div class="group/item border-surface-variant bg-surface-container-lowest relative rounded-lg border p-3">
+                                        <button
+                                            type="button"
+                                            wire:click="editConcept({{ $concept->id }})"
+                                            class="text-on-surface-variant hover:text-primary absolute top-3 right-3 opacity-0 transition-opacity group-hover/item:opacity-100"
+                                        >
+                                            <flux:icon name="pencil" class="size-4" />
+                                        </button>
+                                        <div class="pr-6 font-semibold">{{ $concept->term }}</div>
+                                        <flux:text class="mt-1">{{ $concept->definition }}</flux:text>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </section>
 
-                        @if(filled($this->selectedNote->pastoral_advice))
-                            <section>
-                                <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                    <flux:icon name="hand-raised" class="text-secondary size-5" />
-                                    <flux:heading size="sm">CONSELHOS PASTORAIS</flux:heading>
-                                </div>
-                                <div class="space-y-3">
-                                    @foreach($this->selectedNote->pastoral_advice ?? [] as $advice)
-                                        <div class="border-surface-variant bg-surface-container-lowest rounded-lg border p-3">
-                                            <div class="font-semibold">{{ $advice->category }}</div>
-                                            <flux:text class="mt-1">{{ $advice->advice }}</flux:text>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </section>
-                        @endif
-
+                        <section class="relative">
+                            <div class="group/header border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
+                                <flux:icon name="hand-raised" class="text-secondary size-5" />
+                                <flux:heading size="sm">CONSELHOS PASTORAIS</flux:heading>
+                                <flux:spacer />
+                                <button
+                                    type="button"
+                                    wire:click="$set('addingAdvice', true)"
+                                    class="text-on-surface-variant hover:text-primary opacity-0 transition-opacity group-hover/header:opacity-100"
+                                >
+                                    <flux:icon name="plus" class="size-4" />
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                @foreach($this->selectedNote->pastoral_advice ?? [] as $advice)
+                                    <div class="group/item border-surface-variant bg-surface-container-lowest relative rounded-lg border p-3">
+                                        <button
+                                            type="button"
+                                            wire:click="editAdvice({{ $advice->id }})"
+                                            class="text-on-surface-variant hover:text-primary absolute top-3 right-3 opacity-0 transition-opacity group-hover/item:opacity-100"
+                                        >
+                                            <flux:icon name="pencil" class="size-4" />
+                                        </button>
+                                        <div class="pr-6 font-semibold">{{ $advice->category }}</div>
+                                        <flux:text class="mt-1">{{ $advice->advice }}</flux:text>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </section>
 
                         @php
                             $hasImpressions = filled($this->selectedNote->impressions);
@@ -117,10 +167,18 @@
                         @if ($hasImpressions || $hasLifeExperiences)
                             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                                 @if ($hasImpressions)
-                                    <section class="{{ $bothPresent ? '' : 'lg:col-span-2' }}">
+                                    <section class="group relative {{ $bothPresent ? '' : 'lg:col-span-2' }}">
                                         <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
                                             <flux:icon name="sparkles" class="text-tertiary size-5" />
                                             <flux:heading size="sm">IMPRESSÕES</flux:heading>
+                                            <flux:spacer />
+                                            <button
+                                                type="button"
+                                                wire:click="edit('impressions')"
+                                                class="text-on-surface-variant hover:text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                                            >
+                                                <flux:icon name="pencil" class="size-4" />
+                                            </button>
                                         </div>
                                         <div class="prose dark:prose-invert">
                                             {!! Str::markdown($this->selectedNote->impressions) !!}
@@ -129,10 +187,18 @@
                                 @endif
 
                                 @if ($hasLifeExperiences)
-                                    <section class="{{ $bothPresent ? '' : 'lg:col-span-2' }}">
+                                    <section class="group relative {{ $bothPresent ? '' : 'lg:col-span-2' }}">
                                         <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
                                             <flux:icon name="book-open" class="text-on-surface-variant size-5" />
                                             <flux:heading size="sm">EXPERIÊNCIAS DE VIDA</flux:heading>
+                                            <flux:spacer />
+                                            <button
+                                                type="button"
+                                                wire:click="edit('life_experiences')"
+                                                class="text-on-surface-variant hover:text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                                            >
+                                                <flux:icon name="pencil" class="size-4" />
+                                            </button>
                                         </div>
                                         <div class="prose dark:prose-invert">
                                             {!! Str::markdown($this->selectedNote->life_experiences) !!}
@@ -179,6 +245,115 @@
                             </section>
                         @endif
                     </div>
+
+                    <flux:modal name="edit-title" wire:model.self="editing.title" class="md:w-96">
+                        <div class="space-y-6">
+                            <flux:heading size="lg">Editar título</flux:heading>
+                            <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
+                            
+                            <flux:input wire:model="draft.title" label="Título" />
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:button variant="primary" wire:click="updateNote('title')">Salvar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="edit-impressions" wire:model.self="editing.impressions" class="md:w-lg">
+                        <div class="space-y-6">
+                            <flux:heading size="lg">Editar impressões</flux:heading>
+                            <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
+                            @if ($editing['impressions'])
+                                <div wire:ignore>
+                                    <div x-data="markdownEditor($wire.entangle('draft.impressions'))">
+                                        <textarea x-ref="textarea"></textarea>
+                                    </div>
+                                </div>
+                            @endif
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:button variant="primary" wire:click="updateNote('impressions')">Salvar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="edit-life_experiences" wire:model.self="editing.life_experiences" class="md:w-lg">
+                        <div class="space-y-6">
+                            <flux:heading size="lg">Editar experiências de vida</flux:heading>
+                            <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
+                            @if ($editing['life_experiences'])
+                                <div wire:ignore>
+                                    <div x-data="markdownEditor($wire.entangle('draft.life_experiences'))">
+                                        <textarea x-ref="textarea"></textarea>
+                                    </div>
+                                </div>
+                            @endif
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:button variant="primary" wire:click="updateNote('life_experiences')">Salvar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="edit-concept" wire:model.self="editingConcept" class="md:w-96">
+                        <div class="space-y-6">
+                            <flux:heading size="lg">Editar conceito</flux:heading>
+                            <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
+
+                            <flux:input wire:model="editConceptForm.term" label="Termo" />
+                            <flux:textarea wire:model="editConceptForm.definition" label="Definição" />
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:button variant="primary" wire:click="updateConcept">Salvar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="edit-advice" wire:model.self="editingAdvice" class="md:w-96">
+                        <div class="space-y-6">
+                            <flux:heading size="lg">Editar conselho pastoral</flux:heading>
+                            <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
+
+                            <flux:input wire:model="editAdviceForm.category" label="Categoria" />
+                            <flux:textarea wire:model="editAdviceForm.advice" label="Conselho" />
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:button variant="primary" wire:click="updateAdvice">Salvar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="add-concept" wire:model.self="addingConcept" class="md:w-96">
+                        <div class="space-y-6">
+                            <flux:heading size="lg">Adicionar conceito</flux:heading>
+                            <flux:text class="mt-2">Ao terminar, aperte "Adicionar".</flux:text>
+
+                            <flux:input
+                                wire:model="addConceptForm.term"
+                                wire:input.debounce.500ms="verifyConceptExistence"
+                                label="Termo"
+                            />
+                            <flux:textarea wire:model="addConceptForm.definition" label="Definição" />
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:button variant="primary" wire:click="addConcept">Adicionar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="add-advice" wire:model.self="addingAdvice" class="md:w-96">
+                        <div class="space-y-6">
+                            <flux:heading size="lg">Adicionar conselho pastoral</flux:heading>
+                            <flux:text class="mt-2">Ao terminar, aperte "Adicionar".</flux:text>
+
+                            <flux:input wire:model="addAdviceForm.category" label="Categoria" />
+                            <flux:textarea wire:model="addAdviceForm.advice" label="Conselho" />
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:button variant="primary" wire:click="addAdvice">Adicionar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
                 </div>
             @else
                 <div class="flex flex-1 items-center justify-center">

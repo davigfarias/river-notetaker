@@ -18,6 +18,10 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Browser');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
@@ -47,4 +51,15 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function loginWithAccessToken(string $code)
+{
+    $page = visit('/entrar')->assertPresent('[data-flux-otp]');
+
+    foreach (str_split($code) as $index => $digit) {
+        $page->fill(sprintf('ui-otp > div:nth-of-type(%d) input', $index + 1), $digit);
+    }
+
+    return $page->wait(0.5);
 }

@@ -103,6 +103,14 @@
                         <!-- Efeito de fundo no hover -->
                         <div class="primary bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110 pointer-events-none"></div>
 
+                        <button
+                            type="button"
+                            wire:click="edit({{ $concept->id }})"
+                            class="text-on-surface-variant hover:text-primary absolute top-4 right-4 z-10 opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                            <flux:icon name="pencil" class="size-4" />
+                        </button>
+
                         <!-- Título do Conceito -->
                         <div class="relative z-10 mb-3">
                             <flux:heading size="lg" class="group-hover:text-primary transition-colors">
@@ -142,10 +150,11 @@
                             </p>
                         </div>
 
-                        <div class="flex justify-end">
+                        <div class="flex justify-end gap-2">
                             <flux:modal.close>
                                 <flux:button variant="ghost">Fechar</flux:button>
                             </flux:modal.close>
+                            <flux:button variant="primary" wire:click="edit({{ $concept->id }})">Editar</flux:button>
                         </div>
                     </flux:modal>
                 @endif
@@ -180,6 +189,37 @@
                         type="submit" 
                         variant="primary" 
                         wire:click="addSoleConcept">Adicionar Conceito</flux:button>
+                </div>
+            </div>
+        </flux:modal>
+
+        <flux:modal name="edit-concept" wire:model.self="editingConcept" class="md:w-96">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Editar conceito</flux:heading>
+                </div>
+
+                <flux:input
+                    label="Termo"
+                    wire:model='editConceptForm.term'
+                    placeholder="Ex: Graça" />
+                <div>
+                    @error('editConceptForm.term') <span class="error">{{ $message }}</span> @enderror
+                </div>
+                <flux:textarea
+                    label="Definição"
+                    wire:model='editConceptForm.definition'
+                    placeholder="Favor imerecido..."
+                />
+                <div>
+                    @error('editConceptForm.definition') <span class="error">{{ $message }}</span> @enderror
+                </div>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button
+                        type="submit"
+                        variant="primary"
+                        wire:click="updateConcept">Salvar</flux:button>
                 </div>
             </div>
         </flux:modal>

@@ -46,6 +46,15 @@
             </flux:navbar.item>
         </a>
 
+        <a href="{{ route('concepts') }}" wire:navigate class="contents">
+            <flux:navbar.item
+                icon="users"
+                :current="request()->routeIs('concepts')"
+            >
+                Conselhos Pastorais
+            </flux:navbar.item>
+        </a>
+
     </flux:navbar>
 
     <flux:spacer />
