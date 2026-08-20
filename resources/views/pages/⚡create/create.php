@@ -221,7 +221,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
     public function save(SaveNote $action): void
     {
-        $this->validate();
+        $this->validate($this->rules(), $this->messages());
 
         $this->notes->concepts = $this->filterConcepts();
         $this->notes->pastoral_advice = $this->filterPastoralAdvice();
