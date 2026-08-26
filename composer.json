@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "calebporzio/sushi": "^2.5",
+        "joshhanley/livewire-autocomplete": "^2.1",
         "laravel/framework": "^13.17",
         "laravel/scout": "^11.4",
         "laravel/tinker": "^3.0",

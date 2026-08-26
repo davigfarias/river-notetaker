@@ -46,10 +46,10 @@
             </flux:navbar.item>
         </a>
 
-        <a href="{{ route('concepts') }}" wire:navigate class="contents">
+        <a href="{{ route('pastoral') }}" wire:navigate class="contents">
             <flux:navbar.item
                 icon="users"
-                :current="request()->routeIs('concepts')"
+                :current="request()->routeIs('pastoral')"
             >
                 Conselhos Pastorais
             </flux:navbar.item>

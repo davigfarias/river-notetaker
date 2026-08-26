@@ -29,13 +29,14 @@ class PastoralAdvices extends Model
     /**
      * @return BelongsTo<Notes, $this>
      */
-    public function advice(): BelongsTo
+    public function note(): BelongsTo
     {
-        $this->belongsTo(Notes::class);
+        return $this->belongsTo(Notes::class, 'note_id');
     }
 
     /**
      * @return array{
+     *     id: int,
      *     note_id: int,
      *     category: string,
      *     advice: string
@@ -44,6 +45,7 @@ class PastoralAdvices extends Model
     public function toSearchableArray(): array
     {
         return [
+            'id' => $this->id,
             'note_id' => $this->note_id,
             'category' => $this->category,
             'advice' => $this->advice,

@@ -7,4 +7,5 @@ Route::livewire('/', 'pages::dashboard')->name('dashboard')->middleware(EnsureAc
 Route::livewire('/disciplinas/{slug}', 'pages::disciplina')->name('disciplinas.show')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/notas/nova', 'pages::create')->name('notas.criar')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/conceitos/lista', 'pages::concepts')->name('concepts')->middleware(EnsureAccessTokenIsValid::class);
+Route::livewire('/conselhos/lista', 'pages::pastoral')->name('pastoral')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/entrar', 'pages::entrar')->name('entrar');
