@@ -3,7 +3,6 @@
 use App\Actions\AddReferenceMaterial;
 use App\Actions\GetReferenceMaterials;
 use App\DTO\ReferenceMaterialForm;
-use App\Enums\ReferencesIcon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -20,9 +19,16 @@ new #[Title('Referências')] class extends Component
     public ?string $filter = null;
 
     #[Url(as: 'tipo')]
-    public ?string $type = null;
+    public string $type = '';
+
+    public bool $ready = false;
 
     public ReferenceMaterialForm $form;
+
+    public function loadContent(): void
+    {
+        $this->ready = true;
+    }
 
     #[Computed]
     public function materials(): LengthAwarePaginator
@@ -30,17 +36,8 @@ new #[Title('Referências')] class extends Component
         return app(GetReferenceMaterials::class)->handle(
             accessTokenId: (int) session('access_token_id'),
             filter: $this->filter,
-            type: $this->type,
+            type: $this->type ?: null,
         )->data;
-    }
-
-    /**
-     * @return array<int, ReferencesIcon>
-     */
-    #[Computed]
-    public function typeOptions(): array
-    {
-        return ReferencesIcon::cases();
     }
 
     public function updatedFilter(): void

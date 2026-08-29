@@ -12,7 +12,6 @@ use App\DTO\ConceptsDTO;
 use App\DTO\NotesDTO;
 use App\DTO\ReferenceMaterialForm;
 use App\DTO\SoleConceptDTO;
-use App\Enums\ReferencesIcon;
 use App\Models\Concepts;
 use App\Models\ReferenceMaterial;
 use Flux\Flux;
@@ -161,15 +160,6 @@ new #[Title('Criar uma Nova Nota')] class extends Component
     {
         unset($this->notes->pastoral_advice[$index]);
         $this->notes->pastoral_advice = array_values($this->notes->pastoral_advice);
-    }
-
-    /**
-     * @return array<int, ReferencesIcon>
-     */
-    #[Computed]
-    public function referenceTypeOptions(): array
-    {
-        return ReferencesIcon::cases();
     }
 
     #[Computed]

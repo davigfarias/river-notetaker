@@ -48,7 +48,8 @@ test('a citation can be edited and deleted', function () {
 
     expect($citation->refresh()->quote_text)->toBe('Editada');
 
-    $component->call('deleteCitation', $citation->id);
+    $component->call('confirmDeleteCitation', $citation->id)
+        ->call('deleteCitation');
 
     $this->assertDatabaseMissing('citations', ['id' => $citation->id]);
 });

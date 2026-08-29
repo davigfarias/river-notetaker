@@ -26,6 +26,13 @@ new #[Title('Buscar nas referências')] class extends Component
 
     public string $exportFormat = 'docx';
 
+    public bool $ready = false;
+
+    public function loadContent(): void
+    {
+        $this->ready = true;
+    }
+
     #[Computed]
     public function works(): Collection
     {

@@ -10,7 +10,6 @@ use App\DTO\CitationForm;
 use App\DTO\ReferenceMaterialForm;
 use App\Enums\ExportFormat;
 use App\Enums\ExportScope;
-use App\Enums\ReferencesIcon;
 use App\Models\ReferenceMaterial;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -35,9 +34,18 @@ new #[Title('Obra')] class extends Component
 
     public string $exportFormat = 'docx';
 
+    public bool $ready = false;
+
+    public ?int $deletingCitationId = null;
+
     public function mount(): void
     {
         abort_if($this->fetch() === null, 404);
+    }
+
+    public function loadContent(): void
+    {
+        $this->ready = true;
     }
 
     #[Computed]
@@ -49,15 +57,6 @@ new #[Title('Obra')] class extends Component
     private function fetch(): ?ReferenceMaterial
     {
         return app(GetReferenceMaterial::class)->handle($this->id, (int) session('access_token_id'))->data;
-    }
-
-    /**
-     * @return array<int, ReferencesIcon>
-     */
-    #[Computed]
-    public function typeOptions(): array
-    {
-        return ReferencesIcon::cases();
     }
 
     public function addCitation(AddCitation $action): void
@@ -109,14 +108,27 @@ new #[Title('Obra')] class extends Component
         }
     }
 
-    public function deleteCitation(int $citationId, DeleteCitation $action): void
+    public function confirmDeleteCitation(int $citationId): void
     {
-        $check = $action->handle($citationId, (int) session('access_token_id'));
+        $this->deletingCitationId = $citationId;
+        $this->modal('delete-citation')->show();
+    }
+
+    public function deleteCitation(DeleteCitation $action): void
+    {
+        if ($this->deletingCitationId === null) {
+            return;
+        }
+
+        $check = $action->handle($this->deletingCitationId, (int) session('access_token_id'));
 
         match ($check->success) {
             true => Flux::toast(text: $check->message, variant: 'success'),
             false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
+
+        $this->modal('delete-citation')->close();
+        $this->deletingCitationId = null;
 
         unset($this->material);
     }

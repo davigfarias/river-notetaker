@@ -274,16 +274,13 @@
             <flux:input label="Título" wire:model="refForm.title" placeholder="Ex: A Vida Juntos" />
             <flux:input label="Autor" wire:model="refForm.author" placeholder="Ex: Dietrich Bonhoeffer" />
 
+            @include('partials.reference-type-pills', ['model' => 'refForm.type', 'label' => 'Tipo'])
+
             <div class="flex gap-3">
-                <flux:select label="Tipo" wire:model="refForm.type" class="flex-1">
-                    @foreach ($this->referenceTypeOptions as $case)
-                        <flux:select.option value="{{ $case->value }}" icon="{{ $case->icon() }}">{{ $case->label() }}</flux:select.option>
-                    @endforeach
-                </flux:select>
                 <flux:input label="Ano" type="number" wire:model="refForm.year" class="w-28" />
+                <flux:input label="Editora" wire:model="refForm.publisher" placeholder="Opcional" class="flex-1" />
             </div>
 
-            <flux:input label="Editora" wire:model="refForm.publisher" placeholder="Opcional" />
             <flux:input label="URL" wire:model="refForm.url" placeholder="https:// (opcional)" />
             <flux:textarea label="Referência ABNT" wire:model="refForm.abnt_reference" rows="2" placeholder="Opcional" />
 

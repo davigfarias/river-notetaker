@@ -2,7 +2,6 @@
 
 use App\Actions\DeleteExport;
 use App\Actions\GetExports;
-use App\Enums\ExportStatus;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -13,6 +12,15 @@ use Flux\Flux;
 new #[Title('Exportações')] class extends Component
 {
     use WithPagination;
+
+    public bool $ready = false;
+
+    public ?int $deletingExportId = null;
+
+    public function loadContent(): void
+    {
+        $this->ready = true;
+    }
 
     #[Computed]
     public function exports(): LengthAwarePaginator
@@ -27,14 +35,27 @@ new #[Title('Exportações')] class extends Component
             ->contains(fn ($export): bool => $export->status->isInProgress());
     }
 
-    public function deleteExport(int $id, DeleteExport $action): void
+    public function confirmDeleteExport(int $id): void
     {
-        $check = $action->handle($id, (int) session('access_token_id'));
+        $this->deletingExportId = $id;
+        $this->modal('delete-export')->show();
+    }
+
+    public function deleteExport(DeleteExport $action): void
+    {
+        if ($this->deletingExportId === null) {
+            return;
+        }
+
+        $check = $action->handle($this->deletingExportId, (int) session('access_token_id'));
 
         match ($check->success) {
             true => Flux::toast(text: $check->message, variant: 'success'),
             false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
+
+        $this->modal('delete-export')->close();
+        $this->deletingExportId = null;
 
         unset($this->exports);
     }

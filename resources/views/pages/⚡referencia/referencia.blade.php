@@ -4,14 +4,24 @@
     </flux:button>
 </x-slot:headerActions>
 
-@php($material = $this->material)
+@php($material = $ready ? $this->material : null)
 @php($icon = $material ? (\App\Enums\ReferencesIcon::tryFrom($material->type) ?? \App\Enums\ReferencesIcon::BookOpen) : null)
 
-<div>
+<div wire:init="loadContent">
     <div class="mx-auto w-full max-w-4xl py-8">
 
-        @if (! $material)
-            <flux:skeleton class="h-8 w-2/3" />
+        @if (! $ready || ! $material)
+            <div class="space-y-4">
+                <flux:skeleton class="h-5 w-24" />
+                <flux:skeleton class="h-9 w-2/3" />
+                <flux:skeleton class="h-4 w-1/2" />
+                <flux:skeleton class="h-16 w-full" />
+                <div class="pt-6 space-y-3">
+                    <flux:skeleton class="h-6 w-32" />
+                    <flux:skeleton class="h-24 w-full" />
+                    <flux:skeleton class="h-20 w-full" />
+                </div>
+            </div>
         @else
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
@@ -57,7 +67,7 @@
                 </div>
             </form>
 
-            <div wire:loading.delay.flex class="hidden flex-col gap-3 mt-6">
+            <div wire:loading.delay.flex wire:target="addCitation,updateCitation,deleteCitation" class="hidden flex-col gap-3 mt-6">
                 @for ($i = 0; $i < 3; $i++)
                     <div class="rounded-xl border border-surface-variant bg-surface-container-lowest p-4 space-y-2">
                         <flux:skeleton class="h-4 w-full" />
@@ -66,7 +76,7 @@
                 @endfor
             </div>
 
-            <div wire:loading.delay.remove class="mt-6 space-y-3">
+            <div wire:loading.delay.remove wire:target="addCitation,updateCitation,deleteCitation" class="mt-6 space-y-3">
                 @forelse ($material->citations as $citation)
                     <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
                         <p class="italic text-on-surface-variant leading-relaxed">&ldquo;{{ $citation->quote_text }}&rdquo;</p>
@@ -80,7 +90,7 @@
                             <flux:spacer />
                             <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <flux:button size="xs" variant="ghost" icon="pencil" wire:click="editCitation({{ $citation->id }})" />
-                                <flux:button size="xs" variant="ghost" icon="trash" wire:click="deleteCitation({{ $citation->id }})" wire:confirm="Remover esta citação?" />
+                                <flux:button size="xs" variant="ghost" icon="trash" wire:click="confirmDeleteCitation({{ $citation->id }})" />
                             </div>
                         </div>
                     </div>
@@ -99,15 +109,13 @@
 
                 <flux:input label="Título" wire:model="editForm.title" />
                 <flux:input label="Autor" wire:model="editForm.author" />
+
+                @include('partials.reference-type-pills', ['model' => 'editForm.type', 'label' => 'Tipo'])
+
                 <div class="flex gap-3">
-                    <flux:select label="Tipo" wire:model="editForm.type" class="flex-1">
-                        @foreach ($this->typeOptions as $case)
-                            <flux:select.option value="{{ $case->value }}" icon="{{ $case->icon() }}">{{ $case->label() }}</flux:select.option>
-                        @endforeach
-                    </flux:select>
                     <flux:input label="Ano" type="number" wire:model="editForm.year" class="w-28" />
+                    <flux:input label="Editora" wire:model="editForm.publisher" class="flex-1" />
                 </div>
-                <flux:input label="Editora" wire:model="editForm.publisher" />
                 <flux:input label="URL" wire:model="editForm.url" />
                 <flux:textarea label="Referência ABNT" wire:model="editForm.abnt_reference" rows="2" />
 
@@ -131,6 +139,22 @@
             </form>
         </flux:modal>
 
+        <flux:modal name="delete-citation" class="md:w-96">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Remover citação</flux:heading>
+                    <flux:text class="mt-2">Esta ação não pode ser desfeita.</flux:text>
+                </div>
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancelar</flux:button>
+                    </flux:modal.close>
+                    <flux:button variant="danger" icon="trash" wire:click="deleteCitation">Remover</flux:button>
+                </div>
+            </div>
+        </flux:modal>
+
         <flux:modal name="export" class="md:w-96">
             <form wire:submit="export" class="space-y-5">
                 <div>
@@ -138,7 +162,7 @@
                     <flux:text class="mt-2">Gera um arquivo com todas as citações desta obra em formato ABNT. Fica pronto em "Exportações".</flux:text>
                 </div>
 
-                <flux:radio.group wire:model="exportFormat" label="Formato">
+                <flux:radio.group wire:model="exportFormat" label="Formato" variant="segmented">
                     <flux:radio value="docx" label="Word (.docx)" />
                     <flux:radio value="pdf" label="PDF (.pdf)" />
                 </flux:radio.group>

@@ -136,8 +136,10 @@ test('the exports page lists the token exports and can delete one', function () 
     Storage::disk($export->disk)->put($export->path, 'x');
 
     Livewire::test('pages::exportacoes')
+        ->call('loadContent')
         ->assertSee('A Vida Juntos')
-        ->call('deleteExport', $export->id);
+        ->call('confirmDeleteExport', $export->id)
+        ->call('deleteExport');
 
     $this->assertDatabaseMissing('exports', ['id' => $export->id]);
     Storage::disk($export->disk)->assertMissing($export->path);

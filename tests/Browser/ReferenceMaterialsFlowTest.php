@@ -22,13 +22,13 @@ afterEach(function () {
 test('a new work can be catalogued from the library page', function () {
     [$plain] = browserToken();
 
-    $page = loginWithAccessToken($plain)->navigate('/referencias/lista');
+    $page = loginWithAccessToken($plain)->navigate('/referencias/lista')->wait(0.5);
 
     $page->click('Nova obra')
         ->fill('[wire\:model="form.title"]', 'A Vida Juntos')
         ->fill('[wire\:model="form.author"]', 'Dietrich Bonhoeffer')
         ->wait(0.3)
-        ->click('[type="submit"]')
+        ->click('Adicionar à biblioteca')
         ->wait(1)
         ->assertSee('A Vida Juntos')
         ->assertSee('Dietrich Bonhoeffer');
@@ -44,7 +44,7 @@ test('a citation can be added inline on a work detail page', function () {
         'title' => 'Ortodoxia',
     ]);
 
-    $page = loginWithAccessToken($plain)->navigate('/referencias/'.$material->id);
+    $page = loginWithAccessToken($plain)->navigate('/referencias/'.$material->id)->wait(0.7);
 
     $page->assertSee('Ortodoxia')
         ->fill('[wire\:model="citationForm.quote_text"]', 'A tradição é a democracia dos mortos.')
@@ -54,6 +54,29 @@ test('a citation can be added inline on a work detail page', function () {
         ->assertSee('A tradição é a democracia dos mortos.');
 
     expect(Citation::where('quote_text', 'A tradição é a democracia dos mortos.')->exists())->toBeTrue();
+});
+
+test('a citation can be deleted through the confirmation modal', function () {
+    [$plain, $token] = browserToken();
+
+    $material = ReferenceMaterial::factory()->create(['access_token_id' => $token->id, 'title' => 'Peso de Glória']);
+    $citation = Citation::factory()->create([
+        'reference_material_id' => $material->id,
+        'access_token_id' => $token->id,
+        'quote_text' => 'Não existem pessoas comuns.',
+    ]);
+
+    $page = loginWithAccessToken($plain)->navigate('/referencias/'.$material->id)->wait(0.7);
+
+    $page->assertSee('Não existem pessoas comuns.')
+        ->click('[wire\:click="confirmDeleteCitation('.$citation->id.')"]')
+        ->wait(0.4)
+        ->assertSee('Esta ação não pode ser desfeita.')
+        ->click('Remover')
+        ->wait(1)
+        ->assertDontSee('Não existem pessoas comuns.');
+
+    expect(Citation::find($citation->id))->toBeNull();
 });
 
 test('the search page finds a citation by its text and links back to the work', function () {
@@ -69,10 +92,10 @@ test('the search page finds a citation by its text and links back to the work', 
         'quote_text' => 'A estrada segura para o Inferno é a gradual.',
     ]);
 
-    $page = loginWithAccessToken($plain)->navigate('/referencias/busca');
+    $page = loginWithAccessToken($plain)->navigate('/referencias/busca')->wait(0.5);
 
     $page->fill('q', 'Inferno')
-        ->wait(1)
+        ->wait(1.2)
         ->assertSee('A estrada segura para o Inferno é a gradual.')
         ->assertSee('Cartas de um Diabo');
 });
@@ -89,7 +112,7 @@ test('exporting a work queues an export visible on the exports page', function (
         'access_token_id' => $token->id,
     ]);
 
-    $page = loginWithAccessToken($plain)->navigate('/referencias/'.$material->id);
+    $page = loginWithAccessToken($plain)->navigate('/referencias/'.$material->id)->wait(0.7);
 
     $page->click('Exportar')
         ->wait(0.5)
@@ -100,5 +123,6 @@ test('exporting a work queues an export visible on the exports page', function (
     expect(Export::where('reference_material_id', $material->id)->exists())->toBeTrue();
 
     $page->navigate('/referencias/exportacoes')
+        ->wait(0.7)
         ->assertSee('Milagres');
 });
