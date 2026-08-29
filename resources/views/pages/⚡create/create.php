@@ -1,18 +1,22 @@
 <?php
 
+use App\Actions\AddReferenceMaterial;
 use App\Actions\GetAllDisciplines;
 use App\Actions\GetTags;
 use App\Actions\ObserveTerm;
 use App\Actions\Orchestrators\SaveNote;
+use App\Actions\SearchReferenceMaterials;
 use App\Actions\UpdateConcept;
 use App\DTO\AdvicesDTO;
 use App\DTO\ConceptsDTO;
 use App\DTO\NotesDTO;
-use App\DTO\ReferencesDTO;
+use App\DTO\ReferenceMaterialForm;
 use App\DTO\SoleConceptDTO;
 use App\Enums\ReferencesIcon;
 use App\Models\Concepts;
+use App\Models\ReferenceMaterial;
 use Flux\Flux;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
@@ -30,6 +34,10 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
     public bool $editingConcept = false;
 
+    public string $refSearch = '';
+
+    public ReferenceMaterialForm $refForm;
+
     protected function rules(): array
     {
         return [
@@ -40,7 +48,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
             'notes.impressions' => 'nullable|string',
             'notes.pastoral_advice' => 'nullable|array',
             'notes.life_experiences' => 'nullable|string',
-            'notes.references' => 'nullable|array',
+            'notes.reference_material_ids' => 'nullable|array',
         ];
     }
 
@@ -155,18 +163,83 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         $this->notes->pastoral_advice = array_values($this->notes->pastoral_advice);
     }
 
-    public function addReference(): void
+    /**
+     * @return array<int, ReferencesIcon>
+     */
+    #[Computed]
+    public function referenceTypeOptions(): array
     {
-        $reference = new ReferencesDTO;
-        $reference->type = ReferencesIcon::BookOpen->value;
-
-        $this->notes->references[] = $reference;
+        return ReferencesIcon::cases();
     }
 
-    public function removeReference(int $index): void
+    #[Computed]
+    public function referenceResults(): Collection
     {
-        unset($this->notes->references[$index]);
-        $this->notes->references = array_values($this->notes->references);
+        if (trim($this->refSearch) === '') {
+            return collect();
+        }
+
+        $linked = $this->notes->reference_material_ids ?? [];
+
+        return app(SearchReferenceMaterials::class)->handle($this->refSearch, (int) session('access_token_id'), 8)
+            ->data
+            ->reject(fn (ReferenceMaterial $material): bool => in_array($material->id, $linked, true))
+            ->values();
+    }
+
+    #[Computed]
+    public function linkedReferences(): Collection
+    {
+        $ids = $this->notes->reference_material_ids ?? [];
+
+        if ($ids === []) {
+            return collect();
+        }
+
+        return ReferenceMaterial::query()
+            ->where('access_token_id', (int) session('access_token_id'))
+            ->whereIn('id', $ids)
+            ->get();
+    }
+
+    public function linkReference(int $id): void
+    {
+        $ids = $this->notes->reference_material_ids ?? [];
+
+        if (! in_array($id, $ids, true)) {
+            $ids[] = $id;
+            $this->notes->reference_material_ids = $ids;
+        }
+
+        $this->refSearch = '';
+        unset($this->referenceResults, $this->linkedReferences);
+    }
+
+    public function unlinkReference(int $id): void
+    {
+        $this->notes->reference_material_ids = array_values(
+            array_filter($this->notes->reference_material_ids ?? [], fn (int $existing): bool => $existing !== $id)
+        );
+
+        unset($this->referenceResults, $this->linkedReferences);
+    }
+
+    public function addNewReference(AddReferenceMaterial $action): void
+    {
+        $this->refForm->validate();
+
+        $check = $action->handle($this->refForm, (int) session('access_token_id'));
+
+        match ($check->success) {
+            true => Flux::toast(text: $check->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+        };
+
+        if ($check->success) {
+            $this->linkReference($check->data->id);
+            $this->modal('add-reference-material')->close();
+            $this->refForm->reset();
+        }
     }
 
     private function filterConcepts(): array
@@ -187,16 +260,6 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         });
 
         return array_values($advices);
-    }
-
-    private function filterReferences(): array
-    {
-        $refs = array_filter($this->notes->references ?? [], function ($ref) {
-            return ! empty(trim($ref->type ?? ''))
-                && ! empty(trim($ref->reference_text ?? ''));
-        });
-
-        return array_values($refs);
     }
 
     #[Computed]
@@ -225,7 +288,6 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
         $this->notes->concepts = $this->filterConcepts();
         $this->notes->pastoral_advice = $this->filterPastoralAdvice();
-        $this->notes->references = $this->filterReferences();
         $this->notes->access_token_id = (int) session('access_token_id');
 
         $outcome = $action->handle($this->notes);

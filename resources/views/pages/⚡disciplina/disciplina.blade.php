@@ -3,9 +3,9 @@
         <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate> Nova Nota </flux:button>
     </x-slot:headerActions>
 
-    <div class="-m-6 flex h-[calc(100vh-3.5rem)] lg:-m-8">
-        <div class="border-outline-variant bg-surface-container-lowest/30 flex w-full flex-col overflow-y-auto border-r md:w-1/3 lg:w-1/4">
-            <div class="border-outline-variant border-b p-4">
+    <div class="-m-6 flex h-[calc(100vh-7rem)] overflow-hidden lg:-m-8">
+        <div class="border-outline-variant bg-surface-container-lowest/30 flex min-h-0 w-full flex-col border-r md:w-1/3 lg:w-1/4">
+            <div class="border-outline-variant shrink-0 border-b p-4">
                 <div class="border-outline-variant/30 bg-surface-container primary mb-4 flex h-12 w-12 items-center justify-center rounded-lg border">
                     <flux:icon :name="$disciplineDTO->icon" class="size-6" />
                 </div>
@@ -13,7 +13,7 @@
                 <flux:text class="mt-1">Histórico de Notas</flux:text>
             </div>
 
-            <div class="border-outline-variant border-b p-3">
+            <div class="border-outline-variant shrink-0 border-b p-3">
                 <flux:input
                     icon="magnifying-glass"
                     wire:model.live.debounce.300ms="search"
@@ -22,6 +22,7 @@
                 />
             </div>
 
+            <div class="min-h-0 flex-1 overflow-y-auto">
             @forelse ($this->notes as $note)
                 <button
                     type="button"
@@ -45,12 +46,13 @@
                 </div>
             @endforelse
 
-            <div class="mt-4 p-4 text-center">
-                <flux:text size="sm">Fim do histórico.</flux:text>
+                <div class="mt-4 p-4 text-center">
+                    <flux:text size="sm">Fim do histórico.</flux:text>
+                </div>
             </div>
         </div>
 
-        <div class="bg-surface hidden flex-1 flex-col overflow-y-auto p-8 md:flex lg:p-12">
+        <div class="bg-surface hidden min-h-0 flex-1 flex-col overflow-y-auto p-8 md:flex lg:p-12">
             @if ($this->selectedNote)
                 <div class="mx-auto w-full max-w-3xl pb-16">
                     <div class="mb-2 flex items-center justify-between">
@@ -208,38 +210,41 @@
                             </div>
                         @endif
 
-                        @if(filled($this->selectedNote->references))
+                        @if(filled($this->selectedNote->reference_materials))
                             <section>
                                 <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
-                                    <flux:icon name="link" class="text-on-surface-variant size-5" />
+                                    <flux:icon name="book-open" class="text-on-surface-variant size-5" />
                                     <flux:heading size="sm">REFERÊNCIAS</flux:heading>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    @foreach($this->selectedNote->references ?? [] as $reference)
-                                        <div class="border-surface-variant bg-surface-container-lowest flex flex-col justify-between rounded-lg border p-3 shadow-sm transition-shadow hover:shadow-md h-full">
-
+                                    @foreach($this->selectedNote->reference_materials ?? [] as $reference)
+                                        <a
+                                            href="{{ route('referencias.show', $reference['id']) }}"
+                                            wire:navigate
+                                            wire:key="note-ref-{{ $reference['id'] }}"
+                                            class="border-surface-variant bg-surface-container-lowest flex flex-col justify-between rounded-lg border p-3 shadow-sm transition-shadow hover:shadow-md h-full"
+                                        >
                                             @php
-                                                $iconEnum = \App\Enums\ReferencesIcon::tryFrom($reference->type)
+                                                $iconEnum = \App\Enums\ReferencesIcon::tryFrom($reference['type'])
                                                             ?? \App\Enums\ReferencesIcon::BookOpen;
                                             @endphp
 
-                                            <div class="flex items-center gap-2 mb-2">
-                                                <div class="bg-surface-variant/30 flex p-1.5 rounded-md">
-                                                    <flux:icon :name="$iconEnum->value" class="size-4 text-on-surface-variant" />
-                                                </div>
-                                                <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/80">
-                                                    {{ $iconEnum->label() }}
-                                                </span>
+                                            <div class="mb-2">
+                                                <flux:badge size="sm" icon="{{ $iconEnum->icon() }}" color="zinc">{{ $iconEnum->label() }}</flux:badge>
                                             </div>
 
                                             <div class="mt-auto">
-                                                <flux:text class="text-xs font-medium leading-snug line-clamp-3" title="{{ $reference->reference_text }}">
-                                                    {{ $reference->reference_text }}
+                                                <flux:text class="text-xs font-medium leading-snug line-clamp-3" title="{{ $reference['title'] }}">
+                                                    {{ $reference['title'] }}
                                                 </flux:text>
+                                                @if(! empty($reference['author']))
+                                                    <flux:text class="text-[11px] text-on-surface-variant/80 mt-0.5">
+                                                        {{ $reference['author'] }}{{ $reference['year'] ? ', '.$reference['year'] : '' }}
+                                                    </flux:text>
+                                                @endif
                                             </div>
-
-                                        </div>
+                                        </a>
                                     @endforeach
                                 </div>
                             </section>

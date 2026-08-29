@@ -131,3 +131,40 @@
         color: var(--color-on-background);
     }
 }
+
+
+:root {
+  --sb-thumb-color: #45475a;
+  --sb-thumb-color-hover: #585b70;
+  --sb-size: 8px;
+}
+
+/* Single styled scrollbar for every scroll container: page shell, panes, and rendered markdown. */
+*::-webkit-scrollbar {
+  width: var(--sb-size);
+  height: var(--sb-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb-color);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-thumb-color-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sb-thumb-color) transparent;
+  }
+}

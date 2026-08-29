@@ -15,7 +15,7 @@
     @livewireStyles
 </head>
 
-<body class="min-h-screen flex flex-col bg-background text-on-background antialiased">
+<body class="h-screen overflow-hidden flex flex-col bg-background text-on-background antialiased">
 
 <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,var(--color-primary-container),transparent_60%)] opacity-20"></div>
 
@@ -55,6 +55,15 @@
             </flux:navbar.item>
         </a>
 
+        <a href="{{ route('referencias') }}" wire:navigate class="contents">
+            <flux:navbar.item
+                icon="book-open"
+                :current="request()->routeIs('referencias*')"
+            >
+                Referências
+            </flux:navbar.item>
+        </a>
+
     </flux:navbar>
 
     <flux:spacer />
@@ -65,14 +74,14 @@
 
 </flux:header>
 
-<main class="flex-1">
-    <flux:main>
+<main class="flex-1 min-h-0 overflow-y-auto">
+    <flux:main class="min-h-full">
         {{ $slot }}
     </flux:main>
 </main>
 
-<footer>
-    <div class="mx-auto flex items-center justify-center gap-2 px-6 py-4 text-sm text-on-surface-variant">
+<footer class="h-14 shrink-0">
+    <div class="mx-auto flex h-full items-center justify-center gap-2 px-6 text-sm text-on-surface-variant">
 
         <span>Desenvolvido orgulhosamente em</span>
 

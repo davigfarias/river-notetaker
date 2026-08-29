@@ -48,7 +48,7 @@
                 <div class="border-surface-variant bg-surface-container-lowest overflow-hidden rounded-xl border shadow-sm p-4 transition-colors duration-300">
                     <flux:text size="sm" class="mb-3 text-on-surface-variant">Selecione as tags que melhor descrevem esta anotação:</flux:text>
 
-                    <div class="flex flex-wrap gap-2 mxax-h-48 overflow-y-auto pr-2">
+                    <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2">
                         @foreach ($this->tags as $tag)
                             <button
                                 type="button"
@@ -201,62 +201,98 @@
 
         <section class="space-y-4">
             <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
-                <flux:icon name="link" class="text-on-surface-variant size-5" />
+                <flux:icon name="book-open" class="text-on-surface-variant size-5" />
                 <flux:heading size="sm">REFERÊNCIAS</flux:heading>
             </div>
 
-            <div class="border-surface-variant bg-surface-container-lowest overflow-hidden rounded-xl border shadow-sm">
-                @foreach ($notes->references ?? [] as $index => $reference)
-                    <div
-                        wire:key="reference-{{ $index }}"
-                        class="border-surface-variant flex flex-col border-b sm:flex-row"
-                    >
-                        <div class="border-surface-variant bg-surface-container-low/50 border-b p-3 sm:w-1/3 sm:border-r sm:border-b-0 flex items-center">
-                            <flux:select
-                                wire:model="notes.references.{{ $index }}.type"
-                                placeholder="Tipo de referência"
-                                class="w-full border-none! bg-transparent! shadow-none! focus:ring-0!"
-                            >
-                                @foreach (App\Enums\ReferencesIcon::cases() as $iconCase)
-                                    <flux:select.option value="{{ $iconCase->value }}" icon="{{ $iconCase->value }}">
-                                        {{ $iconCase->label() }}
-                                    </flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </div>
-                        <div class="group relative bg-transparent p-3 sm:w-2/3">
-                            <textarea
-                                wire:model="notes.references.{{ $index }}.reference_text"
-                                placeholder="Ex: Romanos 8:28, Link de um artigo, Livro (pág. 42)..."
-                                rows="2"
-                                class="text-on-surface-variant w-full resize-none border-none bg-transparent p-0 outline-none focus:ring-0"
-                            ></textarea>
+            <div class="border-surface-variant bg-surface-container-lowest rounded-xl border p-4 shadow-sm space-y-4">
 
-                            @if (count($notes->references ?? []) > 1)
+                @if ($this->linkedReferences->isNotEmpty())
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($this->linkedReferences as $linked)
+                            @php($linkedIcon = \App\Enums\ReferencesIcon::tryFrom($linked->type) ?? \App\Enums\ReferencesIcon::BookOpen)
+                            <flux:badge wire:key="linked-{{ $linked->id }}" size="lg" icon="{{ $linkedIcon->icon() }}" color="zinc">
+                                {{ $linked->title }}
+                                <flux:badge.close wire:click="unlinkReference({{ $linked->id }})" />
+                            </flux:badge>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="relative">
+                    <flux:input
+                        wire:model.live.debounce.400ms="refSearch"
+                        icon="magnifying-glass"
+                        placeholder="Buscar obra na biblioteca..."
+                        clearable
+                    />
+
+                    <div wire:loading.delay class="mt-2">
+                        <flux:skeleton class="h-4 w-2/3" />
+                    </div>
+
+                    @if (filled($refSearch))
+                        <div wire:loading.delay.remove class="mt-2 divide-y divide-surface-variant overflow-hidden rounded-lg border border-surface-variant">
+                            @forelse ($this->referenceResults as $result)
+                                @php($resultIcon = \App\Enums\ReferencesIcon::tryFrom($result->type) ?? \App\Enums\ReferencesIcon::BookOpen)
                                 <button
                                     type="button"
-                                    wire:click="removeReference({{ $index }})"
-                                    class="text-on-surface-variant hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
-                                    title="Remover"
+                                    wire:key="result-{{ $result->id }}"
+                                    wire:click="linkReference({{ $result->id }})"
+                                    class="flex w-full items-center gap-3 bg-surface-container-lowest p-3 text-left hover:bg-surface-container-low"
                                 >
-                                    <flux:icon name="x-mark" class="size-4" />
+                                    <flux:icon name="{{ $resultIcon->icon() }}" class="size-4 text-on-surface-variant shrink-0" />
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-medium">{{ $result->title }}</span>
+                                        <span class="block truncate text-xs text-on-surface-variant">{{ $result->author }}{{ $result->year ? ', '.$result->year : '' }}</span>
+                                    </span>
+                                    <flux:icon name="plus" class="size-4 text-on-surface-variant shrink-0" />
                                 </button>
-                            @endif
+                            @empty
+                                <div class="bg-surface-container-lowest p-3 text-sm text-on-surface-variant">
+                                    Nenhuma obra encontrada.
+                                </div>
+                            @endforelse
                         </div>
-                    </div>
-                @endforeach
+                    @endif
+                </div>
 
-                <button
-                    type="button"
-                    wire:click="addReference"
-                    class="bg-surface-container-low/30 text-on-surface-variant hover:bg-surface-container-low flex w-full items-center justify-center gap-2 py-3 tracking-wider uppercase transition-colors"
-                >
-                    <flux:icon name="plus-circle" class="size-4" />
-                    <flux:text size="sm" class="font-bold">Adicionar Referência</flux:text>
-                </button>
+                <flux:modal.trigger name="add-reference-material">
+                    <flux:button size="sm" variant="ghost" icon="plus">Nova obra</flux:button>
+                </flux:modal.trigger>
             </div>
         </section>
     </form>
+
+    <flux:modal name="add-reference-material" class="md:w-[32rem]">
+        <form wire:submit="addNewReference" class="space-y-5">
+            <div>
+                <flux:heading size="lg">Nova obra</flux:heading>
+                <flux:text class="mt-2">Adiciona à biblioteca e vincula a esta nota.</flux:text>
+            </div>
+
+            <flux:input label="Título" wire:model="refForm.title" placeholder="Ex: A Vida Juntos" />
+            <flux:input label="Autor" wire:model="refForm.author" placeholder="Ex: Dietrich Bonhoeffer" />
+
+            <div class="flex gap-3">
+                <flux:select label="Tipo" wire:model="refForm.type" class="flex-1">
+                    @foreach ($this->referenceTypeOptions as $case)
+                        <flux:select.option value="{{ $case->value }}" icon="{{ $case->icon() }}">{{ $case->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:input label="Ano" type="number" wire:model="refForm.year" class="w-28" />
+            </div>
+
+            <flux:input label="Editora" wire:model="refForm.publisher" placeholder="Opcional" />
+            <flux:input label="URL" wire:model="refForm.url" placeholder="https:// (opcional)" />
+            <flux:textarea label="Referência ABNT" wire:model="refForm.abnt_reference" rows="2" placeholder="Opcional" />
+
+            <div class="flex">
+                <flux:spacer />
+                <flux:button type="submit" variant="primary">Adicionar e vincular</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 
     <flux:modal name="edit-concept" wire:model.self="editingConcept" class="md:w-96">
         <div class="space-y-6">
