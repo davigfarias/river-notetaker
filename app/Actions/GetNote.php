@@ -14,7 +14,7 @@ final readonly class GetNote
     public function handle(int $id, int $accessTokenId): Outcome
     {
         try {
-            $note = Notes::with(['concepts', 'pastoral_advice', 'references'])
+            $note = Notes::with(['concepts', 'pastoral_advice', 'referenceMaterials'])
                 ->where('access_token_id', $accessTokenId)
                 ->find($id);
 

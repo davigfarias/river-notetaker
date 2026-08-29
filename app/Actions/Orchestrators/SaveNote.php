@@ -7,7 +7,7 @@ namespace App\Actions\Orchestrators;
 use App\Actions\SubActions\CreateAdvice;
 use App\Actions\SubActions\CreateConcept;
 use App\Actions\SubActions\CreateNote;
-use App\Actions\SubActions\CreateReference;
+use App\Actions\SubActions\SyncNoteReferenceMaterials;
 use App\DTO\NotesDTO;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ final readonly class SaveNote
         private CreateNote $createNote,
         private CreateConcept $createConcept,
         private CreateAdvice $createAdvice,
-        private CreateReference $createReference,
+        private SyncNoteReferenceMaterials $syncNoteReferenceMaterials,
     ) {}
 
     public function handle(NotesDTO $data): Outcome
@@ -45,8 +45,8 @@ final readonly class SaveNote
                 $this->createAdvice->handle($note->id, $data->pastoral_advice);
             }
 
-            if ($data->references) {
-                $this->createReference->handle($note->id, $data->references);
+            if ($data->reference_material_ids) {
+                $this->syncNoteReferenceMaterials->handle($note->id, $data->reference_material_ids);
             }
 
             DB::commit();

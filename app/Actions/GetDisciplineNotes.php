@@ -14,7 +14,7 @@ final readonly class GetDisciplineNotes
     public function handle(int $disciplineId, int $accessTokenId): Outcome
     {
         try {
-            $data = Notes::with(['concepts', 'pastoral_advice', 'references'])
+            $data = Notes::with(['concepts', 'pastoral_advice', 'referenceMaterials'])
                 ->where('discipline_id', $disciplineId)
                 ->where('access_token_id', $accessTokenId)
                 ->get()

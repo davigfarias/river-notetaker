@@ -15,7 +15,8 @@ class NotesDTO implements Arrayable, Wireable
      * @param  array<int, string>|null  $tags
      * @param  ConceptsDTO[]|null  $concepts
      * @param  AdvicesDTO[]|null  $pastoral_advice
-     * @param  ReferencesDTO[]|null  $references
+     * @param  array<int, int>|null  $reference_material_ids
+     * @param  array<int, array{id: int, title: string, author: string|null, year: int|null, type: string}>|null  $reference_materials
      */
     public function __construct(
         public int|string|null $id = null,
@@ -27,7 +28,8 @@ class NotesDTO implements Arrayable, Wireable
         public ?string $impressions = null,
         public ?array $pastoral_advice = null,
         public ?string $life_experiences = null,
-        public ?array $references = null, // <-- O segredo costuma estar aqui!
+        public ?array $reference_material_ids = null,
+        public ?array $reference_materials = null,
         public ?Date $updated_at = null
     ) {}
 
@@ -60,9 +62,10 @@ class NotesDTO implements Arrayable, Wireable
             'pastoral_advice' => $this->pastoral_advice
                 ? array_map(fn ($a) => $a instanceof AdvicesDTO ? $a->toArray() : (array) $a, $this->pastoral_advice)
                 : null,
-            'references' => $this->references
-                ? array_map(fn ($r) => $r instanceof ReferencesDTO ? $r->toArray() : (array) $r, $this->references)
+            'reference_material_ids' => $this->reference_material_ids
+                ? array_values(array_map('intval', $this->reference_material_ids))
                 : null,
+            'reference_materials' => $this->reference_materials,
             'impressions' => $this->impressions,
             'life_experiences' => $this->life_experiences,
             'updated_at' => $this->updated_at,
@@ -85,7 +88,16 @@ class NotesDTO implements Arrayable, Wireable
             impressions: $model->impressions,
             pastoral_advice: $model->pastoral_advice ? $model->pastoral_advice->map(fn ($a) => AdvicesDTO::fromModel($a))->all() : [],
             life_experiences: $model->life_experiences,
-            references: $model->references ? $model->references->map(fn ($r) => ReferencesDTO::fromModel($r))->all() : [],
+            reference_material_ids: $model->referenceMaterials ? $model->referenceMaterials->pluck('id')->all() : [],
+            reference_materials: $model->referenceMaterials
+                ? $model->referenceMaterials->map(fn ($material): array => [
+                    'id' => $material->id,
+                    'title' => $material->title,
+                    'author' => $material->author,
+                    'year' => $material->year,
+                    'type' => $material->type,
+                ])->all()
+                : [],
             updated_at: $model->updated_at,
         );
     }
@@ -114,9 +126,10 @@ class NotesDTO implements Arrayable, Wireable
                 : null,
             life_experiences: $value['life_experiences'] ?? null,
 
-            references: isset($value['references'])
-                ? array_map(fn ($r) => ReferencesDTO::fromLivewire($r), $value['references'])
+            reference_material_ids: isset($value['reference_material_ids'])
+                ? array_values(array_map('intval', $value['reference_material_ids']))
                 : null,
+            reference_materials: $value['reference_materials'] ?? null,
             updated_at: is_string($value['updated_at'] ?? null)
                 ? new Date($value['updated_at'])
                 : ($value['updated_at'] ?? null),
