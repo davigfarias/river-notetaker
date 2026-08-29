@@ -33,6 +33,21 @@ enum ReferencesIcon: string
         };
     }
 
+    /**
+     * Valid Heroicon name for this type (the backing value is not always one).
+     */
+    public function icon(): string
+    {
+        return match ($this) {
+            self::BookOpen => 'book-open',
+            self::Newspaper => 'newspaper',
+            self::VideoCamera => 'video-camera',
+            self::Film => 'film',
+            self::Music => 'musical-note',
+            self::Series => 'computer-desktop',
+        };
+    }
+
     public static function fromLabel(string $label): self
     {
         return match ($label) {

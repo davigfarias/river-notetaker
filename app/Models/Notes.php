@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 
@@ -66,9 +67,17 @@ class Notes extends Model
         return $this->hasMany(PastoralAdvices::class, 'note_id');
     }
 
-    public function references(): HasMany
+    /**
+     * @return BelongsToMany<ReferenceMaterial, $this>
+     */
+    public function referenceMaterials(): BelongsToMany
     {
-        return $this->hasMany(References::class, 'note_id');
+        return $this->belongsToMany(
+            ReferenceMaterial::class,
+            'note_reference_material',
+            'note_id',
+            'reference_material_id',
+        );
     }
 
     public function toSearchableArray(): array

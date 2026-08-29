@@ -28,17 +28,8 @@ class NoteFactory extends Factory
                 $this->faker->numberBetween(1, 4)
             ),
             'discipline_id' => Disciplines::factory()->create()->id,
-            'concepts' => array_map(
-                fn () => [
-                    'term' => fake()->word(),
-                    'definition' => fake()->sentence(),
-                ],
-                range(1, fake()->numberBetween(1, 10))
-            ),
             'impressions' => $this->faker->paragraph(),
-            'pastoral_advice' => $this->faker->paragraph(),
             'life_experiences' => $this->faker->paragraph(),
-            'references' => $this->faker->url(),
         ];
     }
 }
