@@ -15,7 +15,10 @@ final readonly class GetReferenceMaterial
         try {
             $material = ReferenceMaterial::query()
                 ->where('access_token_id', $accessTokenId)
-                ->with(['citations' => fn ($query) => $query->orderByDesc('id')])
+                ->with([
+                    'citations' => fn ($query) => $query->orderByDesc('id'),
+                    'chapters.questions',
+                ])
                 ->withCount('citations')
                 ->find($id);
 
