@@ -36,4 +36,12 @@ class AccessToken extends Model
     {
         return $this->hasMany(Notes::class);
     }
+
+    /**
+     * @return HasMany<QuestionAttempt, $this>
+     */
+    public function questionAttempts(): HasMany
+    {
+        return $this->hasMany(QuestionAttempt::class);
+    }
 }

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Scout\Searchable;
 
 /**
@@ -25,6 +26,7 @@ use Laravel\Scout\Searchable;
  * @property string $type
  * @property string|null $publisher
  * @property string|null $url
+ * @property string|null $cover_path
  * @property string|null $abnt_reference
  */
 #[UseFactory(ReferenceMaterialFactory::class)]
@@ -36,6 +38,7 @@ use Laravel\Scout\Searchable;
     'type',
     'publisher',
     'url',
+    'cover_path',
     'abnt_reference',
 ])]
 #[Table(name: 'reference_materials')]
@@ -65,6 +68,23 @@ class ReferenceMaterial extends Model
     public function citations(): HasMany
     {
         return $this->hasMany(Citation::class);
+    }
+
+    /**
+     * @return HasMany<Chapter, $this>
+     */
+    public function chapters(): HasMany
+    {
+        return $this->hasMany(Chapter::class)->orderBy('position');
+    }
+
+    public function coverUrl(): ?string
+    {
+        if ($this->cover_path === null) {
+            return null;
+        }
+
+        return Storage::url($this->cover_path);
     }
 
     /**
