@@ -132,6 +132,12 @@
     }
 }
 
+@layer components {
+    .cloze-blank {
+        @apply inline-block w-28 mx-1 px-1 py-0.5 align-baseline font-mono text-sm text-on-surface bg-surface-container-high border-b-2 border-primary focus:outline-none focus:border-secondary;
+    }
+}
+
 
 :root {
   --sb-thumb-color: #45475a;

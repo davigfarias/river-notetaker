@@ -15,6 +15,21 @@ Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
     Route::livewire('/referencias/busca', 'pages::buscar-referencias')->name('referencias.busca');
     Route::livewire('/referencias/exportacoes', 'pages::exportacoes')->name('referencias.exportacoes');
     Route::get('/referencias/exportacoes/{export}/download', DownloadExportController::class)->name('referencias.exportacoes.download');
+    Route::livewire('/referencias/{id}/capitulos/{chapterId}/estudar', 'pages::estudar')
+        ->whereNumber('id')
+        ->whereNumber('chapterId')
+        ->name('referencias.study');
+
+    Route::livewire('/referencias/{id}/capitulos/{chapterId}/revisao', 'pages::revisao')
+        ->whereNumber('id')
+        ->whereNumber('chapterId')
+        ->name('referencias.study.review');
+
+    Route::livewire('/referencias/{id}/capitulos/{chapterId}/resultados', 'pages::resultados')
+        ->whereNumber('id')
+        ->whereNumber('chapterId')
+        ->name('referencias.study.results');
+
     Route::livewire('/referencias/{id}', 'pages::referencia')->whereNumber('id')->name('referencias.show');
 });
 

@@ -49,7 +49,30 @@
                 </flux:text>
             </div>
 
-            <flux:separator class="my-8" />
+            <div class="mt-8 flex gap-1 border-b border-surface-variant">
+                <button type="button" wire:click="$set('activeTab', 'citacoes')"
+                    @class([
+                        'flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                        'border-primary text-primary' => $activeTab === 'citacoes',
+                        'border-transparent text-on-surface-variant hover:text-on-surface' => $activeTab !== 'citacoes',
+                    ])>
+                    <flux:icon name="chat-bubble-bottom-center-text" class="size-4" />
+                    Citações
+                    <flux:badge size="sm">{{ $material->citations_count }}</flux:badge>
+                </button>
+                <button type="button" wire:click="$set('activeTab', 'perguntas')"
+                    @class([
+                        'flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                        'border-primary text-primary' => $activeTab === 'perguntas',
+                        'border-transparent text-on-surface-variant hover:text-on-surface' => $activeTab !== 'perguntas',
+                    ])>
+                    <flux:icon name="academic-cap" class="size-4" />
+                    Capítulos e Perguntas
+                    <flux:badge size="sm">{{ $material->chapters->count() }}</flux:badge>
+                </button>
+            </div>
+
+            <div class="mt-6" @if ($activeTab !== 'citacoes') hidden @endif>
 
             <flux:heading size="lg" level="2">
                 Citações
@@ -101,6 +124,66 @@
                     </div>
                 @endforelse
             </div>
+            </div>{{-- /citacoes tab --}}
+
+            <div class="mt-6" @if ($activeTab !== 'perguntas') hidden @endif>
+                <div class="flex items-center justify-between gap-3">
+                    <flux:heading size="lg" level="2">Capítulos</flux:heading>
+                    <flux:button size="sm" variant="primary" icon="plus" wire:click="openCreateChapter">Novo capítulo</flux:button>
+                </div>
+
+                <div class="mt-4 space-y-3">
+                    @forelse ($material->chapters as $chapter)
+                        <details wire:key="chapter-{{ $chapter->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest">
+                            <summary class="flex cursor-pointer items-center gap-3 p-4">
+                                <flux:icon name="chevron-right" class="size-4 shrink-0 transition-transform group-open:rotate-90" />
+                                <span class="font-medium">{{ $chapter->title }}</span>
+                                <flux:badge size="sm">{{ $chapter->questions->count() }}</flux:badge>
+                                <flux:spacer />
+                                <flux:button size="xs" variant="ghost" icon="pencil" wire:click.stop="editChapter({{ $chapter->id }})" />
+                                <flux:button size="xs" variant="ghost" icon="trash" wire:click.stop="confirmDeleteChapter({{ $chapter->id }})" />
+                            </summary>
+
+                            <div class="border-t border-surface-variant p-4 space-y-3">
+                                <div class="flex flex-wrap gap-2">
+                                    <flux:button size="xs" variant="primary" icon="play" href="{{ route('referencias.study', ['id' => $material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Estudar</flux:button>
+                                    <flux:button size="xs" variant="ghost" icon="book-open" href="{{ route('referencias.study.review', ['id' => $material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Revisão</flux:button>
+                                    <flux:button size="xs" variant="ghost" icon="chart-bar" href="{{ route('referencias.study.results', ['id' => $material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Resultados</flux:button>
+                                    <flux:spacer />
+                                    <flux:button size="xs" variant="ghost" icon="plus" wire:click="openCreateQuestion({{ $chapter->id }})">Pergunta</flux:button>
+                                </div>
+
+                                @forelse ($chapter->questions as $question)
+                                    <div wire:key="question-{{ $question->id }}" class="group/q rounded-lg border border-surface-variant bg-surface-container-low p-3">
+                                        <div class="flex items-start gap-2">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-medium">{{ $question->prompt }}</p>
+                                                <p class="mt-1 text-sm text-on-surface-variant line-clamp-2">{{ $question->reference_answer }}</p>
+                                                @if ($question->is_cloze)
+                                                    <flux:badge size="sm" color="purple" class="mt-2">Cloze</flux:badge>
+                                                @endif
+                                            </div>
+                                            <div class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover/q:opacity-100">
+                                                <flux:button size="xs" variant="ghost" icon="chevron-up" wire:click="moveQuestion({{ $question->id }}, {{ $loop->index - 1 }})" :disabled="$loop->first" />
+                                                <flux:button size="xs" variant="ghost" icon="chevron-down" wire:click="moveQuestion({{ $question->id }}, {{ $loop->index + 1 }})" :disabled="$loop->last" />
+                                                <flux:button size="xs" variant="ghost" icon="pencil" wire:click="editQuestion({{ $question->id }})" />
+                                                <flux:button size="xs" variant="ghost" icon="trash" wire:click="confirmDeleteQuestion({{ $question->id }})" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <flux:text size="sm" class="text-on-surface-variant">Nenhuma pergunta neste capítulo ainda.</flux:text>
+                                @endforelse
+                            </div>
+                        </details>
+                    @empty
+                        <div class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
+                            <flux:icon name="academic-cap" class="size-9 text-surface-variant-content/50 mb-3" />
+                            <flux:text class="text-surface-variant-content">Nenhum capítulo cadastrado para esta obra ainda.</flux:text>
+                        </div>
+                    @endforelse
+                </div>
+            </div>{{-- /perguntas tab --}}
         @endif
 
         <flux:modal name="edit-material" wire:model.self="editingMaterial" class="md:w-[32rem]">
@@ -151,6 +234,94 @@
                         <flux:button variant="ghost">Cancelar</flux:button>
                     </flux:modal.close>
                     <flux:button variant="danger" icon="trash" wire:click="deleteCitation">Remover</flux:button>
+                </div>
+            </div>
+        </flux:modal>
+
+        <flux:modal name="chapter-form" wire:model.self="creatingChapter" class="md:w-96">
+            <form wire:submit="addChapter" class="space-y-5">
+                <flux:heading size="lg">Novo capítulo</flux:heading>
+                <flux:input label="Título" wire:model="chapterForm.title" />
+                <flux:error name="chapterForm.title" />
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Criar</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
+        <flux:modal name="edit-chapter" wire:model.self="editingChapter" class="md:w-96">
+            <form wire:submit="updateChapter" class="space-y-5">
+                <flux:heading size="lg">Editar capítulo</flux:heading>
+                <flux:input label="Título" wire:model="editChapterForm.title" />
+                <flux:error name="editChapterForm.title" />
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Salvar</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
+        <flux:modal name="delete-chapter" class="md:w-96">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Remover capítulo</flux:heading>
+                    <flux:text class="mt-2">Todas as perguntas e tentativas deste capítulo serão removidas. Esta ação não pode ser desfeita.</flux:text>
+                </div>
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancelar</flux:button>
+                    </flux:modal.close>
+                    <flux:button variant="danger" icon="trash" wire:click="deleteChapter">Remover</flux:button>
+                </div>
+            </div>
+        </flux:modal>
+
+        <flux:modal name="question-form" wire:model.self="creatingQuestion" class="md:w-[32rem]">
+            <form wire:submit="addQuestion" class="space-y-4">
+                <flux:heading size="lg">Nova pergunta</flux:heading>
+                <flux:input label="Pergunta" wire:model="questionForm.prompt" />
+                <flux:error name="questionForm.prompt" />
+                <flux:textarea label="Resposta de referência" wire:model="questionForm.referenceAnswer" rows="4" />
+                <flux:error name="questionForm.referenceAnswer" />
+                <flux:input label="Palavras-chave (separadas por vírgula)" wire:model="questionForm.keywords" />
+                <flux:checkbox label="Modo Cloze (completar lacunas)" wire:model="questionForm.isCloze" />
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Criar</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
+        <flux:modal name="edit-question" wire:model.self="editingQuestion" class="md:w-[32rem]">
+            <form wire:submit="updateQuestion" class="space-y-4">
+                <flux:heading size="lg">Editar pergunta</flux:heading>
+                <flux:input label="Pergunta" wire:model="editQuestionForm.prompt" />
+                <flux:error name="editQuestionForm.prompt" />
+                <flux:textarea label="Resposta de referência" wire:model="editQuestionForm.referenceAnswer" rows="4" />
+                <flux:error name="editQuestionForm.referenceAnswer" />
+                <flux:input label="Palavras-chave (separadas por vírgula)" wire:model="editQuestionForm.keywords" />
+                <flux:checkbox label="Modo Cloze (completar lacunas)" wire:model="editQuestionForm.isCloze" />
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Salvar</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
+        <flux:modal name="delete-question" class="md:w-96">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Remover pergunta</flux:heading>
+                    <flux:text class="mt-2">Esta ação não pode ser desfeita.</flux:text>
+                </div>
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancelar</flux:button>
+                    </flux:modal.close>
+                    <flux:button variant="danger" icon="trash" wire:click="deleteQuestion">Remover</flux:button>
                 </div>
             </div>
         </flux:modal>

@@ -1,13 +1,25 @@
 <?php
 
 use App\Actions\AddCitation;
+use App\Actions\CreateChapter;
+use App\Actions\CreateQuestion;
+use App\Actions\DeleteChapter;
 use App\Actions\DeleteCitation;
+use App\Actions\DeleteQuestion;
 use App\Actions\GetReferenceMaterial;
+use App\Actions\RefreshClozeBlanks;
+use App\Actions\ReorderQuestion;
 use App\Actions\RequestExport;
+use App\Actions\UpdateChapter;
 use App\Actions\UpdateCitation;
+use App\Actions\UpdateQuestion;
 use App\Actions\UpdateReferenceMaterial;
+use App\DTO\ChapterForm;
 use App\DTO\CitationForm;
+use App\DTO\QuestionForm;
 use App\DTO\ReferenceMaterialForm;
+use App\Models\Chapter;
+use App\Models\Question;
 use App\Enums\ExportFormat;
 use App\Enums\ExportScope;
 use App\Models\ReferenceMaterial;
@@ -37,6 +49,34 @@ new #[Title('Obra')] class extends Component
     public bool $ready = false;
 
     public ?int $deletingCitationId = null;
+
+    public string $activeTab = 'citacoes';
+
+    public ChapterForm $chapterForm;
+
+    public ChapterForm $editChapterForm;
+
+    public ?int $editingChapterId = null;
+
+    public bool $creatingChapter = false;
+
+    public bool $editingChapter = false;
+
+    public ?int $deletingChapterId = null;
+
+    public QuestionForm $questionForm;
+
+    public QuestionForm $editQuestionForm;
+
+    public ?int $questionChapterId = null;
+
+    public bool $creatingQuestion = false;
+
+    public ?int $editingQuestionId = null;
+
+    public bool $editingQuestion = false;
+
+    public ?int $deletingQuestionId = null;
 
     public function mount(): void
     {
@@ -177,5 +217,216 @@ new #[Title('Obra')] class extends Component
         if ($check->success) {
             $this->modal('export')->close();
         }
+    }
+
+    private function ownedChapter(int $chapterId): ?Chapter
+    {
+        return Chapter::query()
+            ->where('reference_material_id', $this->id)
+            ->whereHas('referenceMaterial', fn ($query) => $query->where('access_token_id', (int) session('access_token_id')))
+            ->find($chapterId);
+    }
+
+    private function ownedQuestion(int $questionId): ?Question
+    {
+        return Question::query()
+            ->whereHas('chapter', fn ($query) => $query
+                ->where('reference_material_id', $this->id)
+                ->whereHas('referenceMaterial', fn ($inner) => $inner->where('access_token_id', (int) session('access_token_id'))))
+            ->find($questionId);
+    }
+
+    private function toast(bool $success, ?string $message): void
+    {
+        match ($success) {
+            true => Flux::toast(text: $message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $message, variant: 'danger'),
+        };
+    }
+
+    public function openCreateChapter(): void
+    {
+        $this->chapterForm->reset();
+        $this->resetValidation();
+        $this->creatingChapter = true;
+    }
+
+    public function addChapter(CreateChapter $action): void
+    {
+        $this->chapterForm->validate();
+
+        if (! $this->material) {
+            return;
+        }
+
+        $check = $action->handle($this->material, $this->chapterForm->toData());
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $this->chapterForm->reset();
+            $this->creatingChapter = false;
+            unset($this->material);
+        }
+    }
+
+    public function editChapter(int $chapterId): void
+    {
+        $chapter = $this->ownedChapter($chapterId);
+
+        if (! $chapter) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->editingChapterId = $chapterId;
+        $this->editChapterForm->fillFromChapter($chapter);
+        $this->editingChapter = true;
+    }
+
+    public function updateChapter(UpdateChapter $action): void
+    {
+        $this->editChapterForm->validate();
+
+        $chapter = $this->ownedChapter((int) $this->editingChapterId);
+
+        if (! $chapter) {
+            return;
+        }
+
+        $check = $action->handle($chapter, $this->editChapterForm->toData());
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $this->editingChapter = false;
+            unset($this->material);
+        }
+    }
+
+    public function confirmDeleteChapter(int $chapterId): void
+    {
+        $this->deletingChapterId = $chapterId;
+        $this->modal('delete-chapter')->show();
+    }
+
+    public function deleteChapter(DeleteChapter $action): void
+    {
+        $chapter = $this->deletingChapterId ? $this->ownedChapter($this->deletingChapterId) : null;
+
+        if ($chapter) {
+            $check = $action->handle($chapter);
+            $this->toast($check->success, $check->message);
+        }
+
+        $this->modal('delete-chapter')->close();
+        $this->deletingChapterId = null;
+        unset($this->material);
+    }
+
+    public function openCreateQuestion(int $chapterId): void
+    {
+        if (! $this->ownedChapter($chapterId)) {
+            return;
+        }
+
+        $this->questionForm->reset();
+        $this->resetValidation();
+        $this->questionChapterId = $chapterId;
+        $this->creatingQuestion = true;
+    }
+
+    public function addQuestion(CreateQuestion $action, RefreshClozeBlanks $refreshClozeBlanks): void
+    {
+        $this->questionForm->validate();
+
+        $chapter = $this->ownedChapter((int) $this->questionChapterId);
+
+        if (! $chapter) {
+            return;
+        }
+
+        $check = $action->handle($chapter, $this->questionForm->toData());
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $refreshClozeBlanks->handle($check->data);
+            $this->creatingQuestion = false;
+            $this->questionForm->reset();
+            unset($this->material);
+        }
+    }
+
+    public function editQuestion(int $questionId): void
+    {
+        $question = $this->ownedQuestion($questionId);
+
+        if (! $question) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->editingQuestionId = $questionId;
+        $this->editQuestionForm->fillFromQuestion($question);
+        $this->editingQuestion = true;
+    }
+
+    public function updateQuestion(UpdateQuestion $action, RefreshClozeBlanks $refreshClozeBlanks): void
+    {
+        $this->editQuestionForm->validate();
+
+        $question = $this->ownedQuestion((int) $this->editingQuestionId);
+
+        if (! $question) {
+            return;
+        }
+
+        $check = $action->handle($question, $this->editQuestionForm->toData());
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $refreshClozeBlanks->handle($check->data);
+            $this->editingQuestion = false;
+            unset($this->material);
+        }
+    }
+
+    public function confirmDeleteQuestion(int $questionId): void
+    {
+        $this->deletingQuestionId = $questionId;
+        $this->modal('delete-question')->show();
+    }
+
+    public function deleteQuestion(DeleteQuestion $action): void
+    {
+        $question = $this->deletingQuestionId ? $this->ownedQuestion($this->deletingQuestionId) : null;
+
+        if ($question) {
+            $check = $action->handle($question);
+            $this->toast($check->success, $check->message);
+        }
+
+        $this->modal('delete-question')->close();
+        $this->deletingQuestionId = null;
+        unset($this->material);
+    }
+
+    public function moveQuestion(ReorderQuestion $action, int $questionId, int $position): void
+    {
+        $question = $this->ownedQuestion($questionId);
+
+        if (! $question || $position < 0) {
+            return;
+        }
+
+        $check = $action->handle($question->chapter, $question, $position);
+
+        if (! $check->success) {
+            $this->toast(false, $check->message);
+        }
+
+        unset($this->material);
     }
 };
