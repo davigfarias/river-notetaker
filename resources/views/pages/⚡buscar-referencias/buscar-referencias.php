@@ -8,13 +8,14 @@ use App\Enums\ExportScope;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Flux\Flux;
 
-new #[Title('Buscar nas referências')] class extends Component
+new #[Title('Buscar nas referências')] #[Lazy] class extends Component
 {
     use WithPagination;
 
@@ -25,13 +26,6 @@ new #[Title('Buscar nas referências')] class extends Component
     public string $tab = 'citacoes';
 
     public string $exportFormat = 'docx';
-
-    public bool $ready = false;
-
-    public function loadContent(): void
-    {
-        $this->ready = true;
-    }
 
     #[Computed]
     public function works(): Collection

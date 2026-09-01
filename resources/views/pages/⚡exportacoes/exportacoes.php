@@ -4,23 +4,17 @@ use App\Actions\DeleteExport;
 use App\Actions\GetExports;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Flux\Flux;
 
-new #[Title('Exportações')] class extends Component
+new #[Title('Exportações')] #[Lazy] class extends Component
 {
     use WithPagination;
 
-    public bool $ready = false;
-
     public ?int $deletingExportId = null;
-
-    public function loadContent(): void
-    {
-        $this->ready = true;
-    }
 
     #[Computed]
     public function exports(): LengthAwarePaginator
