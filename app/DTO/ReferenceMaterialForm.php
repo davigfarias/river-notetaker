@@ -33,6 +33,9 @@ class ReferenceMaterialForm extends Form
     #[Validate('nullable|string|max:2000')]
     public ?string $abnt_reference = null;
 
+    #[Validate('nullable|string|max:2048')]
+    public ?string $cover_path = null;
+
     /**
      * @return array<string, mixed>
      */
@@ -51,6 +54,7 @@ class ReferenceMaterialForm extends Form
         $this->type = $material->type;
         $this->publisher = $material->publisher;
         $this->url = $material->url;
+        $this->cover_path = $material->cover_path;
         $this->abnt_reference = $material->abnt_reference;
     }
 
@@ -66,6 +70,7 @@ class ReferenceMaterialForm extends Form
             'type' => $this->type,
             'publisher' => $this->publisher ?: null,
             'url' => $this->url ?: null,
+            'cover_path' => $this->cover_path ?: null,
             'abnt_reference' => $this->abnt_reference ?: null,
         ];
     }
