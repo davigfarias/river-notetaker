@@ -24,11 +24,12 @@ use App\Enums\ExportFormat;
 use App\Enums\ExportScope;
 use App\Models\ReferenceMaterial;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Flux\Flux;
 
-new #[Title('Obra')] class extends Component
+new #[Title('Obra')] #[Lazy] class extends Component
 {
     public int $id;
 
@@ -45,8 +46,6 @@ new #[Title('Obra')] class extends Component
     public bool $editingMaterial = false;
 
     public string $exportFormat = 'docx';
-
-    public bool $ready = false;
 
     public ?int $deletingCitationId = null;
 
@@ -81,11 +80,6 @@ new #[Title('Obra')] class extends Component
     public function mount(): void
     {
         abort_if($this->fetch() === null, 404);
-    }
-
-    public function loadContent(): void
-    {
-        $this->ready = true;
     }
 
     #[Computed]

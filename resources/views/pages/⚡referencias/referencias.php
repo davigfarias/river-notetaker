@@ -5,13 +5,14 @@ use App\Actions\GetReferenceMaterials;
 use App\DTO\ReferenceMaterialForm;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Flux\Flux;
 
-new #[Title('Referências')] class extends Component
+new #[Title('Referências')] #[Lazy] class extends Component
 {
     use WithPagination;
 
@@ -21,14 +22,7 @@ new #[Title('Referências')] class extends Component
     #[Url(as: 'tipo')]
     public string $type = '';
 
-    public bool $ready = false;
-
     public ReferenceMaterialForm $form;
-
-    public function loadContent(): void
-    {
-        $this->ready = true;
-    }
 
     #[Computed]
     public function materials(): LengthAwarePaginator

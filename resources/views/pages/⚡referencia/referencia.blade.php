@@ -4,34 +4,42 @@
     </flux:button>
 </x-slot:headerActions>
 
-@php($material = $ready ? $this->material : null)
-@php($icon = $material ? (\App\Enums\ReferencesIcon::tryFrom($material->type) ?? \App\Enums\ReferencesIcon::BookOpen) : null)
+@placeholder
+    <x-slot:headerActions>
+        <flux:button variant="ghost" icon="arrow-left" href="{{ route('referencias') }}" wire:navigate>
+            Biblioteca
+        </flux:button>
+    </x-slot:headerActions>
 
-<div wire:init="loadContent">
     <div class="mx-auto w-full max-w-4xl py-8">
-
-        @if (! $ready || ! $material)
-            <div class="space-y-4">
-                <flux:skeleton class="h-5 w-24" />
-                <flux:skeleton class="h-9 w-2/3" />
-                <flux:skeleton class="h-4 w-1/2" />
-                <flux:skeleton class="h-16 w-full" />
-                <div class="pt-6 space-y-3">
-                    <flux:skeleton class="h-6 w-32" />
-                    <flux:skeleton class="h-24 w-full" />
-                    <flux:skeleton class="h-20 w-full" />
-                </div>
+        <div class="space-y-4">
+            <flux:skeleton class="h-5 w-24" />
+            <flux:skeleton class="h-9 w-2/3" />
+            <flux:skeleton class="h-4 w-1/2" />
+            <flux:skeleton class="h-16 w-full" />
+            <div class="pt-6 space-y-3">
+                <flux:skeleton class="h-6 w-32" />
+                <flux:skeleton class="h-24 w-full" />
+                <flux:skeleton class="h-20 w-full" />
             </div>
-        @else
+        </div>
+    </div>
+@endplaceholder
+
+@php($icon = \App\Enums\ReferencesIcon::tryFrom($this->material->type) ?? \App\Enums\ReferencesIcon::BookOpen)
+
+<div class="mx-auto w-full max-w-4xl py-8">
+
+        <div>
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
                     <flux:badge size="sm" icon="{{ $icon->icon() }}" color="zinc">{{ $icon->label() }}</flux:badge>
-                    <flux:heading size="xl" level="1" class="mt-3">{{ $material->title }}</flux:heading>
+                    <flux:heading size="xl" level="1" class="mt-3">{{ $this->material->title }}</flux:heading>
                     <flux:text class="mt-1">
-                        {{ $material->author }}{{ $material->year ? ' · '.$material->year : '' }}{{ $material->publisher ? ' · '.$material->publisher : '' }}
+                        {{ $this->material->author }}{{ $this->material->year ? ' · '.$this->material->year : '' }}{{ $this->material->publisher ? ' · '.$this->material->publisher : '' }}
                     </flux:text>
-                    @if ($material->url)
-                        <flux:link href="{{ $material->url }}" target="_blank" class="mt-1 block text-sm">{{ $material->url }}</flux:link>
+                    @if ($this->material->url)
+                        <flux:link href="{{ $this->material->url }}" target="_blank" class="mt-1 block text-sm">{{ $this->material->url }}</flux:link>
                     @endif
                 </div>
 
@@ -45,7 +53,7 @@
 
             <div class="mt-4 rounded-lg border border-surface-variant bg-surface-container-low/50 p-3">
                 <flux:text size="sm" class="text-on-surface-variant">
-                    {{ app(\App\Support\Export\AbntFormatter::class)->reference($material) }}
+                    {{ app(\App\Support\Export\AbntFormatter::class)->reference($this->material) }}
                 </flux:text>
             </div>
 
@@ -58,7 +66,7 @@
                     ])>
                     <flux:icon name="chat-bubble-bottom-center-text" class="size-4" />
                     Citações
-                    <flux:badge size="sm">{{ $material->citations_count }}</flux:badge>
+                    <flux:badge size="sm">{{ $this->material->citations_count }}</flux:badge>
                 </button>
                 <button type="button" wire:click="$set('activeTab', 'perguntas')"
                     @class([
@@ -68,7 +76,7 @@
                     ])>
                     <flux:icon name="academic-cap" class="size-4" />
                     Capítulos e Perguntas
-                    <flux:badge size="sm">{{ $material->chapters->count() }}</flux:badge>
+                    <flux:badge size="sm">{{ $this->material->chapters->count() }}</flux:badge>
                 </button>
             </div>
 
@@ -76,7 +84,7 @@
 
             <flux:heading size="lg" level="2">
                 Citações
-                <flux:badge size="sm" class="ml-1">{{ $material->citations_count }}</flux:badge>
+                <flux:badge size="sm" class="ml-1">{{ $this->material->citations_count }}</flux:badge>
             </flux:heading>
 
             <form wire:submit="addCitation" class="mt-4 space-y-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
@@ -100,7 +108,7 @@
             </div>
 
             <div wire:loading.delay.remove wire:target="addCitation,updateCitation,deleteCitation" class="mt-6 space-y-3">
-                @forelse ($material->citations as $citation)
+                @forelse ($this->material->citations as $citation)
                     <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
                         <p class="italic text-on-surface-variant leading-relaxed">&ldquo;{{ $citation->quote_text }}&rdquo;</p>
                         <div class="mt-2 flex items-center gap-3">
@@ -133,7 +141,7 @@
                 </div>
 
                 <div class="mt-4 space-y-3">
-                    @forelse ($material->chapters as $chapter)
+                    @forelse ($this->material->chapters as $chapter)
                         <details wire:key="chapter-{{ $chapter->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest">
                             <summary class="flex cursor-pointer items-center gap-3 p-4">
                                 <flux:icon name="chevron-right" class="size-4 shrink-0 transition-transform group-open:rotate-90" />
@@ -146,9 +154,9 @@
 
                             <div class="border-t border-surface-variant p-4 space-y-3">
                                 <div class="flex flex-wrap gap-2">
-                                    <flux:button size="xs" variant="primary" icon="play" href="{{ route('referencias.study', ['id' => $material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Estudar</flux:button>
-                                    <flux:button size="xs" variant="ghost" icon="book-open" href="{{ route('referencias.study.review', ['id' => $material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Revisão</flux:button>
-                                    <flux:button size="xs" variant="ghost" icon="chart-bar" href="{{ route('referencias.study.results', ['id' => $material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Resultados</flux:button>
+                                    <flux:button size="xs" variant="primary" icon="play" href="{{ route('referencias.study', ['id' => $this->material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Estudar</flux:button>
+                                    <flux:button size="xs" variant="ghost" icon="book-open" href="{{ route('referencias.study.review', ['id' => $this->material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Revisão</flux:button>
+                                    <flux:button size="xs" variant="ghost" icon="chart-bar" href="{{ route('referencias.study.results', ['id' => $this->material->id, 'chapterId' => $chapter->id]) }}" wire:navigate>Resultados</flux:button>
                                     <flux:spacer />
                                     <flux:button size="xs" variant="ghost" icon="plus" wire:click="openCreateQuestion({{ $chapter->id }})">Pergunta</flux:button>
                                 </div>
@@ -184,7 +192,7 @@
                     @endforelse
                 </div>
             </div>{{-- /perguntas tab --}}
-        @endif
+        </div>
 
         <flux:modal name="edit-material" wire:model.self="editingMaterial" class="md:w-[32rem]">
             <form wire:submit="updateMaterial" class="space-y-5">
@@ -344,5 +352,4 @@
                 </div>
             </form>
         </flux:modal>
-    </div>
 </div>

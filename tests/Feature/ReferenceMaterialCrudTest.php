@@ -7,6 +7,7 @@ use Livewire\Livewire;
 beforeEach(function () {
     $this->token = AccessToken::factory()->create();
     $this->withSession(['access_token_id' => $this->token->id]);
+    Livewire::withoutLazyLoading();
 });
 
 test('a reference material can be added from the library page', function () {
@@ -37,7 +38,6 @@ test('the library only lists materials of the requesting token', function () {
     ReferenceMaterial::factory()->create(['access_token_id' => AccessToken::factory()->create()->id, 'title' => 'Obra alheia']);
 
     Livewire::test('pages::referencias')
-        ->call('loadContent')
         ->assertSee('Minha obra')
         ->assertDontSee('Obra alheia');
 });
@@ -47,7 +47,6 @@ test('the library can be filtered by type and text', function () {
     ReferenceMaterial::factory()->article()->create(['access_token_id' => $this->token->id, 'title' => 'Artigo sobre Graça']);
 
     Livewire::test('pages::referencias')
-        ->call('loadContent')
         ->set('type', 'newspaper')
         ->assertSee('Artigo sobre Graça')
         ->assertDontSee('Livro de Teologia')

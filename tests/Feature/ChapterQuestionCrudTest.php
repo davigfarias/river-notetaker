@@ -10,6 +10,7 @@ beforeEach(function () {
     $this->token = AccessToken::factory()->create();
     $this->withSession(['access_token_id' => $this->token->id]);
     $this->material = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+    Livewire::withoutLazyLoading();
 });
 
 test('a chapter can be created from the reference detail page', function () {

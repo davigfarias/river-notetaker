@@ -135,8 +135,9 @@ test('the exports page lists the token exports and can delete one', function () 
     ]);
     Storage::disk($export->disk)->put($export->path, 'x');
 
+    Livewire::withoutLazyLoading();
+
     Livewire::test('pages::exportacoes')
-        ->call('loadContent')
         ->assertSee('A Vida Juntos')
         ->call('confirmDeleteExport', $export->id)
         ->call('deleteExport');
