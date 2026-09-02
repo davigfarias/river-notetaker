@@ -80,7 +80,36 @@
     </flux:main>
 </main>
 
-<footer class="h-14 shrink-0">
+<nav class="shrink-0 border-t border-outline-variant bg-surface-container-lowest/95 backdrop-blur-md md:hidden">
+    <div class="mx-auto flex max-w-md items-stretch justify-around">
+        <a wire:navigate href="{{ route('dashboard') }}"
+           @if (request()->routeIs('dashboard')) data-current @endif
+           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
+            <flux:icon name="squares-2x2" class="size-6" />
+            <span>Disciplinas</span>
+        </a>
+        <a wire:navigate href="{{ route('concepts') }}"
+           @if (request()->routeIs('concepts')) data-current @endif
+           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
+            <flux:icon name="light-bulb" class="size-6" />
+            <span>Conceitos</span>
+        </a>
+        <a wire:navigate href="{{ route('pastoral') }}"
+           @if (request()->routeIs('pastoral')) data-current @endif
+           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
+            <flux:icon name="users" class="size-6" />
+            <span>Conselhos</span>
+        </a>
+        <a wire:navigate href="{{ route('referencias') }}"
+           @if (request()->routeIs('referencias*') || request()->routeIs('referencias.show')) data-current @endif
+           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
+            <flux:icon name="book-open" class="size-6" />
+            <span>Referências</span>
+        </a>
+    </div>
+</nav>
+
+<footer class="h-14 shrink-0 hidden md:flex">
     <div class="mx-auto flex h-full items-center justify-center gap-2 px-6 text-sm text-on-surface-variant">
 
         <span>Desenvolvido orgulhosamente em</span>

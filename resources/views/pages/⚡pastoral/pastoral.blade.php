@@ -75,7 +75,7 @@
             <flux:pagination :paginator="$this->themes" class="mt-10" />
         @endif
 
-        <flux:modal name="add-advice" class="md:w-96">
+        <flux:modal name="add-advice" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Adicionar um novo conselho</flux:heading>
@@ -118,7 +118,7 @@
             </div>
         </flux:modal>
 
-        <flux:modal name="edit-advice" wire:model.self="editingAdvice" class="md:w-96">
+        <flux:modal name="edit-advice" wire:model.self="editingAdvice" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Editar conselho</flux:heading>

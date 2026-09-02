@@ -1,21 +1,21 @@
 <?php
 
 use App\Actions\GetDisciplines;
-use App\Actions\SubActions\CreateDiscipline;
-use App\Actions\SubActions\DeleteDiscipline;
+use App\Actions\SubActions\{CreateDiscipline, DeleteDiscipline};
 use App\DTO\DisciplinesDTO;
 use App\Enums\DisciplineIcon;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Title;
+use Livewire\Attributes\{Computed, Title};
 use Livewire\Component;
+use Livewire\Attributes\Lazy;
 
-new #[Title('Dashboard')] class extends Component
+new #[Title('Disciplinas')] #[Lazy] class extends Component
 {
+    # TODO: refactor this to retire this constants
     public bool $showCreateModal = false;
-
+    # TODO: refactor this to retire this constants
     public bool $showDeleteModal = false;
 
     public ?int $disciplineIdToDelete = null;
@@ -32,6 +32,7 @@ new #[Title('Dashboard')] class extends Component
         $this->disciplines($action);
     }
 
+    #TODO: export this to a Object Form. 
     /**
      * @return array<string, array>
      */
@@ -74,7 +75,7 @@ new #[Title('Dashboard')] class extends Component
 
         match ($check->success) {
             true => $this->disciplines = $check->data,
-            false => $this->disciplines = null
+            false => $this->disciplines = collect()
         };
     }
 

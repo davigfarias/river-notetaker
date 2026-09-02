@@ -141,7 +141,7 @@
 
             @foreach ($this->conceptsDTO as $concept)
                 @if(mb_strlen($concept->definition) > 85)
-                    <flux:modal name="modal-concept-{{ $loop->index }}" class="min-w-88 md:w-lg space-y-6">
+                    <flux:modal name="modal-concept-{{ $loop->index }}" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg space-y-6">
                         <div>
                             <flux:heading size="xl" class="mb-4">{{ $concept->term }}</flux:heading>
 
@@ -161,7 +161,7 @@
             @endforeach
         @endif
 
-        <flux:modal name="add-concept" class="md:w-96">
+        <flux:modal name="add-concept" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Adicionar um novo conceito</flux:heading>
@@ -193,7 +193,7 @@
             </div>
         </flux:modal>
 
-        <flux:modal name="edit-concept" wire:model.self="editingConcept" class="md:w-96">
+        <flux:modal name="edit-concept" wire:model.self="editingConcept" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Editar conceito</flux:heading>
