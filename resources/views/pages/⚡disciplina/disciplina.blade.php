@@ -4,7 +4,7 @@
     </x-slot:headerActions>
 
     <div class="-m-6 flex h-[calc(100vh-7rem)] overflow-hidden lg:-m-8">
-        <div class="border-outline-variant bg-surface-container-lowest/30 flex min-h-0 w-full flex-col border-r md:w-1/3 lg:w-1/4">
+        <div class="border-outline-variant bg-surface-container-lowest/30 min-h-0 w-full flex-col border-r @if ($this->mobileDetail) hidden @else flex @endif md:flex md:w-1/3 lg:w-1/4">
             <div class="border-outline-variant shrink-0 border-b p-4">
                 <div class="border-outline-variant/30 bg-surface-container primary mb-4 flex h-12 w-12 items-center justify-center rounded-lg border">
                     <flux:icon :name="$disciplineDTO->icon" class="size-6" />
@@ -52,9 +52,12 @@
             </div>
         </div>
 
-        <div class="bg-surface hidden min-h-0 flex-1 flex-col overflow-y-auto p-8 md:flex lg:p-12">
+        <div class="bg-surface min-h-0 flex-1 flex-col overflow-y-auto p-8 md:flex lg:p-12 {{ $this->mobileDetail ? 'flex' : 'hidden' }}">
             @if ($this->selectedNote)
                 <div class="mx-auto w-full max-w-3xl pb-16">
+                    <div class="mb-4 md:hidden">
+                        <flux:button variant="ghost" icon="arrow-left" wire:click="$set('mobileDetail', false)">Voltar</flux:button>
+                    </div>
                     <div class="mb-2 flex items-center justify-between">
                         <div class="flex items-center gap-4">
                             <flux:heading

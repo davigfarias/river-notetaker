@@ -57,7 +57,7 @@
                 </flux:text>
             </div>
 
-            <div class="mt-8 flex gap-1 border-b border-surface-variant">
+            <div class="mt-8 flex gap-1 overflow-x-auto whitespace-nowrap border-b border-surface-variant">
                 <button type="button" wire:click="$set('activeTab', 'citacoes')"
                     @class([
                         'flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',

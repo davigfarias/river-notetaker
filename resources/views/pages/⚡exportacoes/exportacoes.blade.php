@@ -53,7 +53,7 @@
                     </flux:text>
                 </div>
 
-                <div class="shrink-0 w-28">
+                <div class="shrink-0 w-24 sm:w-28">
                     @if ($export->status->isInProgress())
                         <flux:skeleton class="h-6 w-24" animate="shimmer" />
                     @elseif ($export->status === \App\Enums\ExportStatus::Completed)
@@ -69,7 +69,7 @@
                     @if ($export->status->isDownloadable())
                         <flux:button size="sm" variant="ghost" icon="arrow-down-tray"
                                      href="{{ route('referencias.exportacoes.download', $export) }}"
-                                     target="_blank">Baixar</flux:button>
+                                     target="_blank"><span class="hidden sm:inline">Baixar</span></flux:button>
                     @endif
                     <flux:button size="sm" variant="ghost" icon="trash" wire:click="confirmDeleteExport({{ $export->id }})" />
                 </div>
