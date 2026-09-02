@@ -23,6 +23,25 @@ beforeEach(function () {
     ]);
 });
 
+test('switching the selected note shows that note\'s own summary, not the previous one', function () {
+    Queue::fake();
+
+    $this->note->update(['ai_summary' => 'Resumo da nota A.']);
+
+    $noteB = Notes::create([
+        'title' => 'Segunda nota',
+        'discipline_id' => $this->discipline->id,
+        'access_token_id' => $this->token->id,
+        'ai_summary' => 'Resumo da nota B.',
+    ]);
+
+    Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+        ->assertSee('Resumo da nota A.')
+        ->call('selectNote', $noteB->id)
+        ->assertSee('Resumo da nota B.')
+        ->assertDontSee('Resumo da nota A.');
+});
+
 test('the action dispatches the summary job for the note', function () {
     Queue::fake();
 
