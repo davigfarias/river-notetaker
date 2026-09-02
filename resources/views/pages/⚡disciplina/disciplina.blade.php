@@ -4,7 +4,7 @@
     </x-slot:headerActions>
 
     <div class="-m-6 flex h-[calc(100vh-7rem)] overflow-hidden lg:-m-8">
-        <div class="border-outline-variant bg-surface-container-lowest/30 flex min-h-0 w-full flex-col border-r md:w-1/3 lg:w-1/4">
+        <div class="border-outline-variant bg-surface-container-lowest/30 min-h-0 w-full flex-col border-r @if ($this->mobileDetail) hidden @else flex @endif md:flex md:w-1/3 lg:w-1/4">
             <div class="border-outline-variant shrink-0 border-b p-4">
                 <div class="border-outline-variant/30 bg-surface-container primary mb-4 flex h-12 w-12 items-center justify-center rounded-lg border">
                     <flux:icon :name="$disciplineDTO->icon" class="size-6" />
@@ -52,9 +52,12 @@
             </div>
         </div>
 
-        <div class="bg-surface hidden min-h-0 flex-1 flex-col overflow-y-auto p-8 md:flex lg:p-12">
+        <div class="bg-surface min-h-0 flex-1 flex-col overflow-y-auto p-8 md:flex lg:p-12 {{ $this->mobileDetail ? 'flex' : 'hidden' }}">
             @if ($this->selectedNote)
                 <div class="mx-auto w-full max-w-3xl pb-16">
+                    <div class="mb-4 md:hidden">
+                        <flux:button variant="ghost" icon="arrow-left" wire:click="$set('mobileDetail', false)">Voltar</flux:button>
+                    </div>
                     <div class="mb-2 flex items-center justify-between">
                         <div class="flex items-center gap-4">
                             <flux:heading
@@ -323,7 +326,7 @@
                         @endif
                     </div>
 
-                    <flux:modal name="edit-title" wire:model.self="editing.title" class="md:w-96">
+                    <flux:modal name="edit-title" wire:model.self="editing.title" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
                         <div class="space-y-6">
                             <flux:heading size="lg">Editar título</flux:heading>
                             <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
@@ -336,7 +339,7 @@
                         </div>
                     </flux:modal>
 
-                    <flux:modal name="edit-impressions" wire:model.self="editing.impressions" class="md:w-lg">
+                    <flux:modal name="edit-impressions" wire:model.self="editing.impressions" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
                         <div class="space-y-6">
                             <flux:heading size="lg">Editar impressões</flux:heading>
                             <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
@@ -354,7 +357,7 @@
                         </div>
                     </flux:modal>
 
-                    <flux:modal name="edit-life_experiences" wire:model.self="editing.life_experiences" class="md:w-lg">
+                    <flux:modal name="edit-life_experiences" wire:model.self="editing.life_experiences" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
                         <div class="space-y-6">
                             <flux:heading size="lg">Editar experiências de vida</flux:heading>
                             <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
@@ -372,7 +375,7 @@
                         </div>
                     </flux:modal>
 
-                    <flux:modal name="edit-concept" wire:model.self="editingConcept" class="md:w-96">
+                    <flux:modal name="edit-concept" wire:model.self="editingConcept" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
                         <div class="space-y-6">
                             <flux:heading size="lg">Editar conceito</flux:heading>
                             <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
@@ -386,7 +389,7 @@
                         </div>
                     </flux:modal>
 
-                    <flux:modal name="edit-advice" wire:model.self="editingAdvice" class="md:w-96">
+                    <flux:modal name="edit-advice" wire:model.self="editingAdvice" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
                         <div class="space-y-6">
                             <flux:heading size="lg">Editar conselho pastoral</flux:heading>
                             <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
@@ -400,7 +403,7 @@
                         </div>
                     </flux:modal>
 
-                    <flux:modal name="add-concept" wire:model.self="addingConcept" class="md:w-96">
+                    <flux:modal name="add-concept" wire:model.self="addingConcept" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
                         <div class="space-y-6">
                             <flux:heading size="lg">Adicionar conceito</flux:heading>
                             <flux:text class="mt-2">Ao terminar, aperte "Adicionar".</flux:text>
@@ -418,7 +421,7 @@
                         </div>
                     </flux:modal>
 
-                    <flux:modal name="add-advice" wire:model.self="addingAdvice" class="md:w-96">
+                    <flux:modal name="add-advice" wire:model.self="addingAdvice" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
                         <div class="space-y-6">
                             <flux:heading size="lg">Adicionar conselho pastoral</flux:heading>
                             <flux:text class="mt-2">Ao terminar, aperte "Adicionar".</flux:text>

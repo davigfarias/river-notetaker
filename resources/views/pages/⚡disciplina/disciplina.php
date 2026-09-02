@@ -40,6 +40,8 @@ new #[Title('Disciplinas')] class extends Component
 
     public ?int $selectedNoteId = null;
 
+    public bool $mobileDetail = false;
+
     public array $draft = [];
 
     public array $editing = ['title' => false, 'impressions' => false, 'life_experiences' => false];
@@ -118,6 +120,7 @@ new #[Title('Disciplinas')] class extends Component
     public function selectNote(int $id): void
     {
         $this->selectedNoteId = $id;
+        $this->mobileDetail = true;
     }
 
     #[Computed]

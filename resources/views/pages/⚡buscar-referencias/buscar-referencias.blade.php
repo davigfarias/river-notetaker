@@ -112,7 +112,7 @@
         </div>
     </div>
 
-    <flux:modal name="export-search" class="md:w-96">
+    <flux:modal name="export-search" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
         <form wire:submit="exportSearch" class="space-y-5">
             <div>
                 <flux:heading size="lg">Exportar resultados</flux:heading>

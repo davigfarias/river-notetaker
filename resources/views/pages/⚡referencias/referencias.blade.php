@@ -1,6 +1,6 @@
 <x-slot:headerActions>
     <flux:button variant="ghost" icon="arrow-down-tray" href="{{ route('referencias.exportacoes') }}" wire:navigate>
-        Exportações
+        <span class="hidden sm:inline">Exportações</span>
     </flux:button>
     <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate>
         Nova Nota
@@ -10,7 +10,7 @@
 @placeholder
     <x-slot:headerActions>
         <flux:button variant="ghost" icon="arrow-down-tray" href="{{ route('referencias.exportacoes') }}" wire:navigate>
-            Exportações
+            <span class="hidden sm:inline">Exportações</span>
         </flux:button>
         <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate>
             Nova Nota
@@ -121,7 +121,7 @@
         @endif
     </div>
 
-    <flux:modal name="add-material" class="md:w-[32rem]">
+    <flux:modal name="add-material" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
         <form wire:submit="addMaterial" class="space-y-5">
             <div>
                 <flux:heading size="lg">Nova obra</flux:heading>

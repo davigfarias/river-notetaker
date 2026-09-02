@@ -9,10 +9,7 @@ use App\Actions\{
     UpdateConcept};
 use App\DTO\ConceptsDTO;
 use Illuminate\Support\Collection;
-use Livewire\Attributes\{
-    Computed,
-    Title,
-    Url};
+use Livewire\Attributes\{Computed, Title, Url};
 use App\DTO\SoleConceptDTO;
 use Livewire\Component;
 use Flux\Flux;

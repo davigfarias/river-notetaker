@@ -264,7 +264,7 @@
         </section>
     </form>
 
-    <flux:modal name="add-reference-material" class="md:w-[32rem]">
+    <flux:modal name="add-reference-material" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
         <form wire:submit="addNewReference" class="space-y-5">
             <div>
                 <flux:heading size="lg">Nova obra</flux:heading>
@@ -291,7 +291,7 @@
         </form>
     </flux:modal>
 
-    <flux:modal name="edit-concept" wire:model.self="editingConcept" class="md:w-96">
+    <flux:modal name="edit-concept" wire:model.self="editingConcept" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Editar conceito</flux:heading>

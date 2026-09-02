@@ -1,18 +1,26 @@
 {
     "agents": [
-        "claude_code"
+        "claude_code",
+        "antigravity",
+        "opencode"
     ],
-    "cloud": false,
+    "cloud": true,
     "guidelines": true,
     "mcp": true,
     "nightwatch": false,
+    "packages": [
+        "livewire/blaze"
+    ],
     "sail": false,
     "skills": [
+        "ai-sdk-development",
         "laravel-best-practices",
         "scout-development",
         "fluxui-development",
         "livewire-development",
         "pest-testing",
-        "tailwindcss-development"
+        "tailwindcss-development",
+        "blaze-optimize",
+        "deploying-laravel-cloud"
     ]
 }

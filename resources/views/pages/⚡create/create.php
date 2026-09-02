@@ -1,28 +1,19 @@
 <?php
 
-use App\Actions\AddReferenceMaterial;
-use App\Actions\GetAllDisciplines;
-use App\Actions\GetTags;
-use App\Actions\ObserveTerm;
+use App\DTO\{AdvicesDTO, ConceptsDTO, NotesDTO, ReferenceMaterialForm, SoleConceptDTO};
+use App\Actions\{AddReferenceMaterial, GetAllDisciplines, GetTags, ObserveTerm};
+use App\Actions\{SearchReferenceMaterials, UpdateConcept};
+use Livewire\Attributes\{Computed, On, Title};
 use App\Actions\Orchestrators\SaveNote;
-use App\Actions\SearchReferenceMaterials;
-use App\Actions\UpdateConcept;
-use App\DTO\AdvicesDTO;
-use App\DTO\ConceptsDTO;
-use App\DTO\NotesDTO;
-use App\DTO\ReferenceMaterialForm;
-use App\DTO\SoleConceptDTO;
-use App\Models\Concepts;
-use App\Models\ReferenceMaterial;
-use Flux\Flux;
 use Illuminate\Support\Collection;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\On;
-use Livewire\Attributes\Title;
+use App\Models\ReferenceMaterial;
+use App\Models\Concepts;
 use Livewire\Component;
+use Flux\Flux;
 
 new #[Title('Criar uma Nova Nota')] class extends Component
 {
+    #TODO: Refactor this. Modals should not work like this in Flux;
     public bool $showDeleteModal = false;
 
     public NotesDTO $notes;
@@ -37,6 +28,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
     public ReferenceMaterialForm $refForm;
 
+    #TODO: write this as a Form Object. 
     protected function rules(): array
     {
         return [
@@ -51,6 +43,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         ];
     }
 
+    #TODO: write a Form Object
     protected function messages(): array
     {
         return [
