@@ -1,18 +1,11 @@
 <?php
 
-use App\Actions\RequestExport;
-use App\Actions\SearchCitations;
-use App\Actions\SearchReferenceMaterials;
-use App\Enums\ExportFormat;
-use App\Enums\ExportScope;
+use App\Actions\{RequestExport, SearchCitations, SearchReferenceMaterials};
+use Livewire\Attributes\{Computed, Lazy, Title, Url};
+use App\Enums\{ExportFormat, ExportScope};
+use Livewire\{Component, WithPagination};
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Livewire\Attributes\Computed;
-use Livewire\Attributes\Lazy;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Url;
-use Livewire\Component;
-use Livewire\WithPagination;
 use Flux\Flux;
 
 new #[Title('Buscar nas referências')] #[Lazy] class extends Component

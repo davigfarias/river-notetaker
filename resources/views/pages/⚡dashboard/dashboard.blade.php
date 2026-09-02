@@ -2,6 +2,32 @@
     <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate> Nova Nota </flux:button>
 </x-slot:headerActions>
 
+@placeholder
+
+ <div class="mx-auto w-full max-w-7xl py-8">
+        <div class="mb-8">
+            <flux:heading size="xl" level="1">Disciplinas</flux:heading>
+            <flux:text class="mt-2">Visão geral do progresso acadêmico.</flux:text>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            @foreach(range(1, 5) as $i)
+                <div class="group border-surface-variant bg-surface-container-low hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md">
+
+                <div class="primary bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
+
+                    <div class="absolute top-2 right-2 z-10">
+                       <flux:skeleton class="size-5 rounded-full" />
+                    </div>
+                    <flux:skeleton class="size-10 rounded-full" />
+                    <flux:skeleton class="h-5 w-3/4" />
+                </div>
+            @endforeach
+        </div>
+    
+</div>
+@endplaceholder
+
 <div>
     <div class="mx-auto w-full max-w-7xl py-8">
         <div class="mb-8">
