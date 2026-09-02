@@ -78,6 +78,78 @@
                         </button>
                     </section>
 
+                    @island(name: 'summary', skip: true)
+                        @placeholder
+                            <div class="mb-6">
+                                <flux:button
+                                    size="sm"
+                                    variant="subtle"
+                                    icon="sparkles"
+                                    wire:click="generateSummary"
+                                    wire:island="summary"
+                                >
+                                    Gerar resumo com IA
+                                </flux:button>
+                            </div>
+                        @endplaceholder
+
+                        @if ($this->awaitingSummary)
+                            <section
+                                class="border-surface-variant bg-primary-container/10 mb-6 rounded-lg border p-4"
+                                wire:poll.{{ config('summarizer.poll_interval', '2s') }}="pollCheckSummary"
+                            >
+                                <div class="mb-2 flex items-center gap-2">
+                                    <flux:icon name="sparkles" class="text-primary size-4 animate-pulse" />
+                                    <flux:heading size="xs">Resumo de IA</flux:heading>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="bg-surface-variant h-3 w-full animate-pulse rounded"></div>
+                                    <div class="bg-surface-variant h-3 w-3/4 animate-pulse rounded"></div>
+                                </div>
+                            </section>
+                        @elseif ($this->selectedNote->ai_summary)
+                            <section class="border-surface-variant bg-primary-container/10 mb-6 rounded-lg border p-4">
+                                <div class="mb-2 flex items-center gap-2">
+                                    <flux:icon name="sparkles" class="text-primary size-4" />
+                                    <flux:heading size="xs">Resumo de IA</flux:heading>
+                                    <flux:spacer />
+                                    <flux:modal.trigger name="confirm-regenerate-summary">
+                                        <flux:button size="sm" variant="subtle">Gerar novamente</flux:button>
+                                    </flux:modal.trigger>
+                                </div>
+                                <flux:text class="text-sm">{{ $this->selectedNote->ai_summary }}</flux:text>
+                            </section>
+                        @else
+                            <div class="mb-6">
+                                <flux:button
+                                    size="sm"
+                                    variant="subtle"
+                                    icon="sparkles"
+                                    wire:click="generateSummary"
+                                    wire:island="summary"
+                                >
+                                    Gerar resumo com IA
+                                </flux:button>
+                            </div>
+                        @endif
+                    @endisland
+
+                    <flux:modal name="confirm-regenerate-summary" class="md:w-96">
+                        <div class="space-y-6">
+                            <div>
+                                <flux:heading size="lg">Regenerar resumo?</flux:heading>
+                                <flux:text class="mt-2">O resumo atual será substituído por um novo.</flux:text>
+                            </div>
+                            <div class="flex">
+                                <flux:spacer />
+                                <flux:modal.close>
+                                    <flux:button variant="ghost">Cancelar</flux:button>
+                                </flux:modal.close>
+                                <flux:button variant="primary" wire:click="generateSummary" wire:island="summary">Regenerar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
                     <section class="mb-8">
                         <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
                             <flux:icon name="hashtag" class="text-primary size-5" />
