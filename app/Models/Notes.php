@@ -25,6 +25,7 @@ use Laravel\Scout\Searchable;
     'access_token_id',
     'impressions',
     'life_experiences',
+    'ai_summary',
     'updated_at',
 ])]
 #[Table(name: 'notes')]
@@ -37,6 +38,7 @@ class Notes extends Model
     {
         return [
             'tags' => 'array',
+            'ai_summary' => 'string',
             'updated_at' => Date::class,
         ];
     }

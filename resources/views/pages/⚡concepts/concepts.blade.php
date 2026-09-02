@@ -30,7 +30,7 @@
                 >
                 <button
                     type="submit"
-                    class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+                    class="bg-on-primary-container text-white px-5 py-2 rounded-lg hover:bg-primary-container transition"
                 >
                     Buscar
                 </button>
@@ -161,33 +161,82 @@
             @endforeach
         @endif
 
-        <flux:modal name="add-concept" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
+        <flux:modal name="add-concept" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Adicionar um novo conceito</flux:heading>
                     <flux:text class="mt-2">Precisa de um conceito sem precisar de uma nota? Adicione diretamente aqui.</flux:text>
                 </div>
 
-                <flux:input 
-                    label="Termo" 
-                    wire:model='formConcept.term' 
-                    placeholder="Ex: Graça" />
-                <div>
-                    @error('form.term') <span class="error">{{ $message }}</span> @enderror
+                {{-- O <button> de IA ganha data-loading automaticamente durante a
+                     chamada síncrona; o grupo reage a isso sem wire:target. --}}
+                <div class="group space-y-4">
+                    <div>
+                        <div class="flex items-end gap-2">
+                            <flux:input
+                                label="Termo"
+                                wire:model="formConcept.term"
+                                placeholder="Ex: Graça"
+                                class="flex-1"
+                            />
+                            <flux:button
+                                icon="sparkles"
+                                variant="filled"
+                                wire:click="generateDefinition"
+                                wire:bind:disabled="!$wire.formConcept.term || $wire.formConcept.term.trim().length < 5"
+                            >
+                                Definir com IA
+                            </flux:button>
+                        </div>
+                        <flux:error name="formConcept.term" />
+                    </div>
+
+                    {{-- Skeleton visível apenas enquanto a IA gera --}}
+                    <div class="hidden flex-col gap-3 group-has-data-loading:flex">
+                        <flux:skeleton class="h-4 w-40" />
+                        <flux:skeleton class="h-16 w-full" />
+                        <flux:skeleton class="h-16 w-full" />
+                    </div>
+
+                    {{-- Definições geradas pela IA (ocultas durante a geração) --}}
+                    @if ($aiDefinitions)
+                        <div class="space-y-2 group-has-data-loading:hidden">
+                            <div class="flex items-center justify-between">
+                                <flux:text size="sm" class="font-medium">Escolha uma definição</flux:text>
+                                <flux:button
+                                    size="xs"
+                                    variant="ghost"
+                                    icon="pencil-square"
+                                    wire:click="clearAiDefinitions"
+                                >
+                                    Escrever manualmente
+                                </flux:button>
+                            </div>
+
+                            <flux:radio.group wire:model.live="selectedDefinition" variant="cards" class="flex-col">
+                                <flux:radio value="definition_a" label="Definição A" description="{{ $aiDefinitions['definition_a'] }}" />
+                                <flux:radio value="definition_b" label="Definição B" description="{{ $aiDefinitions['definition_b'] }}" />
+                            </flux:radio.group>
+                        </div>
+                    @endif
                 </div>
-                <flux:textarea
-                    label="Definição"
-                    wire:model='formConcept.definition'
-                    placeholder="Favor imerecido..."
-                />
-                <div>
-                    @error('formConcept.definition') <span class="error">{{ $message }}</span> @enderror
-                </div>
+
+                {{-- Campo Definição (textarea editável) --}}
+                <flux:field>
+                    <flux:label>Definição</flux:label>
+                    <flux:textarea
+                        wire:model="formConcept.definition"
+                        rows="4"
+                        placeholder="Favor imerecido..."
+                    />
+                    <flux:error name="formConcept.definition" />
+                </flux:field>
+
                 <div class="flex">
                     <flux:spacer />
-                    <flux:button 
-                        type="submit" 
-                        variant="primary" 
+                    <flux:button
+                        type="submit"
+                        variant="primary"
                         wire:click="addSoleConcept">Adicionar Conceito</flux:button>
                 </div>
             </div>

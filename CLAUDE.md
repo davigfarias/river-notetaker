@@ -38,6 +38,10 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 
+## Documentation as Source of Truth
+
+- **A única fonte de verdade é a documentação oficial.** Sempre consulte a documentação oficial antes de implementar qualquer feature. Se a documentação oficial não prevê ou não menciona que algo é possível, **não implemente** — isso é gambiarra. Se o pedido do usuário conflitar com a documentação, **priorize a documentação** e informe o usuário que o pedido não é possível segundo a documentação oficial.
+
 ## Verification Scripts
 
 - Do not create verification scripts or tinker when tests cover that functionality and prove they work. Unit and feature tests are more important.

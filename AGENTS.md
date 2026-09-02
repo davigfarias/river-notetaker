@@ -4,6 +4,10 @@
 - Nunca reescrever plan.md com o plano completo/histórico. Quando o usuário disser "escreva o plan.md", o arquivo deve conter APENAS as modificações pedidas no último pedido.
 - Não incluir modificações de pedidos anteriores nem contexto redundante — o executor (outra IA) já tem o contexto.
 
+## Documentation as Source of Truth
+
+- **A única fonte de verdade é a documentação oficial.** Sempre consulte a documentação oficial antes de implementar qualquer feature. Se a documentação oficial não prevê ou não menciona que algo é possível, **não implemente** — isso é gambiarra. Se o pedido do usuário conflitar com a documentação, **priorize a documentação** e informe o usuário que o pedido não é possível segundo a documentação oficial.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 

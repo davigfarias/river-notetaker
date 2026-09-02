@@ -1,6 +1,12 @@
 <?php
 
-use App\Actions\{GetConceptsByLetter,GetRecentConcepts,SearchConcept, AddSoleConcept, UpdateConcept};
+use App\Actions\{
+    GenerateConceptDefinition,
+    GetConceptsByLetter,
+    GetRecentConcepts,
+    SearchConcept,
+    AddSoleConcept,
+    UpdateConcept};
 use App\DTO\ConceptsDTO;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\{Computed, Title, Url};
@@ -25,6 +31,10 @@ new #[Title('Conceitos')] class extends Component
     public ?int $editingConceptId = null;
 
     public bool $editingConcept = false;
+
+    public ?array $aiDefinitions = null;
+
+    public ?string $selectedDefinition = null;
 
     public function mount(GetConceptsByLetter $getByLetter, GetRecentConcepts $getRecent, SearchConcept $searchAction): void
     {
@@ -96,6 +106,30 @@ new #[Title('Conceitos')] class extends Component
         $this->modal('add-concept')->close();
 
         $this->formConcept->reset();
+        $this->clearAiDefinitions();
+    }
+
+    public function generateDefinition(GenerateConceptDefinition $action): void
+    {
+        $this->reset('aiDefinitions', 'selectedDefinition');
+
+        $check = $action->handle($this->formConcept->term);
+
+        match ($check->success) {
+            true => $this->aiDefinitions = $check->data,
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+        };
+    }
+
+    public function updatedSelectedDefinition(?string $value): void
+    {
+        $this->formConcept->definition = $value ? ($this->aiDefinitions[$value] ?? '') : '';
+    }
+
+    public function clearAiDefinitions(): void
+    {
+        $this->reset('aiDefinitions', 'selectedDefinition');
+        $this->formConcept->definition = '';
     }
 
     public function edit(int $id): void

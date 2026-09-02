@@ -6,6 +6,7 @@ use App\Actions\AddAdviceToNote;
 use App\Actions\AddConceptToNote;
 use App\Actions\GetDisciplineNotes as DisciplineNotes;
 use App\Actions\GetSingleDisciplineData as DisciplineData;
+use App\Actions\GenerateNoteSummary;
 use App\Actions\GetTags;
 use App\Actions\ObserveTerm;
 use App\Actions\SubActions\UpdateNote;
@@ -15,10 +16,13 @@ use App\DTO\DisciplinesDTO;
 use App\DTO\NotesDTO;
 use App\DTO\SoleAdviceDTO;
 use App\DTO\SoleConceptDTO;
+use App\Models\Notes;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Session;
 use Livewire\Component;
+use Livewire\Attributes\Title;
 
 new #[Title('Disciplinas')] class extends Component
 {
@@ -61,6 +65,15 @@ new #[Title('Disciplinas')] class extends Component
     public SoleAdviceDTO $addAdviceForm;
 
     public bool $addingAdvice = false;
+
+    #[Session]
+    public ?int $awaitingSummaryNoteId = null;
+
+    #[Session]
+    public ?int $awaitingSummarySince = null;
+
+    #[Session]
+    public ?string $awaitingSummaryBaseline = null;
 
     public function boot(
         DisciplineData $disciplineData,
@@ -204,6 +217,68 @@ new #[Title('Disciplinas')] class extends Component
             $this->editingAdvice = false;
             unset($this->notes, $this->selectedNote);
         }
+    }
+
+    #[Computed]
+    public function awaitingSummary(): bool
+    {
+        return $this->awaitingSummaryNoteId !== null
+            && $this->selectedNote !== null
+            && $this->awaitingSummaryNoteId === $this->selectedNote->id;
+    }
+
+    public function generateSummary(GenerateNoteSummary $action): void
+    {
+        $noteId = $this->selectedNote->id;
+
+        $outcome = $action->handle($noteId);
+
+        match ($outcome->success) {
+            true => Flux::toast(text: $outcome->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+        };
+
+        if ($outcome->success) {
+            $this->awaitingSummaryNoteId = $noteId;
+            $this->awaitingSummarySince = now()->timestamp;
+            $this->awaitingSummaryBaseline = Notes::find($noteId)?->ai_summary;
+            unset($this->awaitingSummary);
+        }
+
+        Flux::modal('confirm-regenerate-summary')->close();
+    }
+
+    public function pollCheckSummary(): void
+    {
+        $summary = Notes::find($this->selectedNote->id)?->ai_summary;
+
+        if ($summary !== null && $summary !== $this->awaitingSummaryBaseline) {
+            $this->stopAwaitingSummary();
+            unset($this->notes, $this->selectedNote);
+
+            return;
+        }
+
+        $deadline = (int) config('summarizer.job_timeout', 60) + 15;
+
+        if ($this->awaitingSummarySince !== null
+            && now()->timestamp - $this->awaitingSummarySince > $deadline) {
+            $this->stopAwaitingSummary();
+
+            Flux::toast(
+                heading: 'Tempo esgotado',
+                text: 'A geração do resumo demorou mais que o esperado. Tente novamente.',
+                variant: 'danger',
+            );
+        }
+    }
+
+    protected function stopAwaitingSummary(): void
+    {
+        $this->awaitingSummaryNoteId = null;
+        $this->awaitingSummarySince = null;
+        $this->awaitingSummaryBaseline = null;
+        unset($this->awaitingSummary);
     }
 
     public function verifyConceptExistence(ObserveTerm $action): void
