@@ -119,7 +119,7 @@
         </form>
     </flux:modal>
 
-    <flux:modal wire:model="showDeleteModal" name="excluir-disciplina" class="min-w-88">
+    <flux:modal wire:model="showDeleteModal" name="excluir-disciplina" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Remover disciplina?</flux:heading>

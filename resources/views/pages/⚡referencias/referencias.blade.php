@@ -121,7 +121,7 @@
         @endif
     </div>
 
-    <flux:modal name="add-material" class="md:w-[32rem]">
+    <flux:modal name="add-material" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
         <form wire:submit="addMaterial" class="space-y-5">
             <div>
                 <flux:heading size="lg">Nova obra</flux:heading>

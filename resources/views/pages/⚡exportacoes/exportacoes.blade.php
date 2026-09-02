@@ -89,7 +89,7 @@
         <flux:pagination :paginator="$this->exports" class="mt-8" />
     @endif
 
-    <flux:modal name="delete-export" class="md:w-96">
+    <flux:modal name="delete-export" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Remover exportação</flux:heading>

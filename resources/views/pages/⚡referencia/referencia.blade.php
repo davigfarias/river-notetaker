@@ -194,7 +194,7 @@
             </div>{{-- /perguntas tab --}}
         </div>
 
-        <flux:modal name="edit-material" wire:model.self="editingMaterial" class="md:w-[32rem]">
+        <flux:modal name="edit-material" wire:model.self="editingMaterial" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <form wire:submit="updateMaterial" class="space-y-5">
                 <flux:heading size="lg">Editar obra</flux:heading>
 
@@ -217,7 +217,7 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="edit-citation" wire:model.self="editingCitation" class="md:w-[32rem]">
+        <flux:modal name="edit-citation" wire:model.self="editingCitation" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <form wire:submit="updateCitation" class="space-y-4">
                 <flux:heading size="lg">Editar citação</flux:heading>
                 <flux:textarea label="Trecho" wire:model="editCitationForm.quote_text" rows="4" />
@@ -230,7 +230,7 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="delete-citation" class="md:w-96">
+        <flux:modal name="delete-citation" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Remover citação</flux:heading>
@@ -246,7 +246,7 @@
             </div>
         </flux:modal>
 
-        <flux:modal name="chapter-form" wire:model.self="creatingChapter" class="md:w-96">
+        <flux:modal name="chapter-form" wire:model.self="creatingChapter" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <form wire:submit="addChapter" class="space-y-5">
                 <flux:heading size="lg">Novo capítulo</flux:heading>
                 <flux:input label="Título" wire:model="chapterForm.title" />
@@ -258,7 +258,7 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="edit-chapter" wire:model.self="editingChapter" class="md:w-96">
+        <flux:modal name="edit-chapter" wire:model.self="editingChapter" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <form wire:submit="updateChapter" class="space-y-5">
                 <flux:heading size="lg">Editar capítulo</flux:heading>
                 <flux:input label="Título" wire:model="editChapterForm.title" />
@@ -270,7 +270,7 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="delete-chapter" class="md:w-96">
+        <flux:modal name="delete-chapter" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Remover capítulo</flux:heading>
@@ -286,7 +286,7 @@
             </div>
         </flux:modal>
 
-        <flux:modal name="question-form" wire:model.self="creatingQuestion" class="md:w-[32rem]">
+        <flux:modal name="question-form" wire:model.self="creatingQuestion" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <form wire:submit="addQuestion" class="space-y-4">
                 <flux:heading size="lg">Nova pergunta</flux:heading>
                 <flux:input label="Pergunta" wire:model="questionForm.prompt" />
@@ -302,7 +302,7 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="edit-question" wire:model.self="editingQuestion" class="md:w-[32rem]">
+        <flux:modal name="edit-question" wire:model.self="editingQuestion" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <form wire:submit="updateQuestion" class="space-y-4">
                 <flux:heading size="lg">Editar pergunta</flux:heading>
                 <flux:input label="Pergunta" wire:model="editQuestionForm.prompt" />
@@ -318,7 +318,7 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="delete-question" class="md:w-96">
+        <flux:modal name="delete-question" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>
                     <flux:heading size="lg">Remover pergunta</flux:heading>
@@ -334,7 +334,7 @@
             </div>
         </flux:modal>
 
-        <flux:modal name="export" class="md:w-96">
+        <flux:modal name="export" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <form wire:submit="export" class="space-y-5">
                 <div>
                     <flux:heading size="lg">Exportar citações</flux:heading>
