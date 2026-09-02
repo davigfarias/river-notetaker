@@ -1,12 +1,16 @@
 <?php
 
 use App\Ai\Agents\Conceptualizer;
+use App\Ai\Agents\PlainConceptualizer;
 use Livewire\Livewire;
 
-$twoDefinitions = "---DEFINICAO_A---\nFavor imerecido de Deus.\n---DEFINICAO_B---\nBenevolência divina concedida ao pecador.";
+$fakeDefinitions = function (): void {
+    Conceptualizer::fake(['Favor imerecido de Deus.']);
+    PlainConceptualizer::fake(['É quando Deus trata bem quem não merece.']);
+};
 
-test('generateDefinition populates aiDefinitions from the agent', function () use ($twoDefinitions) {
-    Conceptualizer::fake([$twoDefinitions]);
+test('generateDefinition populates aiDefinitions from both agents', function () use ($fakeDefinitions) {
+    $fakeDefinitions();
 
     $component = Livewire::test('pages::concepts')
         ->set('formConcept.term', 'Graça')
@@ -15,12 +19,12 @@ test('generateDefinition populates aiDefinitions from the agent', function () us
 
     expect($component->get('aiDefinitions'))->toBe([
         'definition_a' => 'Favor imerecido de Deus.',
-        'definition_b' => 'Benevolência divina concedida ao pecador.',
+        'definition_b' => 'É quando Deus trata bem quem não merece.',
     ]);
 });
 
-test('selecting a definition fills the form definition', function () use ($twoDefinitions) {
-    Conceptualizer::fake([$twoDefinitions]);
+test('selecting a definition fills the form definition', function () use ($fakeDefinitions) {
+    $fakeDefinitions();
 
     $component = Livewire::test('pages::concepts')
         ->set('formConcept.term', 'Graça')
@@ -31,11 +35,11 @@ test('selecting a definition fills the form definition', function () use ($twoDe
 
     $component->set('selectedDefinition', 'definition_b');
 
-    expect($component->get('formConcept.definition'))->toBe('Benevolência divina concedida ao pecador.');
+    expect($component->get('formConcept.definition'))->toBe('É quando Deus trata bem quem não merece.');
 });
 
-test('clearAiDefinitions resets the ai state and the definition field', function () use ($twoDefinitions) {
-    Conceptualizer::fake([$twoDefinitions]);
+test('clearAiDefinitions resets the ai state and the definition field', function () use ($fakeDefinitions) {
+    $fakeDefinitions();
 
     $component = Livewire::test('pages::concepts')
         ->set('formConcept.term', 'Graça')
@@ -50,6 +54,7 @@ test('clearAiDefinitions resets the ai state and the definition field', function
 
 test('generateDefinition shows an error toast when the concept is out of scope', function () {
     Conceptualizer::fake(['fora do escopo']);
+    PlainConceptualizer::fake(['fora do escopo']);
 
     Livewire::test('pages::concepts')
         ->set('formConcept.term', 'Fotossíntese')

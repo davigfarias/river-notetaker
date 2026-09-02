@@ -6,7 +6,7 @@ use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Promptable;
 use Stringable;
 
-class Conceptualizer implements Agent
+class PlainConceptualizer implements Agent
 {
     use Promptable;
 
@@ -16,7 +16,7 @@ class Conceptualizer implements Agent
     public function instructions(): Stringable|string
     {
         return <<<'PROMPT'
-        Dado um conceito, forneça UMA definição em registro técnico e confessional, restrita ao significado dentro da filosofia ou teologia reformada (tradição confessional, ex.: Confissão de Fé de Westminster e seus comentaristas). Pode usar terminologia técnica própria da tradição.
+        Dado um conceito, forneça UMA definição em linguagem simples e acessível, como se explicasse para alguém leigo, sem jargão técnico. O significado deve permanecer restrito à filosofia ou teologia reformada (tradição confessional, ex.: Confissão de Fé de Westminster e seus comentaristas).
 
         Escreva a definição de forma autônoma e completa em si mesma: não referencie, não continue e não pressuponha nenhuma outra definição.
 
