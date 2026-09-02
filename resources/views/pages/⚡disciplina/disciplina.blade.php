@@ -81,21 +81,9 @@
                         </button>
                     </section>
 
-                    @island(name: 'summary', skip: true)
-                        @placeholder
-                            <div class="mb-6">
-                                <flux:button
-                                    size="sm"
-                                    variant="subtle"
-                                    icon="sparkles"
-                                    wire:click="generateSummary"
-                                    wire:island="summary"
-                                >
-                                    Gerar resumo com IA
-                                </flux:button>
-                            </div>
-                        @endplaceholder
-
+                    {{-- always: re-renderiza a cada update do componente pai, senão o
+                         island fica preso no resumo da nota anterior ao trocar de nota. --}}
+                    @island(name: 'summary', always: true)
                         @if ($this->awaitingSummary)
                             <section
                                 class="border-surface-variant bg-primary-container/10 mb-6 rounded-lg border p-4"
