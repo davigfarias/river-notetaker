@@ -1,3 +1,9 @@
+# REGRA ABSOLUTA — plan.md
+
+- **RE-ESCRITA DO PLAN.MD É SEMPRE APAGAR O CONTEÚDO INTEIRO E ESCREVER SOMENTE O ÚLTIMO PEDIDO DA CONVERSA.**
+- Nunca reescrever plan.md com o plano completo/histórico. Quando o usuário disser "escreva o plan.md", o arquivo deve conter APENAS as modificações pedidas no último pedido.
+- Não incluir modificações de pedidos anteriores nem contexto redundante — o executor (outra IA) já tem o contexto.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
