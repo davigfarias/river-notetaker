@@ -2,6 +2,7 @@
 
 use App\Actions\GenerateAccessToken;
 use App\Models\Concepts;
+use App\Models\Disciplines;
 
 test('a duplicate concept toast link opens the edit modal without losing the note draft', function () {
     $result = app(GenerateAccessToken::class)->handle('browser-test')->data;
@@ -11,8 +12,10 @@ test('a duplicate concept toast link opens the edit modal without losing the not
         'definition' => 'Nascer de novo pela obra do Espirito Santo.',
     ]);
 
+    $discipline = Disciplines::factory()->create();
+
     $page = loginWithAccessToken($result['plainTextToken'])
-        ->navigate(route('notas.criar'));
+        ->navigate(route('notas.criar', $discipline->slug));
 
     $page->fill('[wire\:model="notes.title"]', 'Rascunho de teste')
         ->click('[wire\:click="addConcept"]')

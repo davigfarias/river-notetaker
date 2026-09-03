@@ -1,6 +1,6 @@
 <div>
     <x-slot:headerActions>
-        <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate> Nova Nota </flux:button>
+        <flux:button variant="primary" icon="plus" href="{{ route('notas.criar', $disciplineSlug) }}" wire:navigate> Nova nota </flux:button>
     </x-slot:headerActions>
 
     <div class="-m-6 flex h-[calc(100vh-7rem)] overflow-hidden lg:-m-8">
