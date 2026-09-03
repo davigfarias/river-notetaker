@@ -8,6 +8,7 @@ use App\Ai\Agents\Conceptualizer;
 use App\Ai\Agents\PlainConceptualizer;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 final readonly class GenerateConceptDefinition
 {
@@ -23,13 +24,13 @@ final readonly class GenerateConceptDefinition
             $technical = trim((new Conceptualizer)->prompt($term)->text);
             $plain = trim((new PlainConceptualizer)->prompt($term)->text);
 
-            if ($technical === 'fora do escopo' || $plain === 'fora do escopo') {
+            if ($this->isOutOfScope($technical) || $this->isOutOfScope($plain)) {
                 return Outcome::failure(
-                    message: 'Este conceito está fora do escopo da teologia/filosofia reformada.'
+                    message: 'Este termo está fora do escopo de filosofia, religião e teologia.'
                 );
             }
 
-            if (!filled($technical) || !filled($plain)) {
+            if (! filled($technical) || ! filled($plain)) {
                 return Outcome::failure(
                     message: 'Não foi possível gerar definições para este termo.'
                 );
@@ -49,5 +50,17 @@ final readonly class GenerateConceptDefinition
                 message: 'Ocorreu um erro ao gerar as definições. Tente novamente.'
             );
         }
+    }
+
+    /**
+     * Reconhece a resposta "fora do escopo" ainda que venha com pontuação,
+     * aspas ou capitalização diferentes.
+     */
+    private function isOutOfScope(string $text): bool
+    {
+        return Str::of($text)
+            ->lower()
+            ->trim(" \t\n\r\0\x0B\"'.")
+            ->exactly('fora do escopo');
     }
 }
