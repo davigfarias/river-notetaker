@@ -41,7 +41,7 @@ test('the create page links and unlinks a reference material', function () {
         'title' => 'Institutas',
     ]);
 
-    Livewire::test('pages::create')
+    Livewire::test('pages::create', ['slug' => $this->discipline->slug])
         ->set('refSearch', 'Institutas')
         ->call('linkReference', $material->id)
         ->assertSet('notes.reference_material_ids', [$material->id])
@@ -51,7 +51,7 @@ test('the create page links and unlinks a reference material', function () {
 });
 
 test('the create page can add a brand new work and auto-link it', function () {
-    Livewire::test('pages::create')
+    Livewire::test('pages::create', ['slug' => $this->discipline->slug])
         ->set('refForm.title', 'Confissões')
         ->set('refForm.author', 'Agostinho')
         ->set('refForm.type', 'book-open')
@@ -63,7 +63,7 @@ test('the create page can add a brand new work and auto-link it', function () {
     expect($material)->not->toBeNull()
         ->and($material->access_token_id)->toBe($this->token->id);
 
-    Livewire::test('pages::create')
+    Livewire::test('pages::create', ['slug' => $this->discipline->slug])
         ->set('refForm.title', 'Cidade de Deus')
         ->set('refForm.type', 'book-open')
         ->call('addNewReference')

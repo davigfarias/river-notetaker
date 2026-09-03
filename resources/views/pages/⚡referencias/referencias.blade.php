@@ -2,18 +2,12 @@
     <flux:button variant="ghost" icon="arrow-down-tray" href="{{ route('referencias.exportacoes') }}" wire:navigate>
         <span class="hidden sm:inline">Exportações</span>
     </flux:button>
-    <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate>
-        Nova Nota
-    </flux:button>
 </x-slot:headerActions>
 
 @placeholder
     <x-slot:headerActions>
         <flux:button variant="ghost" icon="arrow-down-tray" href="{{ route('referencias.exportacoes') }}" wire:navigate>
             <span class="hidden sm:inline">Exportações</span>
-        </flux:button>
-        <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate>
-            Nova Nota
         </flux:button>
     </x-slot:headerActions>
 

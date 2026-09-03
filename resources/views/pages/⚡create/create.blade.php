@@ -21,19 +21,9 @@
                     <flux:text size="sm">Hoje, {{ now()->format('H:i') }}</flux:text>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <div class="w-64 shrink-0">
-                        <flux:select wire:model="notes.discipline_id" wire:key="discipline-select">
-                            <flux:select.option value="">Selecione uma disciplina</flux:select.option>
-                            @foreach($this->disciplines as $discipline)
-                                <flux:select.option value="{{ $discipline->id }}" wire:key="discipline-option-{{ $discipline->id }}">
-                                    {{ $discipline->title }}
-                                </flux:select.option>
-                            @endforeach
-                        </flux:select>
-
-                        <flux:error name="notes.discipline_id" />
-                    </div>
+                <div class="border-surface-variant bg-surface-container flex items-center gap-1.5 rounded border px-2 py-1">
+                    <flux:icon :name="$discipline->icon" class="size-4" />
+                    <flux:text size="sm">{{ $discipline->title }}</flux:text>
                 </div>
             </div>
         </div>

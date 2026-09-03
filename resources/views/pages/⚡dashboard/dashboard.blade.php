@@ -1,7 +1,3 @@
-<x-slot:headerActions>
-    <flux:button variant="primary" icon="plus" href="{{ route('notas.criar') }}" wire:navigate> Nova Nota </flux:button>
-</x-slot:headerActions>
-
 @placeholder
 
  <div class="mx-auto w-full max-w-7xl py-8">

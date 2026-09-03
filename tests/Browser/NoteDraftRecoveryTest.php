@@ -1,13 +1,15 @@
 <?php
 
 use App\Actions\GenerateAccessToken;
+use App\Models\Disciplines;
 
 function loginAndOpenCreatePage(): object
 {
     $code = app(GenerateAccessToken::class)->handle('browser-test')->data['plainTextToken'];
+    $discipline = Disciplines::factory()->create();
 
     return loginWithAccessToken($code)
-        ->navigate('/notas/nova')
+        ->navigate("/disciplinas/{$discipline->slug}/notas/nova")
         ->assertPresent('.CodeMirror');
 }
 

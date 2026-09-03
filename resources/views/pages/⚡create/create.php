@@ -1,7 +1,7 @@
 <?php
 
-use App\DTO\{AdvicesDTO, ConceptsDTO, NotesDTO, ReferenceMaterialForm, SoleConceptDTO};
-use App\Actions\{AddReferenceMaterial, GetAllDisciplines, GetTags, ObserveTerm};
+use App\DTO\{AdvicesDTO, ConceptsDTO, DisciplinesDTO, NotesDTO, ReferenceMaterialForm, SoleConceptDTO};
+use App\Actions\{AddReferenceMaterial, GetSingleDisciplineData, GetTags, ObserveTerm};
 use App\Actions\{SearchReferenceMaterials, UpdateConcept};
 use Livewire\Attributes\{Computed, On, Title};
 use App\Actions\Orchestrators\SaveNote;
@@ -17,6 +17,10 @@ new #[Title('Criar uma Nova Nota')] class extends Component
     public bool $showDeleteModal = false;
 
     public NotesDTO $notes;
+
+    public DisciplinesDTO $discipline;
+
+    public string $disciplineSlug;
 
     public SoleConceptDTO $editConceptForm;
 
@@ -52,28 +56,22 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         ];
     }
 
-    public function mount(NotesDTO $notes)
+    public function mount(string $slug, NotesDTO $notes, GetSingleDisciplineData $getDiscipline): void
     {
         $this->notes = clone $notes;
+        $this->disciplineSlug = $slug;
+
+        $discipline = $getDiscipline->handle($slug)->data;
+
+        abort_if($discipline === null, 404);
+
+        $this->discipline = $discipline;
+        $this->notes->discipline_id = (int) $discipline->id;
     }
 
-    public function boot(
-        GetAllDisciplines $getAllDisciplinesAction,
-        GetTags $getTagsAction): void
+    public function boot(GetTags $getTagsAction): void
     {
-        $this->disciplines($getAllDisciplinesAction);
         $this->tags($getTagsAction);
-    }
-
-    #[Computed]
-    public function disciplines(GetAllDisciplines $action)
-    {
-        $check = $action->handle();
-
-        match ($check->success) {
-            true => $this->disciplines = $check->data,
-            false => $this->disciplines = null
-        };
     }
 
     public function addConcept(): void
