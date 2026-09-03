@@ -146,6 +146,10 @@
 <flux:toast />
 @endpersist
 
+{{-- livewire-autocomplete: carregado globalmente (antes de @livewireScripts) para
+     que <x-lwa::autocomplete> também funcione em páginas #[Lazy]. --}}
+<script src="{{ route('livewire-autocomplete.asset', 'autocomplete.js') }}"></script>
+
 @livewireScripts
 @fluxScripts
 
