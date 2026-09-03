@@ -4,6 +4,30 @@
     </flux:button>
 </x-slot:headerActions>
 
+@placeholder
+    <div>
+        <div class="mx-auto w-full max-w-7xl py-8">
+            <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                    <flux:heading size="xl" level="1">Conselhos Pastorais</flux:heading>
+                    <flux:text class="mt-2">Orientações pastorais organizadas por tema.</flux:text>
+                </div>
+            </div>
+
+            <div class="space-y-10">
+                @foreach (range(1, 5) as $i)
+                    <flux:skeleton.group animate="shimmer">
+                        <flux:skeleton.line class="mb-2 w-1/4" />
+                        <flux:skeleton.line />
+                        <flux:skeleton.line />
+                        <flux:skeleton.line class="w-3/4" />
+                    </flux:skeleton.group>
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endplaceholder
+
 <div>
     <div class="mx-auto w-full max-w-7xl py-8">
 

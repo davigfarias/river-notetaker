@@ -1,28 +1,25 @@
 <?php
 
 use App\Actions\{
+    AddSoleConcept,
     GenerateConceptDefinition,
     GetConceptsByLetter,
     GetRecentConcepts,
     SearchConcept,
-    AddSoleConcept,
     UpdateConcept};
-use App\DTO\ConceptsDTO;
-use Illuminate\Support\Collection;
-use Livewire\Attributes\{Computed, Title, Url};
 use App\DTO\SoleConceptDTO;
+use Illuminate\Support\Collection;
+use Livewire\Attributes\{Computed, Lazy, Title, Url};
 use Livewire\Component;
 use Flux\Flux;
 
-new #[Title('Conceitos')] class extends Component
+new #[Title('Conceitos')] #[Lazy] class extends Component
 {
     #[Url(as: 'letra')]
     public ?string $selectedLetter = null;
 
     #[Url(as: 'busca')]
-    public ?string $search = null;
-
-    public ?Collection $conceptsDTO = null;
+    public string $search = '';
 
     public SoleConceptDTO $formConcept;
 
@@ -32,67 +29,49 @@ new #[Title('Conceitos')] class extends Component
 
     public bool $editingConcept = false;
 
+    /** @var array{definition_a: string, definition_b: string}|null */
     public ?array $aiDefinitions = null;
 
     public ?string $selectedDefinition = null;
 
-    public function mount(GetConceptsByLetter $getByLetter, GetRecentConcepts $getRecent, SearchConcept $searchAction): void
+    /**
+     * @return Collection<int, \App\DTO\ConceptsDTO>
+     */
+    #[Computed]
+    public function concepts(): Collection
     {
-        if (! empty($this->search)) {
-            $this->searchConcept($searchAction);
-        } else {
-            $this->loadConcepts($getByLetter, $getRecent);
-        }
-    }
-
-    public function selectLetter(string $letter, GetConceptsByLetter $getByLetter, GetRecentConcepts $getRecent): void
-    {
-        $this->selectedLetter = $this->selectedLetter === $letter ? null : $letter;
-        $this->search = null;
-
-        $this->loadConcepts($getByLetter, $getRecent);
-    }
-
-    public function searchConcept(SearchConcept $action): void
-    {
-        $this->selectedLetter = null;
-
-        if (empty($this->search)) {
-            return;
-        }
-
-        $toSearch = $action->handle($this->search);
-
-        $this->conceptsDTO = $toSearch->success ? $toSearch->data : collect();
-    }
-
-    public function clearSearch(GetConceptsByLetter $getByLetter, GetRecentConcepts $getRecent): void
-    {
-        $this->search = null;
-        $this->loadConcepts($getByLetter, $getRecent);
-    }
-
-    public function loadConcepts(GetConceptsByLetter $getByLetter, GetRecentConcepts $getRecent): void
-    {
-        if ($this->selectedLetter) {
-            $check = $getByLetter->handle($this->selectedLetter);
-        } else {
-            $check = $getRecent->handle(limit: 3);
-        }
-
-        match ($check->success) {
-            true => $this->conceptsDTO = $check->data,
-            false => $this->conceptsDTO = collect(),
+        $check = match (true) {
+            filled($this->search) => app(SearchConcept::class)->handle($this->search),
+            $this->selectedLetter !== null => app(GetConceptsByLetter::class)->handle($this->selectedLetter),
+            default => app(GetRecentConcepts::class)->handle(limit: 3),
         };
+
+        return $check->success ? $check->data : collect();
     }
 
+    /**
+     * @return array<int, string>
+     */
     #[Computed]
     public function alphabet(): array
     {
         return range('A', 'Z');
     }
 
-    public function addSoleConcept(AddSoleConcept $action)
+    public function updatedSearch(): void
+    {
+        if (filled($this->search)) {
+            $this->selectedLetter = null;
+        }
+    }
+
+    public function selectLetter(string $letter): void
+    {
+        $this->selectedLetter = $this->selectedLetter === $letter ? null : $letter;
+        $this->search = '';
+    }
+
+    public function addSoleConcept(AddSoleConcept $action): void
     {
         $this->formConcept->validate();
 
@@ -107,6 +86,8 @@ new #[Title('Conceitos')] class extends Component
 
         $this->formConcept->reset();
         $this->clearAiDefinitions();
+
+        unset($this->concepts);
     }
 
     public function generateDefinition(GenerateConceptDefinition $action): void
@@ -134,7 +115,11 @@ new #[Title('Conceitos')] class extends Component
 
     public function edit(int $id): void
     {
-        $concept = $this->conceptsDTO->firstWhere('id', $id);
+        $concept = $this->concepts->firstWhere('id', $id);
+
+        if (! $concept) {
+            return;
+        }
 
         Flux::modals()->close();
 
@@ -156,11 +141,7 @@ new #[Title('Conceitos')] class extends Component
         };
 
         if ($check->success) {
-            $this->conceptsDTO = $this->conceptsDTO->map(
-                fn (ConceptsDTO $concept): ConceptsDTO => $concept->id === $this->editingConceptId
-                    ? new ConceptsDTO($concept->id, $this->editConceptForm->term, $this->editConceptForm->definition)
-                    : $concept
-            );
+            unset($this->concepts);
 
             $this->editingConcept = false;
         }

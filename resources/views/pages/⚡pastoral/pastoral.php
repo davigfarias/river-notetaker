@@ -1,21 +1,14 @@
 <?php
 
-use App\Actions\{
-    AddSoleAdvice,
-    GetPastoralAdvices,
-    ObserveCategory,
-    UpdateAdvice};
-use App\DTO\SoleAdviceDTO;
+use App\Actions\{AddSoleAdvice, GetPastoralAdvices, ObserveCategory, UpdateAdvice};
+use Livewire\Attributes\{Computed, Lazy, Title, Url};
 use Illuminate\Pagination\LengthAwarePaginator;
-use Livewire\Attributes\{
-    Computed,
-    Title,
-    Url};
+use App\DTO\SoleAdviceDTO;
 use Livewire\WithPagination;
 use Livewire\Component;
 use Flux\Flux;
 
-new #[Title('Conselhos Pastorais')] class extends Component
+new #[Title('Conselhos Pastorais')] #[Lazy] class extends Component
 {
     use WithPagination;
 

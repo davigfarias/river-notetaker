@@ -30,5 +30,8 @@ return [
     // Set this to true if you would prefer it to use the global namespace <x-autocomplete />
     'use_global_namespace' => false,
 
-    'inline-scripts' => true,
+    // O <script> do autocomplete é carregado globalmente no layout (antes de
+    // @livewireScripts) para que também funcione em páginas #[Lazy], onde o
+    // markup do componente só chega depois do evento livewire:init.
+    'inline-scripts' => false,
 ];

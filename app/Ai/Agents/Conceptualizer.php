@@ -2,12 +2,14 @@
 
 namespace App\Ai\Agents;
 
+use App\Ai\Agents\Concerns\DefinesReformedScope;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Promptable;
 use Stringable;
 
 class Conceptualizer implements Agent
 {
+    use DefinesReformedScope;
     use Promptable;
 
     /**
@@ -15,14 +17,16 @@ class Conceptualizer implements Agent
      */
     public function instructions(): Stringable|string
     {
-        return <<<'PROMPT'
-        Dado um conceito, forneça UMA definição em registro técnico e confessional, restrita ao significado dentro da filosofia ou teologia reformada (tradição confessional, ex.: Confissão de Fé de Westminster e seus comentaristas). Pode usar terminologia técnica própria da tradição.
+        $scope = $this->reformedScopeInstructions();
+
+        return <<<PROMPT
+        Você define termos de filosofia e teologia. Dado um termo, forneça UMA definição em registro técnico e confessional, restrita ao sentido que o termo tem nessas áreas. Pode usar a terminologia técnica própria da tradição.
+
+        {$scope}
 
         Escreva a definição de forma autônoma e completa em si mesma: não referencie, não continue e não pressuponha nenhuma outra definição.
 
         Responda apenas com o texto da definição, sem título nem rótulo.
-
-        Se o conceito não pertencer à filosofia ou teologia reformada, ou não puder ser explicado sem sair dessas áreas, responda apenas "fora do escopo".
         PROMPT;
     }
 }
