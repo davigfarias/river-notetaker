@@ -180,8 +180,19 @@
                     <flux:heading size="sm">IMPRESSÕES</flux:heading>
                 </div>
                 <div wire:ignore class="flex-1">
-                    <div x-data="markdownEditor($wire.entangle('notes.impressions'))">
-                        <textarea x-ref="textarea" placeholder="Suas impressões pessoais, dúvidas ou reflexões imediatas sobre o tema..."></textarea>
+                    <div
+                        x-data="markdownEditor('notes.impressions', 'note-draft:{{ session('access_token_id') }}:create:impressions')"
+                        x-on:note-draft-saved.window="clearDraft()"
+                    >
+                        <template x-if="draftRestored">
+                            <div class="border-surface-variant bg-surface-container-low text-on-surface-variant m-3 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
+                                <span>
+                                    Rascunho recuperado<span x-show="draftSavedAt" x-text="` de ${draftSavedAt}`"></span>.
+                                </span>
+                                <button type="button" class="text-primary shrink-0 font-medium underline" @click="discardDraft()">Descartar</button>
+                            </div>
+                        </template>
+                        <textarea x-ref="textarea" form="markdown-editor-detached" placeholder="Suas impressões pessoais, dúvidas ou reflexões imediatas sobre o tema..."></textarea>
                     </div>
                 </div>
             </section>
@@ -192,8 +203,19 @@
                     <flux:heading size="sm">EXPERIÊNCIAS DE VIDA</flux:heading>
                 </div>
                 <div wire:ignore class="flex-1">
-                    <div x-data="markdownEditor($wire.entangle('notes.life_experiences'))">
-                        <textarea x-ref="textarea" placeholder="Como este conteúdo se relaciona com vivências passadas ou observações cotidianas?"></textarea>
+                    <div
+                        x-data="markdownEditor('notes.life_experiences', 'note-draft:{{ session('access_token_id') }}:create:life_experiences')"
+                        x-on:note-draft-saved.window="clearDraft()"
+                    >
+                        <template x-if="draftRestored">
+                            <div class="border-surface-variant bg-surface-container-low text-on-surface-variant m-3 flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
+                                <span>
+                                    Rascunho recuperado<span x-show="draftSavedAt" x-text="` de ${draftSavedAt}`"></span>.
+                                </span>
+                                <button type="button" class="text-primary shrink-0 font-medium underline" @click="discardDraft()">Descartar</button>
+                            </div>
+                        </template>
+                        <textarea x-ref="textarea" form="markdown-editor-detached" placeholder="Como este conteúdo se relaciona com vivências passadas ou observações cotidianas?"></textarea>
                     </div>
                 </div>
             </section>

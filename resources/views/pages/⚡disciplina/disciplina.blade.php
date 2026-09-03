@@ -333,7 +333,7 @@
                             <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
                             @if ($editing['impressions'])
                                 <div wire:ignore>
-                                    <div x-data="markdownEditor($wire.entangle('draft.impressions'))">
+                                    <div x-data="markdownEditor('draft.impressions')">
                                         <textarea x-ref="textarea"></textarea>
                                     </div>
                                 </div>
@@ -351,7 +351,7 @@
                             <flux:text class="mt-2">Ao terminar sua edição, aperte "Salvar".</flux:text>
                             @if ($editing['life_experiences'])
                                 <div wire:ignore>
-                                    <div x-data="markdownEditor($wire.entangle('draft.life_experiences'))">
+                                    <div x-data="markdownEditor('draft.life_experiences')">
                                         <textarea x-ref="textarea"></textarea>
                                     </div>
                                 </div>
