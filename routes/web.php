@@ -9,6 +9,7 @@ Route::livewire('/disciplinas/{slug}', 'pages::disciplina')->name('disciplinas.s
 Route::livewire('/disciplinas/{slug}/notas/nova', 'pages::create')->name('notas.criar')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/conceitos/lista', 'pages::concepts')->name('concepts')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/conselhos/lista', 'pages::pastoral')->name('pastoral')->middleware(EnsureAccessTokenIsValid::class);
+Route::livewire('/busca', 'pages::busca')->name('busca')->middleware(EnsureAccessTokenIsValid::class);
 
 Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
     Route::livewire('/referencias/lista', 'pages::referencias')->name('referencias');

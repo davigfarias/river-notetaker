@@ -69,6 +69,8 @@
     <flux:spacer />
 
     <div class="flex items-center gap-2">
+        <livewire:busca-global />
+
         {{ $headerActions ?? '' }}
     </div>
 

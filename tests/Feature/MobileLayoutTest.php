@@ -40,3 +40,26 @@ test('selecting a note on mobile opens the detail panel with a back button', fun
         ->assertSet('mobileDetail', true)
         ->assertSee("\$set('mobileDetail', false)", false);
 });
+
+test('a note id in the url preselects that note over the first one', function () {
+    $token = AccessToken::factory()->create();
+    $first = Notes::factory()->create(['access_token_id' => $token->id, 'title' => 'Primeira nota']);
+    $discipline = $first->discipline;
+    $second = Notes::create(['access_token_id' => $token->id, 'discipline_id' => $discipline->id, 'title' => 'Segunda nota', 'tags' => []]);
+
+    $this->withSession(['access_token_id' => $token->id])
+        ->get(route('disciplinas.show', ['slug' => $discipline->slug, 'nota' => $second->id]))
+        ->assertOk()
+        ->assertSeeText('Segunda nota');
+});
+
+test('an invalid note id in the url falls back to the first note of the discipline', function () {
+    $token = AccessToken::factory()->create();
+    $note = Notes::factory()->create(['access_token_id' => $token->id, 'title' => 'Única nota']);
+    $discipline = $note->discipline;
+
+    $this->withSession(['access_token_id' => $token->id])
+        ->get(route('disciplinas.show', ['slug' => $discipline->slug, 'nota' => 999999]))
+        ->assertOk()
+        ->assertSeeText('Única nota');
+});

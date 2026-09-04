@@ -23,6 +23,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Session;
 use Livewire\Component;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 
 new #[Title('Disciplinas')] class extends Component
 {
@@ -38,6 +39,7 @@ new #[Title('Disciplinas')] class extends Component
 
     public string $search = '';
 
+    #[Url(as: 'nota')]
     public ?int $selectedNoteId = null;
 
     public bool $mobileDetail = false;
@@ -93,10 +95,8 @@ new #[Title('Disciplinas')] class extends Component
             ->handle($slug)
             ->data;
 
-        $firstNote = $this->notes->first();
-
-        if ($firstNote) {
-            $this->selectedNoteId = $firstNote->id;
+        if ($this->selectedNoteId === null || ! $this->notes->contains('id', $this->selectedNoteId)) {
+            $this->selectedNoteId = $this->notes->first()?->id;
         }
     }
 
