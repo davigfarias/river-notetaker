@@ -7,14 +7,20 @@
 
     <form id="form-nota" wire:submit="save" class="mx-auto max-w-[800px] space-y-8 pb-32">
         <div class="mt-4 space-y-4">
+            <div x-show="$store.noteDraft.dirty" class="flex flex-row-reverse space-x-1 space-x-reverse">
+                <flux:text size="lg">Nessa nota há edições não salvas</flux:text>
+                <flux:icon name="exclamation-triangle" class="size-5"/>
+            </div>
             <input
                 type="text"
                 wire:model="notes.title"
                 placeholder="Título da Anotação..."
                 class="text-on-surface w-full border-none bg-transparent p-0 text-4xl font-bold outline-none focus:ring-0"
             />
+            
             <flux:error name="notes.title" />
 
+            
             <div class="text-on-surface-variant flex flex-wrap items-center gap-4">
                 <div class="border-surface-variant bg-surface-container flex items-center gap-1.5 rounded border px-2 py-1">
                     <flux:icon name="calendar" class="size-4" />

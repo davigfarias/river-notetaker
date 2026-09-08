@@ -44,6 +44,10 @@ const forgetSavedAt = (autosaveId) => {
 };
 
 document.addEventListener('alpine:init', () => {
+    // Indica se a página de criar nota tem edições não salvas.
+    // Alimentado por `resources/views/pages/⚡create/create.js` (100% client-side).
+    Alpine.store('noteDraft', { dirty: false });
+
     // Registra o componente 'markdownEditor'.
     // `field` é o nome da propriedade Livewire (ex.: 'notes.impressions').
     // `autosaveId`, quando presente, liga o autosave nativo do EasyMDE (localStorage).

@@ -155,5 +155,40 @@
 @livewireScripts
 @fluxScripts
 
+<flux:modal name="global-token-expiration" class="min-w-88">
+    <div class="space-y-6">
+        <div>
+            <flux:heading size="lg">Sessão finalizada</flux:heading>
+            <flux:text class="mt-2">
+                Sua sessão expirou. É preciso recarregar a página e refazer o login.
+            </flux:text>
+        </div>
+        <div class="flex gap-2">
+            <flux:spacer />
+            <flux:modal.close>
+                <flux:button variant="ghost">Manter na página</flux:button>
+            </flux:modal.close>
+            <flux:button variant="primary" x-on:click="window.location.reload()">
+                Recarregar e entrar
+            </flux:button>
+        </div>
+    </div>
+</flux:modal>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.interceptRequest(({ onError }) => {
+            onError(({ response, preventDefault }) => {
+                if (response.status !== 419) {
+                    return;
+                }
+
+                preventDefault();
+                Flux.modal('global-token-expiration').show();
+            });
+        });
+    });
+</script>
+
 </body>
 </html>
