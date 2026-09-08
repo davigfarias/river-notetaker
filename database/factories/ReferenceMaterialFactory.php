@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\BookFormat;
+use App\Enums\ReadingStatus;
 use App\Enums\ReferencesIcon;
 use App\Models\ReferenceMaterial;
 use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
@@ -51,6 +53,31 @@ class ReferenceMaterialFactory extends Factory
     public function article(): static
     {
         return $this->state(fn (): array => ['type' => ReferencesIcon::Newspaper->value]);
+    }
+
+    public function tracking(int $total = 200, int $read = 50): static
+    {
+        return $this->state(fn (): array => [
+            'type' => ReferencesIcon::BookOpen->value,
+            'book_format' => BookFormat::Physical->value,
+            'page_count' => $total,
+            'current_page' => $read,
+            'reading_status' => ReadingStatus::Reading->value,
+            'reading_started_at' => now()->subDays(7)->toDateString(),
+        ]);
+    }
+
+    public function digital(int $start, int $end): static
+    {
+        return $this->state(fn (): array => [
+            'type' => ReferencesIcon::BookOpen->value,
+            'book_format' => BookFormat::Kindle->value,
+            'reader_start_page' => $start,
+            'reader_end_page' => $end,
+            'page_count' => $end - $start + 1,
+            'current_page' => $start,
+            'reading_status' => ReadingStatus::WantToRead->value,
+        ]);
     }
 
     private function lastName(string $author): string

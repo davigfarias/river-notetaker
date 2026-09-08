@@ -91,9 +91,24 @@
                             <flux:text size="sm" class="mt-1">{{ $material->author }}{{ $material->year ? ', '.$material->year : '' }}</flux:text>
                         @endif
                     </div>
-                    <flux:text size="sm" class="mt-4 text-on-surface-variant">
-                        {{ $material->citations_count }} {{ \Illuminate\Support\Str::plural('citação', $material->citations_count, 'citações') }}
-                    </flux:text>
+                    <div class="mt-4 space-y-2">
+                        @if ($material->hasReadingProgress())
+                            <div>
+                                <div class="h-1.5 rounded-full bg-surface-variant">
+                                    <div class="h-1.5 rounded-full bg-primary" style="width: {{ $material->readingProgressPercent() }}%"></div>
+                                </div>
+                                <flux:text size="xs" class="mt-1 text-on-surface-variant">
+                                    {{ $material->pagesRead() }}/{{ $material->pagesTotal() }} págs
+                                    @if ($material->reading_status)
+                                        &middot; {{ $material->reading_status->label() }}
+                                    @endif
+                                </flux:text>
+                            </div>
+                        @endif
+                        <flux:text size="sm" class="text-on-surface-variant">
+                            {{ $material->citations_count }} {{ \Illuminate\Support\Str::plural('citação', $material->citations_count, 'citações') }}
+                        </flux:text>
+                    </div>
                 </a>
             @empty
                 <div class="col-span-full flex flex-col items-center justify-center py-24 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
@@ -134,6 +149,8 @@
 
             <flux:input label="URL" wire:model="form.url" placeholder="https:// (opcional)" />
             <flux:textarea label="Referência ABNT" wire:model="form.abnt_reference" rows="2" placeholder="SOBRENOME, Nome. Título. Cidade: Editora, ano. (opcional — usada no cabeçalho da exportação)" />
+
+            @include('partials.reference-reading-fields', ['model' => 'form'])
 
             <div class="flex">
                 <flux:spacer />

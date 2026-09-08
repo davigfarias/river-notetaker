@@ -57,6 +57,60 @@
                 </flux:text>
             </div>
 
+            @if ($this->material->isTrackable())
+                @php($range = $this->material->readingRange())
+                @php($percent = $this->material->readingProgressPercent())
+                <div class="mt-4 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <flux:heading size="lg" level="2">Leitura</flux:heading>
+                        @if ($this->material->reading_status)
+                            <flux:badge size="sm" :color="$this->material->reading_status->badgeColor()">
+                                {{ $this->material->reading_status->label() }}
+                            </flux:badge>
+                        @endif
+                    </div>
+
+                    <flux:radio.group wire:model.live="readingStatus" variant="segmented" class="mt-3">
+                        @foreach (\App\Enums\ReadingStatus::cases() as $case)
+                            <flux:radio value="{{ $case->value }}">{{ $case->label() }}</flux:radio>
+                        @endforeach
+                    </flux:radio.group>
+
+                    @if ($this->material->hasReadingProgress())
+                        <div class="mt-4 space-y-2">
+                            <input
+                                type="range"
+                                min="{{ $range['start'] }}"
+                                max="{{ $range['end'] }}"
+                                wire:model.live.debounce.500ms="currentPage"
+                                class="w-full accent-primary"
+                            />
+                            <div class="h-2 rounded-full bg-surface-variant">
+                                <div class="h-2 rounded-full bg-primary transition-all" style="width: {{ $percent }}%"></div>
+                            </div>
+                            <flux:text size="sm" class="text-on-surface-variant">
+                                {{ $this->material->pagesRead() }} de {{ $this->material->pagesTotal() }} páginas &middot; {{ $percent }}%
+                            </flux:text>
+                        </div>
+                    @else
+                        <flux:text size="sm" class="mt-3 text-on-surface-variant">
+                            Defina o formato e as páginas em <span class="font-medium">Editar</span> para acompanhar o progresso.
+                        </flux:text>
+                    @endif
+
+                    @if ($this->material->reading_started_at || $this->material->reading_finished_at)
+                        <flux:text size="sm" class="mt-3 block text-on-surface-variant/80">
+                            @if ($this->material->reading_started_at)
+                                Início: {{ $this->material->reading_started_at->format('d/m/Y') }}
+                            @endif
+                            @if ($this->material->reading_finished_at)
+                                &middot; Fim: {{ $this->material->reading_finished_at->format('d/m/Y') }}
+                            @endif
+                        </flux:text>
+                    @endif
+                </div>
+            @endif
+
             <div class="mt-8 flex gap-1 overflow-x-auto whitespace-nowrap border-b border-surface-variant">
                 <button type="button" wire:click="$set('activeTab', 'citacoes')"
                     @class([
@@ -209,6 +263,8 @@
                 </div>
                 <flux:input label="URL" wire:model="editForm.url" />
                 <flux:textarea label="Referência ABNT" wire:model="editForm.abnt_reference" rows="2" />
+
+                @include('partials.reference-reading-fields', ['model' => 'editForm'])
 
                 <div class="flex">
                     <flux:spacer />

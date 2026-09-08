@@ -13,7 +13,9 @@ use App\Actions\RequestExport;
 use App\Actions\UpdateChapter;
 use App\Actions\UpdateCitation;
 use App\Actions\UpdateQuestion;
+use App\Actions\UpdateReadingProgress;
 use App\Actions\UpdateReferenceMaterial;
+use App\Enums\ReadingStatus;
 use App\DTO\ChapterForm;
 use App\DTO\CitationForm;
 use App\DTO\QuestionForm;
@@ -51,6 +53,10 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public string $activeTab = 'citacoes';
 
+    public ?string $readingStatus = null;
+
+    public ?int $currentPage = null;
+
     public ChapterForm $chapterForm;
 
     public ChapterForm $editChapterForm;
@@ -79,7 +85,12 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public function mount(): void
     {
-        abort_if($this->fetch() === null, 404);
+        $material = $this->fetch();
+
+        abort_if($material === null, 404);
+
+        $this->readingStatus = $material->reading_status?->value;
+        $this->currentPage = $material->current_page;
     }
 
     #[Computed]
@@ -191,7 +202,52 @@ new #[Title('Obra')] #[Lazy] class extends Component
         if ($check->success) {
             $this->editingMaterial = false;
             unset($this->material);
+            $this->syncReadingState();
         }
+    }
+
+    public function updatedReadingStatus(): void
+    {
+        $this->saveReadingProgress();
+    }
+
+    public function updatedCurrentPage(): void
+    {
+        // Moving the slider implies the book is being read.
+        if ($this->readingStatus === null) {
+            $this->readingStatus = ReadingStatus::Reading->value;
+        }
+
+        $this->saveReadingProgress();
+    }
+
+    public function saveReadingProgress(): void
+    {
+        if (! $this->material?->isTrackable() || $this->readingStatus === null) {
+            return;
+        }
+
+        $check = app(UpdateReadingProgress::class)->handle(
+            $this->id,
+            (int) session('access_token_id'),
+            ReadingStatus::from($this->readingStatus),
+            $this->currentPage,
+        );
+
+        if (! $check->success) {
+            $this->toast(false, $check->message);
+
+            return;
+        }
+
+        unset($this->material);
+        $this->syncReadingState();
+    }
+
+    private function syncReadingState(): void
+    {
+        $this->readingStatus = $this->material?->reading_status?->value;
+        $this->currentPage = $this->material?->current_page;
     }
 
     public function export(RequestExport $action): void
