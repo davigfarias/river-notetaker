@@ -1,3 +1,49 @@
+<!-- ========================================================================= -->
+<!-- 🛑 STOP — READ THIS FIRST. NON-NEGOTIABLE. 🛑                              -->
+<!-- ========================================================================= -->
+<!--
+  NEVER run any command that drops or rebuilds the database. NOT ONCE. NOT FOR
+  DEBUGGING. NOT "just to reset state". The local dev DB
+  (database/database.sqlite) is gitignored and has NO BACKUP. It has been wiped
+  multiple times by an agent and the user has lost real work every time.
+
+  FORBIDDEN — never type these, never chain them, never suggest running them:
+    - php artisan migrate:fresh
+    - php artisan migrate:refresh
+    - php artisan migrate:reset
+    - php artisan db:wipe
+    - php artisan migrate --seed
+    - php artisan schema:dump --prune
+    - any raw DROP DATABASE / DROP TABLE / TRUNCATE / DELETE against the sqlite file
+    - rm / truncate / redirect over database/database.sqlite
+
+  ALLOWED:
+    - php artisan migrate            (apply new migrations — additive only)
+    - php artisan migrate:rollback   (only when explicitly asked)
+    - php artisan test               (tests use in-memory sqlite; never touch dev DB)
+
+  If a full rebuild ever seems necessary: STOP. Tell the user. They do it by hand.
+
+  This rule is enforced by:
+    - .claude/hooks/block-db-wipe.sh  (PreToolUse hook, hard-blocks the commands)
+    - .claude/settings.json           (permissions.deny)
+  It is also repeated in DATABASE_SAFETY.md and in every skill under
+  .claude/skills, .agents/skills and .ai/skills. If you are reading this from a
+  fresh context: the redundancy is deliberate. Do not remove it.
+-->
+<!-- ========================================================================= -->
+
+# ⛔ DATABASE SAFETY (river-notetaker)
+
+**NEVER** run `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `db:wipe`, or
+`migrate --seed`. **NEVER** drop, truncate, delete, or overwrite
+`database/database.sqlite`. It is gitignored, has **no backup**, and holds the
+user's real work. Use `php artisan migrate` only. A rebuild is the user's job,
+by hand. Enforced by `.claude/hooks/block-db-wipe.sh` and `.claude/settings.json`.
+See `DATABASE_SAFETY.md`.
+
+---
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -187,3 +233,27 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+<!-- ========================================================================= -->
+<!-- 🛑 FINAL REMINDER — SAME RULE AS THE TOP OF THIS FILE 🛑                    -->
+<!-- ========================================================================= -->
+
+# ⛔ DATABASE SAFETY — DO NOT DROP OR REBUILD THE DATABASE
+
+Repeated here on purpose. If you skimmed the top, read it now.
+
+**FORBIDDEN, always, no exceptions:**
+`php artisan migrate:fresh` · `php artisan migrate:refresh` · `php artisan migrate:reset`
+· `php artisan db:wipe` · `php artisan migrate --seed` · `php artisan schema:dump --prune`
+· any `DROP` / `TRUNCATE` / `DELETE` against the sqlite DB · `rm` / overwrite of
+`database/database.sqlite`.
+
+**ALLOWED:** `php artisan migrate` (additive), `php artisan migrate:rollback` (only if
+asked), `php artisan test` (in-memory sqlite — never touches the dev DB).
+
+The dev DB is gitignored, has **no backup**, and holds the user's real work. It has
+been destroyed multiple times. If a rebuild seems needed: **STOP and ask the user.**
+
+Enforced mechanically by `.claude/hooks/block-db-wipe.sh` (PreToolUse) and
+`.claude/settings.json` (`permissions.deny`). Also stated in `DATABASE_SAFETY.md`
+and in every `SKILL.md` / rules file under `.claude/skills`, `.agents/skills`, `.ai/skills`.

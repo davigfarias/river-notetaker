@@ -1,3 +1,14 @@
+# 🛑 REGRA ABSOLUTA — NUNCA APAGAR / RECONSTRUIR O BANCO DE DADOS
+
+- **NUNCA** rode `php artisan migrate:fresh`, `migrate:refresh`, `migrate:reset`, `db:wipe` ou `migrate --seed`. Nem para debug. Nem "só pra resetar". Nem dentro de comando encadeado.
+- **NUNCA** faça `DROP` / `TRUNCATE` / `DELETE` no sqlite, nem `rm` / sobrescreva `database/database.sqlite`.
+- O banco de dev é gitignored, **sem backup**, e tem o trabalho real do usuário. Já foi apagado várias vezes — toda vez custou dado irrecuperável.
+- **PERMITIDO:** `php artisan migrate` (aditivo), `php artisan migrate:rollback` (só se pedido), `php artisan test` (usa sqlite em memória, não toca o banco de dev).
+- Se parecer que precisa reconstruir: **PARE e pergunte ao usuário.** A reconstrução é feita por ele, na mão.
+- Enforce mecânico: `.claude/hooks/block-db-wipe.sh` (PreToolUse) + `.claude/settings.json` (`permissions.deny`). Detalhes em `DATABASE_SAFETY.md`.
+
+---
+
 # REGRA ABSOLUTA — plan.md
 
 - **RE-ESCRITA DO PLAN.MD É SEMPRE APAGAR O CONTEÚDO INTEIRO E ESCREVER SOMENTE O ÚLTIMO PEDIDO DA CONVERSA.**
