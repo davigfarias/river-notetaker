@@ -33,7 +33,7 @@
             <div class="bg-primary h-1.5 rounded-full transition-all" style="width: {{ $this->progress }}%"></div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-8 items-start">
+        <div class="flex flex-col lg:flex-row gap-8 items-start" wire:key="question-{{ $this->question->id }}">
             <div @class(['w-full flex flex-col gap-6', 'lg:w-2/3' => ! $this->isClozeQuestion])>
                 <div class="bg-surface-container-high rounded-xl p-8 relative overflow-hidden border border-outline-variant shadow-lg">
                     <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-secondary"></div>
