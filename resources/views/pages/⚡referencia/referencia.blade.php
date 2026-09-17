@@ -163,7 +163,7 @@
 
             <div wire:loading.delay.remove wire:target="addCitation,updateCitation,deleteCitation" class="mt-6 space-y-3">
                 @forelse ($this->material->citations as $citation)
-                    <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
+                    <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4" x-data="readAloud(@js($citation->quote_text))">
                         <p class="italic text-on-surface-variant leading-relaxed">&ldquo;{{ $citation->quote_text }}&rdquo;</p>
                         <div class="mt-2 flex items-center gap-3">
                             @if ($citation->location)
@@ -174,6 +174,8 @@
                             @endif
                             <flux:spacer />
                             <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
+                                <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
                                 <flux:button size="xs" variant="ghost" icon="pencil" wire:click="editCitation({{ $citation->id }})" />
                                 <flux:button size="xs" variant="ghost" icon="trash" wire:click="confirmDeleteCitation({{ $citation->id }})" />
                             </div>
@@ -216,7 +218,7 @@
                                 </div>
 
                                 @forelse ($chapter->questions as $question)
-                                    <div wire:key="question-{{ $question->id }}" class="group/q rounded-lg border border-surface-variant bg-surface-container-low p-3">
+                                    <div wire:key="question-{{ $question->id }}" class="group/q rounded-lg border border-surface-variant bg-surface-container-low p-3" x-data="readAloud(@js($question->prompt . "\n\n" . $question->reference_answer))">
                                         <div class="flex items-start gap-2">
                                             <div class="flex-1">
                                                 <p class="text-sm font-medium">{{ $question->prompt }}</p>
@@ -226,6 +228,8 @@
                                                 @endif
                                             </div>
                                             <div class="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover/q:opacity-100">
+                                                <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
+                                                <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
                                                 <flux:button size="xs" variant="ghost" icon="chevron-up" wire:click="moveQuestion({{ $question->id }}, {{ $loop->index - 1 }})" :disabled="$loop->first" />
                                                 <flux:button size="xs" variant="ghost" icon="chevron-down" wire:click="moveQuestion({{ $question->id }}, {{ $loop->index + 1 }})" :disabled="$loop->last" />
                                                 <flux:button size="xs" variant="ghost" icon="pencil" wire:click="editQuestion({{ $question->id }})" />

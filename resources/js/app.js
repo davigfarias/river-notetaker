@@ -1,5 +1,6 @@
 import EasyMDE from 'easymde';
 import 'easymde/dist/easymde.min.css';
+import './session-modal';
 
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest('a[href^="#edit-concept-"]');
@@ -41,6 +42,42 @@ const forgetSavedAt = (autosaveId) => {
     } catch (e) {
         // idem
     }
+};
+
+const normalizeLang = (lang) => lang.replace('_', '-');
+
+/**
+ * Sem voz explícita o navegador usa a voz padrão do sistema, que no Apple é a
+ * "compacta" antiga — a de pior qualidade instalada. Ordem de preferência:
+ * vozes Enhanced/Premium/Siri, depois vozes de rede (as "Google" do Chrome),
+ * depois qualquer uma do idioma.
+ */
+const voiceQuality = (voice) => {
+    if (/enhanced|premium|siri/i.test(voice.name)) {
+        return 3;
+    }
+
+    if (! voice.localService) {
+        return 2;
+    }
+
+    return /google/i.test(voice.name) ? 1 : 0;
+};
+
+const pickVoice = (lang) => {
+    const candidates = window.speechSynthesis
+        .getVoices()
+        .filter((voice) => normalizeLang(voice.lang).startsWith(lang.split('-')[0]));
+
+    // O dialeto exato pesa mais que a qualidade: uma pt-BR compacta soa melhor
+    // pra um brasileiro do que uma pt-PT premium.
+    candidates.sort((a, b) => {
+        const exact = (voice) => (normalizeLang(voice.lang) === lang ? 1 : 0);
+
+        return exact(b) - exact(a) || voiceQuality(b) - voiceQuality(a);
+    });
+
+    return candidates[0] ?? null;
 };
 
 document.addEventListener('alpine:init', () => {
@@ -165,6 +202,40 @@ document.addEventListener('alpine:init', () => {
                 this.editor.cleanup();
                 this.editor.toTextArea();
             }
+        },
+    }));
+
+    // A lista de vozes carrega de forma assíncrona; pedir uma vez aqui faz o
+    // primeiro clique já encontrar as vozes populadas.
+    window.speechSynthesis?.getVoices();
+
+    // Leitura em voz alta via Web Speech API (100% client-side, sem IA).
+    // `text` fixo, ou null pra ler o innerText de `$refs.content` (útil
+    // quando o bloco renderiza Markdown como HTML).
+    Alpine.data('readAloud', (text = null) => ({
+        read(lang) {
+            if (!window.speechSynthesis) {
+                return;
+            }
+
+            const content = text ?? this.$refs.content?.innerText ?? '';
+
+            if (!content.trim()) {
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(content);
+            utterance.lang = lang;
+
+            const voice = pickVoice(lang);
+
+            if (voice) {
+                utterance.voice = voice;
+            }
+
+            window.speechSynthesis.speak(utterance);
         },
     }));
 });

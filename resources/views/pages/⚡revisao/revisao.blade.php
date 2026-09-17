@@ -24,11 +24,14 @@
                 <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-secondary"></div>
 
                 <div class="relative z-10">
-                    <div class="flex items-center gap-3 mb-4">
+                    <div class="flex items-center gap-3 mb-4" x-data="readAloud(@js($this->question->prompt))">
                         <div class="bg-secondary/10 text-secondary p-2 rounded-lg inline-flex">
                             <flux:icon.light-bulb class="size-5" />
                         </div>
                         <span class="font-mono text-sm tracking-wider uppercase text-secondary">Pergunta</span>
+                        <flux:spacer />
+                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
+                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
                     </div>
                     <flux:heading size="lg" class="leading-tight">
                         {{ $this->question->prompt }}
@@ -36,11 +39,14 @@
 
                     <div class="my-6 border-t border-outline-variant"></div>
 
-                    <div class="flex items-center gap-3 mb-4">
+                    <div class="flex items-center gap-3 mb-4" x-data="readAloud(@js($this->question->reference_answer))">
                         <div class="bg-primary/10 text-primary p-2 rounded-lg inline-flex">
                             <flux:icon.check-circle class="size-5" />
                         </div>
                         <span class="font-mono text-sm tracking-wider uppercase text-primary">Resposta</span>
+                        <flux:spacer />
+                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
+                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
                     </div>
                     <p class="font-sans text-base leading-relaxed whitespace-pre-line text-on-surface-variant">
                         {{ $this->question->reference_answer }}

@@ -99,11 +99,13 @@
                                 </div>
                             </section>
                         @elseif ($this->selectedNote->ai_summary)
-                            <section class="border-surface-variant bg-primary-container/10 mb-6 rounded-lg border p-4">
+                            <section class="border-surface-variant bg-primary-container/10 mb-6 rounded-lg border p-4" x-data="readAloud(@js($this->selectedNote->ai_summary))">
                                 <div class="mb-2 flex items-center gap-2">
                                     <flux:icon name="sparkles" class="text-primary size-4" />
                                     <flux:heading size="xs">Resumo de IA</flux:heading>
                                     <flux:spacer />
+                                    <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
+                                    <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
                                     <flux:modal.trigger name="confirm-regenerate-summary">
                                         <flux:button size="sm" variant="subtle">Gerar novamente</flux:button>
                                     </flux:modal.trigger>
