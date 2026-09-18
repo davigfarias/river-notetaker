@@ -18,8 +18,9 @@ final readonly class GetReferenceMaterial
                 ->with([
                     'citations' => fn ($query) => $query->orderByDesc('id'),
                     'chapters.questions',
+                    'readingNotes',
                 ])
-                ->withCount('citations')
+                ->withCount(['citations', 'readingNotes'])
                 ->find($id);
 
             return Outcome::noViewMessage(data: $material);

@@ -132,6 +132,16 @@
                     Capítulos e Perguntas
                     <flux:badge size="sm">{{ $this->material->chapters->count() }}</flux:badge>
                 </button>
+                <button type="button" wire:click="$set('activeTab', 'anotacoes')"
+                    @class([
+                        'flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+                        'border-secondary text-secondary' => $activeTab === 'anotacoes',
+                        'border-transparent text-on-surface-variant hover:text-on-surface' => $activeTab !== 'anotacoes',
+                    ])>
+                    <flux:icon name="pencil-square" class="size-4" />
+                    Anotações
+                    <flux:badge size="sm">{{ $this->material->reading_notes_count }}</flux:badge>
+                </button>
             </div>
 
             <div class="mt-6" @if ($activeTab !== 'citacoes') hidden @endif>
@@ -189,6 +199,121 @@
                 @endforelse
             </div>
             </div>{{-- /citacoes tab --}}
+
+            <div class="mt-6" @if ($activeTab !== 'anotacoes') hidden @endif>
+
+            <flux:heading size="lg" level="2">
+                Anotações
+                <flux:badge size="sm" class="ml-1">{{ $this->material->reading_notes_count }}</flux:badge>
+            </flux:heading>
+
+            {{-- Resumo fixo: uma linha escrita à mão, sempre no topo da aba. --}}
+            <div class="mt-4 rounded-xl border-l-4 border-secondary border-y border-r border-surface-variant bg-secondary-container/10 p-4">
+                @if ($editingTakeaway)
+                    <form wire:submit="saveTakeaway" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                        <flux:input wire:model="takeaway" placeholder="Em uma linha: o que esta obra te deixou?" class="flex-1" />
+                        <div class="flex gap-2">
+                            <flux:button type="submit" size="sm" variant="primary">Salvar</flux:button>
+                            <flux:button type="button" size="sm" variant="ghost" wire:click="$set('editingTakeaway', false)">Cancelar</flux:button>
+                        </div>
+                    </form>
+                @else
+                    <div class="group flex items-start gap-3">
+                        <flux:icon name="bookmark" class="mt-0.5 size-4 shrink-0 text-secondary" />
+                        @if ($this->material->notes_takeaway)
+                            <flux:text class="flex-1 font-medium">{{ $this->material->notes_takeaway }}</flux:text>
+                        @else
+                            <flux:text class="flex-1 text-on-surface-variant/70">Nenhum resumo definido para esta obra.</flux:text>
+                        @endif
+                        <flux:button size="xs" variant="ghost" icon="pencil" aria-label="Editar resumo"
+                            class="opacity-0 transition-opacity group-hover:opacity-100"
+                            wire:click="$set('editingTakeaway', true)" />
+                    </div>
+                @endif
+            </div>
+
+            <form wire:submit="addReadingNote" class="mt-4 space-y-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
+                <flux:textarea wire:model="readingNoteForm.body" rows="3" placeholder="O que você pensou lendo ou assistindo isto..." />
+                <flux:error name="readingNoteForm.body" />
+                <div class="flex flex-col gap-3 sm:flex-row">
+                    <flux:input wire:model="readingNoteForm.title" placeholder="Título (opcional)" class="sm:max-w-64" />
+                    <flux:input wire:model="readingNoteForm.location" placeholder="Localização (opcional: p. 42, 01:12:30)" />
+                </div>
+                @if ($this->allTags->isNotEmpty())
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($this->allTags as $tag)
+                            <button type="button" wire:key="new-note-tag-{{ $tag->id }}"
+                                wire:click="toggleReadingNoteTag('{{ $tag->title }}')"
+                                @class([
+                                    'rounded-full border px-3 py-1 text-xs transition-all',
+                                    'border-secondary bg-secondary text-white' => in_array($tag->title, $readingNoteForm->tags, true),
+                                    'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' => ! in_array($tag->title, $readingNoteForm->tags, true),
+                                ])>
+                                {{ $tag->title }}
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary" icon="plus">Adicionar anotação</flux:button>
+                </div>
+            </form>
+
+            <div wire:loading.delay.flex wire:target="addReadingNote,updateReadingNote,deleteReadingNote" class="mt-6 hidden flex-col gap-3">
+                @for ($i = 0; $i < 3; $i++)
+                    <div class="space-y-2 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
+                        <flux:skeleton class="h-4 w-full" />
+                        <flux:skeleton class="h-4 w-4/5" />
+                    </div>
+                @endfor
+            </div>
+
+            <div wire:loading.delay.remove wire:target="addReadingNote,updateReadingNote,deleteReadingNote" class="mt-6 space-y-3">
+                @forelse ($this->material->readingNotes as $note)
+                    <div wire:key="reading-note-{{ $note->id }}"
+                        class="group rounded-xl border border-surface-variant border-l-4 border-l-secondary bg-surface-container-lowest p-4">
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="{{ $this->material->typeIcon()->icon() }}" class="size-4 shrink-0 text-secondary" />
+                            @if ($note->title)
+                                <flux:heading size="sm">{{ $note->title }}</flux:heading>
+                            @endif
+                            <flux:spacer />
+                            <div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                <flux:button size="xs" variant="ghost" icon="chat-bubble-bottom-center-text" aria-label="Promover a citação"
+                                    wire:click="promoteReadingNote({{ $note->id }})" />
+                                <flux:button size="xs" variant="ghost" icon="pencil" aria-label="Editar anotação"
+                                    wire:click="editReadingNote({{ $note->id }})" />
+                                <flux:button size="xs" variant="ghost" icon="trash" aria-label="Remover anotação"
+                                    wire:click="confirmDeleteReadingNote({{ $note->id }})" />
+                            </div>
+                        </div>
+                        <p class="mt-2 leading-relaxed whitespace-pre-line text-on-surface">{{ $note->body }}</p>
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                            @if ($note->location)
+                                <flux:badge size="sm" color="zinc">{{ $note->location }}</flux:badge>
+                            @endif
+                            @if ($note->page_snapshot)
+                                <flux:text size="sm" class="text-on-surface-variant/70">na p. {{ $note->page_snapshot }}</flux:text>
+                            @endif
+                            @foreach ($note->tags ?? [] as $tag)
+                                <flux:badge size="sm" color="purple" wire:key="reading-note-{{ $note->id }}-tag-{{ $loop->index }}">{{ $tag }}</flux:badge>
+                            @endforeach
+                            <flux:spacer />
+                            @if ($note->created_at)
+                                <flux:text size="sm" class="text-on-surface-variant/70">{{ $note->created_at->format('d/m/Y') }}</flux:text>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low px-6 py-16 text-center">
+                        <flux:icon name="pencil-square" class="mb-3 size-9 text-surface-variant-content/50" />
+                        <flux:text class="text-surface-variant-content">Nenhuma anotação nesta obra ainda.</flux:text>
+                        <flux:text size="sm" class="mt-1 text-surface-variant-content/70">Citação é a palavra do autor. Anotação é a sua.</flux:text>
+                    </div>
+                @endforelse
+            </div>
+            </div>{{-- /anotacoes tab --}}
 
             <div class="mt-6" @if ($activeTab !== 'perguntas') hidden @endif>
                 <div class="flex items-center justify-between gap-3">
@@ -390,6 +515,51 @@
                         <flux:button variant="ghost">Cancelar</flux:button>
                     </flux:modal.close>
                     <flux:button variant="danger" icon="trash" wire:click="deleteQuestion">Remover</flux:button>
+                </div>
+            </div>
+        </flux:modal>
+
+        <flux:modal name="edit-reading-note" wire:model.self="editingReadingNote" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
+            <form wire:submit="updateReadingNote" class="space-y-4">
+                <flux:heading size="lg">Editar anotação</flux:heading>
+                <flux:textarea label="Anotação" wire:model="editReadingNoteForm.body" rows="5" />
+                <flux:error name="editReadingNoteForm.body" />
+                <flux:input label="Título (opcional)" wire:model="editReadingNoteForm.title" />
+                <flux:input label="Localização (opcional)" wire:model="editReadingNoteForm.location" />
+                @if ($this->allTags->isNotEmpty())
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($this->allTags as $tag)
+                            <button type="button" wire:key="edit-note-tag-{{ $tag->id }}"
+                                wire:click="toggleEditReadingNoteTag('{{ $tag->title }}')"
+                                @class([
+                                    'rounded-full border px-3 py-1 text-xs transition-all',
+                                    'border-secondary bg-secondary text-white' => in_array($tag->title, $editReadingNoteForm->tags, true),
+                                    'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' => ! in_array($tag->title, $editReadingNoteForm->tags, true),
+                                ])>
+                                {{ $tag->title }}
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Salvar</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
+        <flux:modal name="delete-reading-note" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Remover anotação</flux:heading>
+                    <flux:text class="mt-2">Esta ação não pode ser desfeita.</flux:text>
+                </div>
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancelar</flux:button>
+                    </flux:modal.close>
+                    <flux:button variant="danger" icon="trash" wire:click="deleteReadingNote">Remover</flux:button>
                 </div>
             </div>
         </flux:modal>

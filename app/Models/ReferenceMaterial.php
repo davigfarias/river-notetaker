@@ -31,6 +31,7 @@ use Laravel\Scout\Searchable;
  * @property string|null $url
  * @property string|null $cover_path
  * @property string|null $abnt_reference
+ * @property string|null $notes_takeaway
  * @property BookFormat|null $book_format
  * @property int|null $page_count
  * @property int|null $current_page
@@ -51,6 +52,7 @@ use Laravel\Scout\Searchable;
     'url',
     'cover_path',
     'abnt_reference',
+    'notes_takeaway',
     'book_format',
     'page_count',
     'current_page',
@@ -165,6 +167,16 @@ class ReferenceMaterial extends Model
     public function citations(): HasMany
     {
         return $this->hasMany(Citation::class);
+    }
+
+    /**
+     * Personal notes taken while reading or watching this work.
+     *
+     * @return HasMany<ReadingNote, $this>
+     */
+    public function readingNotes(): HasMany
+    {
+        return $this->hasMany(ReadingNote::class)->latest('id');
     }
 
     /**

@@ -1,35 +1,43 @@
 <?php
 
 use App\Actions\AddCitation;
+use App\Actions\AddReadingNote;
 use App\Actions\CreateChapter;
 use App\Actions\CreateQuestion;
 use App\Actions\DeleteChapter;
 use App\Actions\DeleteCitation;
 use App\Actions\DeleteQuestion;
+use App\Actions\DeleteReadingNote;
 use App\Actions\GetReferenceMaterial;
+use App\Actions\GetTags;
+use App\Actions\PromoteReadingNoteToCitation;
 use App\Actions\RefreshClozeBlanks;
 use App\Actions\ReorderQuestion;
 use App\Actions\RequestExport;
 use App\Actions\UpdateChapter;
 use App\Actions\UpdateCitation;
 use App\Actions\UpdateQuestion;
+use App\Actions\UpdateReadingNote;
 use App\Actions\UpdateReadingProgress;
 use App\Actions\UpdateReferenceMaterial;
-use App\Enums\ReadingStatus;
+use App\Actions\UpdateReferenceTakeaway;
 use App\DTO\ChapterForm;
 use App\DTO\CitationForm;
 use App\DTO\QuestionForm;
+use App\DTO\ReadingNoteForm;
 use App\DTO\ReferenceMaterialForm;
-use App\Models\Chapter;
-use App\Models\Question;
 use App\Enums\ExportFormat;
 use App\Enums\ExportScope;
+use App\Enums\ReadingStatus;
+use App\Models\Chapter;
+use App\Models\Question;
 use App\Models\ReferenceMaterial;
+use Flux\Flux;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Flux\Flux;
 
 new #[Title('Obra')] #[Lazy] class extends Component
 {
@@ -83,6 +91,20 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public ?int $deletingQuestionId = null;
 
+    public ReadingNoteForm $readingNoteForm;
+
+    public ReadingNoteForm $editReadingNoteForm;
+
+    public ?int $editingReadingNoteId = null;
+
+    public bool $editingReadingNote = false;
+
+    public ?int $deletingReadingNoteId = null;
+
+    public ?string $takeaway = null;
+
+    public bool $editingTakeaway = false;
+
     public function mount(): void
     {
         $material = $this->fetch();
@@ -91,6 +113,7 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
         $this->readingStatus = $material->reading_status?->value;
         $this->currentPage = $material->current_page;
+        $this->takeaway = $material->notes_takeaway;
     }
 
     #[Computed]
@@ -176,6 +199,111 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $this->deletingCitationId = null;
 
         unset($this->material);
+    }
+
+    #[Computed]
+    public function allTags(): Collection
+    {
+        return collect(app(GetTags::class)->handle()->data ?? []);
+    }
+
+    public function toggleReadingNoteTag(string $title): void
+    {
+        $this->readingNoteForm->toggleTag($title);
+    }
+
+    public function toggleEditReadingNoteTag(string $title): void
+    {
+        $this->editReadingNoteForm->toggleTag($title);
+    }
+
+    public function addReadingNote(AddReadingNote $action): void
+    {
+        $this->readingNoteForm->validate();
+
+        $check = $action->handle($this->id, $this->readingNoteForm, (int) session('access_token_id'));
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $this->readingNoteForm->reset();
+            unset($this->material);
+        }
+    }
+
+    public function editReadingNote(int $readingNoteId): void
+    {
+        $note = $this->material?->readingNotes->firstWhere('id', $readingNoteId);
+
+        if (! $note) {
+            return;
+        }
+
+        Flux::modals()->close();
+
+        $this->editingReadingNoteId = $readingNoteId;
+        $this->editReadingNoteForm->fillFromModel($note);
+        $this->editingReadingNote = true;
+    }
+
+    public function updateReadingNote(UpdateReadingNote $action): void
+    {
+        $this->editReadingNoteForm->validate();
+
+        $check = $action->handle($this->editingReadingNoteId, $this->editReadingNoteForm, (int) session('access_token_id'));
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $this->editingReadingNote = false;
+            $this->editingReadingNoteId = null;
+            unset($this->material);
+        }
+    }
+
+    public function confirmDeleteReadingNote(int $readingNoteId): void
+    {
+        $this->deletingReadingNoteId = $readingNoteId;
+        $this->modal('delete-reading-note')->show();
+    }
+
+    public function deleteReadingNote(DeleteReadingNote $action): void
+    {
+        if ($this->deletingReadingNoteId === null) {
+            return;
+        }
+
+        $check = $action->handle($this->deletingReadingNoteId, (int) session('access_token_id'));
+
+        $this->toast($check->success, $check->message);
+
+        $this->modal('delete-reading-note')->close();
+        $this->deletingReadingNoteId = null;
+
+        unset($this->material);
+    }
+
+    public function promoteReadingNote(PromoteReadingNoteToCitation $action, int $readingNoteId): void
+    {
+        $check = $action->handle($readingNoteId, (int) session('access_token_id'));
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            unset($this->material);
+        }
+    }
+
+    public function saveTakeaway(UpdateReferenceTakeaway $action): void
+    {
+        $check = $action->handle($this->id, $this->takeaway, (int) session('access_token_id'));
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $this->editingTakeaway = false;
+            unset($this->material);
+        }
     }
 
     public function openEditMaterial(): void

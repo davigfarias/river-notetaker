@@ -11,6 +11,7 @@ enum SearchResultType: string
     case Conceito = 'conceito';
     case Referencia = 'referencia';
     case Citacao = 'citacao';
+    case AnotacaoLeitura = 'anotacao_leitura';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum SearchResultType: string
             self::Conceito => 'Conceitos',
             self::Referencia => 'Referências',
             self::Citacao => 'Citações',
+            self::AnotacaoLeitura => 'Anotações de Leitura',
         };
     }
 
@@ -31,6 +33,7 @@ enum SearchResultType: string
             self::Conceito => 'light-bulb',
             self::Referencia => 'book-open',
             self::Citacao => 'chat-bubble-left-right',
+            self::AnotacaoLeitura => 'pencil-square',
         };
     }
 }

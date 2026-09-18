@@ -9,6 +9,7 @@ use App\Models\Citation;
 use App\Models\Concepts;
 use App\Models\Notes;
 use App\Models\PastoralAdvices;
+use App\Models\ReadingNote;
 use App\Models\ReferenceMaterial;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Str;
@@ -121,6 +122,17 @@ class SearchResultDTO implements Arrayable, Wireable
             title: $citation->referenceMaterial->title,
             snippet: Str::limit($citation->quote_text, 140),
             url: route('referencias.show', $citation->reference_material_id),
+        );
+    }
+
+    public static function fromReadingNote(ReadingNote $note): self
+    {
+        return new self(
+            type: SearchResultType::AnotacaoLeitura,
+            id: $note->id,
+            title: $note->displayTitle(),
+            snippet: Str::limit($note->body, 140),
+            url: route('referencias.show', $note->reference_material_id),
         );
     }
 }

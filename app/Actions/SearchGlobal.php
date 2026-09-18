@@ -9,6 +9,7 @@ use App\Models\Citation;
 use App\Models\Concepts;
 use App\Models\Notes;
 use App\Models\PastoralAdvices;
+use App\Models\ReadingNote;
 use App\Models\ReferenceMaterial;
 use App\Support\Outcome;
 use Illuminate\Support\Collection;
@@ -55,8 +56,14 @@ final readonly class SearchGlobal
                 ->load('referenceMaterial')
                 ->map(fn (Citation $citation): SearchResultDTO => SearchResultDTO::fromCitation($citation));
 
+            $readingNotes = ReadingNote::search($term)
+                ->where('access_token_id', $accessTokenId)
+                ->take($limitPerType)
+                ->get()
+                ->map(fn (ReadingNote $note): SearchResultDTO => SearchResultDTO::fromReadingNote($note));
+
             /** @var Collection<int, SearchResultDTO> $results */
-            $results = $notes->concat($advices)->concat($concepts)->concat($references)->concat($citations);
+            $results = $notes->concat($advices)->concat($concepts)->concat($references)->concat($citations)->concat($readingNotes);
 
             return Outcome::noViewMessage(data: $results);
         } catch (\Exception $e) {
