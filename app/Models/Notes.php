@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Scout\Searchable;
 
@@ -79,6 +80,16 @@ class Notes extends Model
     public function accessToken(): BelongsTo
     {
         return $this->belongsTo(AccessToken::class);
+    }
+
+    /**
+     * Locução do resumo de IA, gerada sob demanda e guardada.
+     *
+     * @return HasOne<NoteAudio, $this>
+     */
+    public function audio(): HasOne
+    {
+        return $this->hasOne(NoteAudio::class, 'note_id');
     }
 
     /**

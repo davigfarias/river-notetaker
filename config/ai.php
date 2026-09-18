@@ -15,7 +15,7 @@ return [
 
     'default' => 'groq',
     'default_for_images' => 'groq',
-    'default_for_audio' => 'groq',
+    'default_for_audio' => 'gemini',
     'default_for_transcription' => 'groq',
     'default_for_embeddings' => 'groq',
     'default_for_reranking' => 'groq',
@@ -102,6 +102,11 @@ return [
             'driver' => 'gemini',
             'key' => env('GEMINI_API_KEY'),
             'url' => env('GEMINI_URL', 'https://generativelanguage.googleapis.com/v1beta/'),
+            'models' => [
+                'audio' => [
+                    'default' => env('TTS_MODEL', 'gemini-2.5-flash-preview-tts'),
+                ],
+            ],
         ],
 
         'groq' => [

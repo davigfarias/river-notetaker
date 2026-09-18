@@ -80,6 +80,9 @@ const pickVoice = (lang) => {
     return candidates[0] ?? null;
 };
 
+// Número de barras da waveform do player de locução.
+const BAR_COUNT = 28;
+
 document.addEventListener('alpine:init', () => {
     // Indica se a página de criar nota tem edições não salvas.
     // Alimentado por `resources/views/pages/⚡create/create.js` (100% client-side).
@@ -236,6 +239,132 @@ document.addEventListener('alpine:init', () => {
             }
 
             window.speechSynthesis.speak(utterance);
+        },
+    }));
+
+    // Player da locução gerada por IA, com waveform que reage ao som.
+    //
+    // A waveform usa o AnalyserNode da Web Audio API, nativa do navegador: um
+    // MediaElementSource só pode ser criado uma vez por elemento <audio>, e só
+    // depois de um gesto do usuário (política de autoplay), por isso o grafo é
+    // montado no primeiro play e reaproveitado daí em diante.
+    Alpine.data('aiAudioPlayer', () => ({
+        playing: false,
+        current: 0,
+        duration: 0,
+        // Alturas em porcentagem, uma por barra da waveform.
+        bars: Array(BAR_COUNT).fill(8),
+        analyser: null,
+        frame: null,
+
+        get audio() {
+            return this.$refs.audio;
+        },
+
+        get progress() {
+            return this.duration > 0 ? (this.current / this.duration) * 100 : 0;
+        },
+
+        toggle() {
+            this.audio.paused ? this.audio.play() : this.audio.pause();
+        },
+
+        onPlay() {
+            this.playing = true;
+            this.connectAnalyser();
+            this.draw();
+        },
+
+        onPause() {
+            this.playing = false;
+            this.stopDrawing();
+        },
+
+        onEnded() {
+            this.playing = false;
+            this.current = 0;
+            this.stopDrawing();
+        },
+
+        /** Move a reprodução para o ponto clicado na waveform. */
+        seek(event) {
+            if (!this.duration) {
+                return;
+            }
+
+            const box = event.currentTarget.getBoundingClientRect();
+            const ratio = Math.min(Math.max((event.clientX - box.left) / box.width, 0), 1);
+
+            this.audio.currentTime = ratio * this.duration;
+            this.current = this.audio.currentTime;
+        },
+
+        /**
+         * Liga o <audio> a um AnalyserNode. O grafo precisa seguir até o
+         * destination, senão o áudio é capturado e nada sai nas caixas.
+         */
+        connectAnalyser() {
+            if (this.analyser || !window.AudioContext) {
+                return;
+            }
+
+            try {
+                const context = new AudioContext();
+                const source = context.createMediaElementSource(this.audio);
+
+                this.analyser = context.createAnalyser();
+                this.analyser.fftSize = 128;
+                this.analyser.smoothingTimeConstant = 0.75;
+
+                source.connect(this.analyser);
+                this.analyser.connect(context.destination);
+            } catch (e) {
+                // Sem waveform reativa o player continua funcionando.
+                this.analyser = null;
+            }
+        },
+
+        draw() {
+            if (!this.analyser) {
+                // Sem analisador, anima um vaivém suave só para não ficar estático.
+                this.bars = this.bars.map((_, i) => 20 + Math.sin(Date.now() / 200 + i) * 12);
+                this.frame = requestAnimationFrame(() => this.draw());
+
+                return;
+            }
+
+            const data = new Uint8Array(this.analyser.frequencyBinCount);
+            this.analyser.getByteFrequencyData(data);
+
+            const step = Math.floor(data.length / BAR_COUNT) || 1;
+
+            this.bars = this.bars.map((_, i) => {
+                const value = data[i * step] ?? 0;
+
+                // 8% de altura mínima para as barras nunca sumirem de todo.
+                return 8 + (value / 255) * 92;
+            });
+
+            this.frame = requestAnimationFrame(() => this.draw());
+        },
+
+        stopDrawing() {
+            if (this.frame) {
+                cancelAnimationFrame(this.frame);
+                this.frame = null;
+            }
+
+            this.bars = this.bars.map(() => 8);
+        },
+
+        format(seconds) {
+            if (!Number.isFinite(seconds)) {
+                return '0:00';
+            }
+
+            const total = Math.floor(seconds);
+
+            return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
         },
     }));
 });

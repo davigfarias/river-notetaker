@@ -7,6 +7,7 @@ use App\Actions\AddConceptToNote;
 use App\Actions\GetDisciplineNotes as DisciplineNotes;
 use App\Actions\GetSingleDisciplineData as DisciplineData;
 use App\Actions\GenerateNoteSummary;
+use App\Actions\GenerateSummaryAudio;
 use App\Actions\GetTags;
 use App\Actions\ObserveTerm;
 use App\Actions\SubActions\UpdateNote;
@@ -16,6 +17,7 @@ use App\DTO\DisciplinesDTO;
 use App\DTO\NotesDTO;
 use App\DTO\SoleAdviceDTO;
 use App\DTO\SoleConceptDTO;
+use App\Models\NoteAudio;
 use App\Models\Notes;
 use Flux\Flux;
 use Illuminate\Support\Collection;
@@ -76,6 +78,12 @@ new #[Title('Disciplinas')] class extends Component
 
     #[Session]
     public ?string $awaitingSummaryBaseline = null;
+
+    #[Session]
+    public ?int $awaitingAudioNoteId = null;
+
+    #[Session]
+    public ?int $awaitingAudioSince = null;
 
     public function boot(
         DisciplineData $disciplineData,
@@ -279,6 +287,112 @@ new #[Title('Disciplinas')] class extends Component
         $this->awaitingSummarySince = null;
         $this->awaitingSummaryBaseline = null;
         unset($this->awaitingSummary);
+    }
+
+    /**
+     * A locução da nota selecionada, quando já foi gerada para o resumo atual.
+     */
+    #[Computed]
+    public function summaryAudio(): ?NoteAudio
+    {
+        if ($this->selectedNote === null) {
+            return null;
+        }
+
+        $note = Notes::find($this->selectedNote->id);
+
+        return $note === null ? null : app(GenerateSummaryAudio::class)->cachedAudioFor($note);
+    }
+
+    /**
+     * URL da locução, assinada pelo conteúdo para o navegador poder cacheá-la
+     * para sempre sem servir um áudio velho depois que o resumo muda.
+     */
+    #[Computed]
+    public function summaryAudioUrl(): ?string
+    {
+        $audio = $this->summaryAudio;
+
+        return $audio === null ? null : route('notas.resumo.audio', [
+            'note' => $audio->note_id,
+            'v' => substr($audio->signature, 0, 12),
+        ]);
+    }
+
+    #[Computed]
+    public function awaitingAudio(): bool
+    {
+        return $this->awaitingAudioNoteId !== null
+            && $this->selectedNote !== null
+            && $this->awaitingAudioNoteId === $this->selectedNote->id;
+    }
+
+    public function generateSummaryAudio(GenerateSummaryAudio $action): void
+    {
+        $noteId = $this->selectedNote->id;
+
+        $outcome = $action->handle($noteId);
+
+        match ($outcome->success) {
+            true => Flux::toast(text: $outcome->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+        };
+
+        if ($outcome->success) {
+            $this->awaitingAudioNoteId = $noteId;
+            $this->awaitingAudioSince = now()->timestamp;
+            unset($this->awaitingAudio, $this->summaryAudio, $this->summaryAudioUrl);
+        }
+    }
+
+    public function pollCheckAudio(): void
+    {
+        unset($this->summaryAudio, $this->summaryAudioUrl);
+
+        if ($this->summaryAudio !== null) {
+            $this->stopAwaitingAudio();
+
+            return;
+        }
+
+        /*
+         * O job marca o registro como falho assim que desiste, então a falha
+         * aparece em segundos em vez de esperar o prazo inteiro — importante
+         * porque um erro de cota volta em menos de um segundo.
+         */
+        $record = Notes::find($this->awaitingAudioNoteId)?->audio;
+
+        if ($record?->status->isFailed()) {
+            $this->stopAwaitingAudio();
+
+            Flux::toast(
+                heading: 'A locução não ficou pronta',
+                text: $record->failure_reason ?? 'Não foi possível gerar a locução desta nota.',
+                variant: 'danger',
+            );
+
+            return;
+        }
+
+        $deadline = (int) config('tts.job_timeout', 180) + 30;
+
+        if ($this->awaitingAudioSince !== null
+            && now()->timestamp - $this->awaitingAudioSince > $deadline) {
+            $this->stopAwaitingAudio();
+
+            Flux::toast(
+                heading: 'A locução não ficou pronta',
+                text: 'A geração demorou mais que o esperado. Tente de novo mais tarde.',
+                variant: 'danger',
+            );
+        }
+    }
+
+    protected function stopAwaitingAudio(): void
+    {
+        $this->awaitingAudioNoteId = null;
+        $this->awaitingAudioSince = null;
+        unset($this->awaitingAudio);
     }
 
     public function verifyConceptExistence(ObserveTerm $action): void

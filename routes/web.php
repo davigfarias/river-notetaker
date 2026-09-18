@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DownloadExportController;
+use App\Http\Controllers\StreamSummaryAudioController;
 use App\Http\Middleware\EnsureAccessTokenIsValid;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,10 @@ Route::livewire('/conselhos/lista', 'pages::pastoral')->name('pastoral')->middle
 Route::livewire('/busca', 'pages::busca')->name('busca')->middleware(EnsureAccessTokenIsValid::class);
 
 Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
+    Route::get('/notas/{note}/resumo/audio', StreamSummaryAudioController::class)
+        ->whereNumber('note')
+        ->name('notas.resumo.audio');
+
     Route::livewire('/referencias/lista', 'pages::referencias')->name('referencias');
     Route::livewire('/referencias/busca', 'pages::buscar-referencias')->name('referencias.busca');
     Route::livewire('/referencias/exportacoes', 'pages::exportacoes')->name('referencias.exportacoes');

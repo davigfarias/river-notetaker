@@ -100,17 +100,102 @@
                             </section>
                         @elseif ($this->selectedNote->ai_summary)
                             <section class="border-surface-variant bg-primary-container/10 mb-6 rounded-lg border p-4" x-data="readAloud(@js($this->selectedNote->ai_summary))">
+                                {{-- `min-w-0` no título deixa ele encolher em vez de empurrar
+                                     o botão para fora da tela em larguras de celular. --}}
                                 <div class="mb-2 flex items-center gap-2">
-                                    <flux:icon name="sparkles" class="text-primary size-4" />
-                                    <flux:heading size="xs">Resumo de IA</flux:heading>
+                                    <flux:icon name="sparkles" class="text-primary size-4 shrink-0" />
+                                    <flux:heading size="xs" class="min-w-0 truncate">Resumo de IA</flux:heading>
                                     <flux:spacer />
-                                    <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
-                                    <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
                                     <flux:modal.trigger name="confirm-regenerate-summary">
-                                        <flux:button size="sm" variant="subtle">Gerar novamente</flux:button>
+                                        <flux:button size="sm" variant="subtle" class="shrink-0">Gerar novamente</flux:button>
                                     </flux:modal.trigger>
                                 </div>
                                 <flux:text class="text-sm">{{ $this->selectedNote->ai_summary }}</flux:text>
+
+                                {{-- Locução por IA. Gerada sob demanda porque o free tier do
+                                     provedor permite poucas por dia; uma vez pronta, fica
+                                     guardada e toca na hora. --}}
+                                <div class="mt-3">
+                                    @if ($this->summaryAudioUrl)
+                                        <div
+                                            x-data="aiAudioPlayer"
+                                            class="border-outline-variant/40 bg-surface-container flex items-center gap-3 rounded-full border py-2 pr-4 pl-2"
+                                        >
+                                            <audio
+                                                x-ref="audio"
+                                                preload="none"
+                                                src="{{ $this->summaryAudioUrl }}"
+                                                x-on:play="onPlay()"
+                                                x-on:pause="onPause()"
+                                                x-on:ended="onEnded()"
+                                                x-on:timeupdate="current = $event.target.currentTime"
+                                                x-on:loadedmetadata="duration = $event.target.duration"
+                                                class="hidden"
+                                            ></audio>
+
+                                            <button
+                                                type="button"
+                                                x-on:click="toggle()"
+                                                class="bg-primary text-on-primary hover:bg-primary-container flex size-9 shrink-0 items-center justify-center rounded-full transition-colors"
+                                                x-bind:aria-label="playing ? 'Pausar locução' : 'Ouvir locução'"
+                                            >
+                                                <flux:icon name="play" variant="micro" x-show="!playing" />
+                                                <flux:icon name="pause" variant="micro" x-show="playing" x-cloak />
+                                            </button>
+
+                                            {{-- Waveform: as barras pulsam com o som e a faixa já
+                                                 tocada fica em destaque. Clicar salta no áudio. --}}
+                                            <div
+                                                x-on:click="seek($event)"
+                                                class="flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-[2px]"
+                                                role="slider"
+                                                aria-label="Posição da locução"
+                                                x-bind:aria-valuenow="Math.round(progress)"
+                                                aria-valuemin="0"
+                                                aria-valuemax="100"
+                                            >
+                                                <template x-for="(height, i) in bars" :key="i">
+                                                    <span
+                                                        class="flex-1 rounded-full transition-[height,background-color] duration-75"
+                                                        x-bind:class="(i / bars.length) * 100 <= progress ? 'bg-primary' : 'bg-outline-variant'"
+                                                        x-bind:style="`height: ${playing ? height : 12}%`"
+                                                    ></span>
+                                                </template>
+                                            </div>
+
+                                            <span
+                                                class="text-on-surface-variant shrink-0 font-mono text-xs tabular-nums"
+                                                x-text="format(duration - current)"
+                                            >0:00</span>
+                                        </div>
+                                    @elseif ($this->awaitingAudio)
+                                        <div
+                                            class="text-on-surface-variant flex items-center gap-2 text-xs"
+                                            wire:poll.{{ config('tts.poll_interval') }}="pollCheckAudio"
+                                        >
+                                            <flux:icon name="loading" variant="micro" />
+                                            Gerando a locução. Leva cerca de um minuto.
+                                        </div>
+                                    @else
+                                        <flux:button
+                                            size="xs"
+                                            variant="subtle"
+                                            icon="musical-note"
+                                            wire:click="generateSummaryAudio"
+                                            wire:loading.attr="disabled"
+                                        >
+                                            Ouvir com voz de IA
+                                        </flux:button>
+                                    @endif
+
+                                    {{-- Leitura pela voz do navegador: instantânea e sem cota,
+                                         serve de alternativa à locução de IA. --}}
+                                    <div class="mt-2 flex items-center gap-1">
+                                        <flux:text size="xs" class="text-on-surface-variant mr-1">Voz do navegador</flux:text>
+                                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
+                                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
+                                    </div>
+                                </div>
                             </section>
                         @else
                             <div class="mb-6">

@@ -173,3 +173,9 @@
     scrollbar-color: var(--sb-thumb-color) transparent;
   }
 }
+
+/* Esconde elementos com x-cloak até o Alpine assumir, evitando que estados
+   alternativos (como o ícone de pause do player de locução) pisquem na tela. */
+[x-cloak] {
+  display: none !important;
+}
