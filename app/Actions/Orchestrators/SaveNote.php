@@ -7,6 +7,7 @@ namespace App\Actions\Orchestrators;
 use App\Actions\SubActions\CreateAdvice;
 use App\Actions\SubActions\CreateConcept;
 use App\Actions\SubActions\CreateNote;
+use App\Actions\SubActions\ScheduleNoteReview;
 use App\Actions\SubActions\SyncNoteReferenceMaterials;
 use App\DTO\NotesDTO;
 use App\Support\Outcome;
@@ -20,6 +21,7 @@ final readonly class SaveNote
         private CreateConcept $createConcept,
         private CreateAdvice $createAdvice,
         private SyncNoteReferenceMaterials $syncNoteReferenceMaterials,
+        private ScheduleNoteReview $scheduleNoteReview,
     ) {}
 
     public function handle(NotesDTO $data): Outcome
@@ -36,6 +38,8 @@ final readonly class SaveNote
             }
 
             $note = $noteOutcome->data;
+
+            $this->scheduleNoteReview->handle($note);
 
             if ($data->concepts) {
                 $this->createConcept->handle($note->id, $data->concepts);

@@ -13,6 +13,11 @@ use Livewire\Wireable;
  *     title: string,
  *     icon: string,
  *     slug: string,
+ *     period: int|string|null,
+ *     code: string|null,
+ *     professor: string|null,
+ *     class_weekday: int|string|null,
+ *     is_completed: bool,
  * }
  */
 class DisciplinesDTO implements Wireable
@@ -22,6 +27,11 @@ class DisciplinesDTO implements Wireable
         public ?string $title = null,
         public ?string $icon = null,
         public ?string $slug = null,
+        public ?int $period = null,
+        public ?string $code = null,
+        public ?string $professor = null,
+        public ?int $class_weekday = null,
+        public bool $is_completed = false,
     ) {}
 
     /**
@@ -34,6 +44,11 @@ class DisciplinesDTO implements Wireable
             'title' => $this->title,
             'icon' => $this->icon,
             'slug' => $this->slug,
+            'period' => $this->period,
+            'code' => $this->code,
+            'professor' => $this->professor,
+            'class_weekday' => $this->class_weekday,
+            'is_completed' => $this->is_completed,
         ];
     }
 
@@ -44,6 +59,11 @@ class DisciplinesDTO implements Wireable
             title: $model->title,
             icon: $model->icon,
             slug: $model->slug,
+            period: $model->period,
+            code: $model->code,
+            professor: $model->professor,
+            class_weekday: $model->class_weekday?->value,
+            is_completed: $model->completed_at !== null,
         );
     }
 
@@ -65,6 +85,13 @@ class DisciplinesDTO implements Wireable
             title: $value['title'],
             icon: $value['icon'],
             slug: $value['slug'],
+            period: ($value['period'] === null || $value['period'] === '') ? null : (int) $value['period'],
+            code: $value['code'],
+            professor: $value['professor'],
+            class_weekday: ($value['class_weekday'] === null || $value['class_weekday'] === '')
+                ? null
+                : (int) $value['class_weekday'],
+            is_completed: (bool) $value['is_completed'],
         );
     }
 }

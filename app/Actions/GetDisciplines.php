@@ -14,7 +14,10 @@ final readonly class GetDisciplines
     public function handle(): Outcome
     {
         try {
-            $data = Disciplines::all()
+            $data = Disciplines::query()
+                ->orderByRaw('period is null, period asc')
+                ->orderBy('title')
+                ->get()
                 ->map(fn (Disciplines $discipline): DisciplinesDTO => DisciplinesDTO::fromModel($discipline));
 
             return Outcome::noViewMessage($data);
