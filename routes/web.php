@@ -17,6 +17,8 @@ Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
         ->whereNumber('note')
         ->name('notas.resumo.audio');
 
+    Route::livewire('/historico', 'pages::historico')->name('historico');
+
     Route::livewire('/referencias/lista', 'pages::referencias')->name('referencias');
     Route::livewire('/referencias/busca', 'pages::buscar-referencias')->name('referencias.busca');
     Route::livewire('/referencias/exportacoes', 'pages::exportacoes')->name('referencias.exportacoes');

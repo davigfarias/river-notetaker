@@ -64,6 +64,15 @@
             </flux:navbar.item>
         </a>
 
+        <a href="{{ route('historico') }}" wire:navigate class="contents">
+            <flux:navbar.item
+                icon="clock"
+                :current="request()->routeIs('historico')"
+            >
+                Histórico
+            </flux:navbar.item>
+        </a>
+
     </flux:navbar>
 
     <flux:spacer />
@@ -107,6 +116,12 @@
            class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
             <flux:icon name="book-open" class="size-6" />
             <span>Referências</span>
+        </a>
+        <a wire:navigate href="{{ route('historico') }}"
+           @if (request()->routeIs('historico')) data-current @endif
+           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
+            <flux:icon name="clock" class="size-6" />
+            <span>Histórico</span>
         </a>
     </div>
 </nav>
