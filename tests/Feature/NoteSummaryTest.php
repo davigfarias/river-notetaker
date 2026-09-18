@@ -146,3 +146,45 @@ test('pollCheckSummary exposes the summary through the selected note once ready'
 
     expect($component->instance()->selectedNote->ai_summary)->toBe('Resumo pronto.');
 });
+
+test('the job keeps a summary that is already within the tolerated limit', function () {
+    config(['summarizer.max_characters' => 500]);
+
+    Summarizer::fake([str_repeat('a', 400)]);
+
+    (new GenerateNoteSummaryJob($this->note->fresh()))->handle();
+
+    expect($this->note->fresh()->ai_summary)->toBe(str_repeat('a', 400));
+});
+
+test('the job asks the model to shorten a summary that blows the limit', function () {
+    config(['summarizer.max_characters' => 500, 'summarizer.target_characters' => 300]);
+
+    Summarizer::fake([str_repeat('a', 900), str_repeat('b', 280)]);
+
+    (new GenerateNoteSummaryJob($this->note->fresh()))->handle();
+
+    expect($this->note->fresh()->ai_summary)->toBe(str_repeat('b', 280));
+
+    Summarizer::assertPrompted(fn ($prompt) => $prompt->contains("Encurte o texto"));
+});
+
+test('the job keeps the original when shortening comes back even longer', function () {
+    config(['summarizer.max_characters' => 500, 'summarizer.target_characters' => 300]);
+
+    Summarizer::fake([str_repeat('a', 900), str_repeat('b', 1200)]);
+
+    (new GenerateNoteSummaryJob($this->note->fresh()))->handle();
+
+    expect($this->note->fresh()->ai_summary)->toBe(str_repeat('a', 900));
+});
+
+test('the summarizer instructions carry the target length and the speech constraints', function () {
+    config(['summarizer.target_characters' => 300]);
+
+    $instructions = (string) (new Summarizer)->instructions();
+
+    expect($instructions)->toContain('300')
+        ->and($instructions)->toContain('OUVIDO em voz alta')
+        ->and($instructions)->toContain('parênteses');
+});

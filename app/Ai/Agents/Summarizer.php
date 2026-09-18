@@ -18,7 +18,23 @@ class Summarizer implements Agent, HasTools
      */
     public function instructions(): Stringable|string
     {
-        return 'Reescreva o conteúdo a seguir como um parágrafo único e natural, em linguagem simples e acessível, como se você estivesse explicando o assunto a alguém do zero: não copie frases nem estrutura do texto original, não anuncie as categorias (conceitos, conselhos pastorais, impressões, experiências de vida) como blocos separados, e sim funda essas informações organicamente na narrativa, priorizando fluidez e sentido sobre completude.';
+        $limit = (int) config('summarizer.target_characters');
+
+        return <<<PROMPT
+        Produza um TL;DR do conteúdo a seguir para ser OUVIDO em voz alta, não lido na tela.
+
+        FORMA: português do Brasil, no máximo {$limit} caracteres, três frases curtas, em prosa corrida.
+
+        RESTRIÇÕES DE LOCUÇÃO — o texto será lido por um sintetizador de voz, então:
+        - frases de no máximo 20 palavras;
+        - nada de parênteses, travessões, aspas, listas, markdown, títulos ou siglas;
+        - vírgula e ponto como única pontuação;
+        - escreva números e datas por extenso quando a leitura em voz alta ficar ambígua.
+
+        CONTEÚDO: diga a tese central e, em seguida, por que ela importa. Corte todo exemplo, toda repetição e todo detalhe secundário. Se não couber, o que sai é o detalhe, nunca a tese.
+
+        Não anuncie que é um resumo e não use fórmulas como "o texto fala sobre". Afirme direto o conteúdo. Nunca escreva mais que o original: se o conteúdo for curto, o resumo é mais curto ainda.
+        PROMPT;
     }
 
     /**

@@ -28,11 +28,38 @@ class GenerateNoteSummaryJob implements ShouldQueue
     {
         $this->note->loadMissing(['concepts', 'pastoral_advice']);
 
-        $summary = (new Summarizer)
-            ->prompt($this->buildContentForAgent())
-            ->text;
+        $summarizer = new Summarizer;
 
-        $this->note->update(['ai_summary' => trim($summary)]);
+        $summary = trim($summarizer->prompt($this->buildContentForAgent())->text);
+
+        $this->note->update(['ai_summary' => $this->withinLimit($summarizer, $summary)]);
+    }
+
+    /**
+     * Devolve o resumo dentro do teto tolerado.
+     *
+     * Modelos de linguagem não contam caracteres com precisão, então um
+     * estouro é esperado. Numa primeira falha pedimos que encurtem; numa
+     * segunda, aceitamos o texto mais curto entre as duas tentativas — perder
+     * o resumo seria pior que guardar um longo demais para a locução.
+     */
+    private function withinLimit(Summarizer $summarizer, string $summary): string
+    {
+        $limit = (int) config('summarizer.max_characters');
+
+        if (mb_strlen($summary) <= $limit) {
+            return $summary;
+        }
+
+        $target = (int) config('summarizer.target_characters');
+
+        $shortened = trim($summarizer->prompt(
+            "Encurte o texto a seguir para no máximo {$target} caracteres, mantendo a tese "
+            .'central e as mesmas restrições de locução. Responda apenas com o texto encurtado.'
+            ."\n\n{$summary}"
+        )->text);
+
+        return mb_strlen($shortened) < mb_strlen($summary) ? $shortened : $summary;
     }
 
     public function failed(?Throwable $exception): void
