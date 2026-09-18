@@ -80,6 +80,16 @@ final readonly class ReviewSchedule
     }
 
     /**
+     * Data da primeira cobrança das notas escritas antes da disciplina entrar na
+     * rotação. Esse acúmulo já está devendo revisão, então vale desde a aula de
+     * hoje, se houver, em vez de esperar o próximo encontro.
+     */
+    public static function backlogDueDate(?Weekday $classWeekday, CarbonInterface $from): ?CarbonImmutable
+    {
+        return $classWeekday?->onOrAfter($from);
+    }
+
+    /**
      * Rótulo humano do estágio, usado nos cartões da fila do dia.
      */
     public static function stageLabel(int $stage): string

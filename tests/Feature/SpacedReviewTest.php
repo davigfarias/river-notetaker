@@ -210,8 +210,27 @@ test('definir o dia da aula traz as notas antigas da disciplina para a fila', fu
         ->call('saveDiscipline')
         ->assertHasNoErrors();
 
-    expect($note->refresh()->next_review_at->toDateString())->toBe('2026-09-24')
-        ->and($note->review_stage)->toBe(1);
+    expect($note->refresh()->next_review_at->toDateString())->toBe(TODAY)
+        ->and($note->review_stage)->toBe(1)
+        ->and(agenda()->due->pluck('id')->all())->toBe([$note->id]);
+});
+
+test('definir outro dia de aula agenda as notas antigas para o próximo encontro', function () {
+    $discipline = disciplineOn(null);
+
+    $note = Notes::factory()->create([
+        'discipline_id' => $discipline->id,
+        'access_token_id' => $this->token->id,
+        'next_review_at' => null,
+    ]);
+
+    Livewire::test('pages::dashboard')
+        ->call('openEditModal', $discipline->id)
+        ->set('dto.class_weekday', Weekday::Friday->value)
+        ->call('saveDiscipline')
+        ->assertHasNoErrors();
+
+    expect($note->refresh()->next_review_at->toDateString())->toBe('2026-09-18');
 });
 
 test('encerrar a disciplina pelo formulário tira ela da rotação', function () {

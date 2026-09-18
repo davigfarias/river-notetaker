@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Traz para a fila as notas que ainda não tinham data de revisão, o que acontece
  * quando o dia de aula da disciplina é definido depois delas terem sido escritas.
+ * Se hoje já é dia de aula, elas entram na fila de hoje.
  */
 final readonly class ScheduleDisciplineReviews
 {
@@ -24,7 +25,7 @@ final readonly class ScheduleDisciplineReviews
                 return Outcome::noViewMessage(data: 0);
             }
 
-            $dueAt = ReviewSchedule::firstDueDate(
+            $dueAt = ReviewSchedule::backlogDueDate(
                 $discipline->class_weekday,
                 $from ?? CarbonImmutable::now(),
             );
