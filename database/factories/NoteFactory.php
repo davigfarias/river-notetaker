@@ -31,8 +31,19 @@ class NoteFactory extends Factory
             'discipline_id' => Disciplines::factory(),
             'impressions' => $this->faker->paragraph(),
             'life_experiences' => $this->faker->paragraph(),
+            'summary' => $this->faker->paragraph(),
             'review_stage' => 1,
         ];
+    }
+
+    /**
+     * Nota que ainda deve o resumo escrito à mão e por isso fica fora da fila.
+     */
+    public function withoutSummary(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'summary' => null,
+        ]);
     }
 
     /**

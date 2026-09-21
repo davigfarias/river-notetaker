@@ -9,6 +9,18 @@
         <flux:text size="sm" class="text-on-surface-variant">{{ $agenda->today->label() }}</flux:text>
     </div>
 
+    @if ($agenda->hasNotesAwaitingSummary())
+        <flux:card size="sm" class="mb-4 flex items-start gap-3">
+            <flux:icon.pencil-square class="text-on-surface-variant mt-0.5 size-5 shrink-0" />
+            <div>
+                <flux:text class="font-medium">{{ $agenda->awaitingSummaryLabel() }}.</flux:text>
+                <flux:text size="sm" class="text-on-surface-variant mt-1 block">
+                    Elas não entram na revisão enquanto você não escrever o resumo.
+                </flux:text>
+            </div>
+        </flux:card>
+    @endif
+
     @if (! $agenda->isEmpty())
         <flux:text size="sm" class="text-on-surface-variant mb-3 block">
             {{ $agenda->disciplinesInQueue()->implode(' · ') }}
@@ -127,20 +139,158 @@
                         </section>
                     @endif
 
-                    @unless ($revealed)
-                        <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
-                            <flux:icon.eye-slash class="text-on-surface-variant size-6" />
-                            <flux:text>Tente lembrar o conteúdo desta nota antes de revelar.</flux:text>
-                            <flux:button type="button" variant="primary" icon="eye" wire:click="reveal">
-                                Revelar a nota
-                            </flux:button>
-                        </div>
-                    @else
-                        @if ($note->ai_summary)
+                    @if ($clozeScore === null)
+                        {{-- Fase de resposta: o resumo do aluno volta com buracos.
+                             Preencher as lacunas é a prova de recall; o placar é
+                             que decide a revisão, não a autoavaliação. --}}
+                        @if ($this->clozeSegments)
                             <section class="space-y-2">
-                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Resumo</flux:heading>
-                                <flux:text class="whitespace-pre-line">{{ $note->ai_summary }}</flux:text>
+                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Complete o seu resumo</flux:heading>
+                                <p class="font-sans text-base leading-loose text-on-surface">@foreach ($this->clozeSegments as $seg)@if ($seg['blank'])<input type="text" wire:model="clozeInputs.{{ $seg['index'] }}" class="cloze-blank" autocomplete="off" autocapitalize="off" spellcheck="false" />@else{{ $seg['text'] }}@endif@endforeach</p>
                             </section>
+                        @else
+                            <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
+                                <flux:icon.pencil-square class="text-on-surface-variant size-6" />
+                                <flux:text>Esta nota ainda não tem resumo escrito, então não há o que cobrar.</flux:text>
+                            </div>
+                        @endif
+                    @else
+                        {{-- Fase de resultado: o diff primeiro, depois o resto da nota. --}}
+                        <section class="space-y-3">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Resultado</flux:heading>
+                                <flux:badge size="sm" variant="pill" :color="$lastRecalled ? 'green' : 'amber'">
+                                    {{ $clozeScore }}%
+                                </flux:badge>
+                                <flux:text size="sm" class="text-on-surface-variant">
+                                    {{ $lastRecalled ? 'Lembrou: a nota sobe um degrau.' : 'A nota volta para o primeiro degrau.' }}
+                                </flux:text>
+                            </div>
+
+                            <p class="font-sans text-base leading-loose text-on-surface">@foreach ($this->clozeResultSegments as $seg)@if ($seg->blank)<span class="mx-0.5 inline-flex items-baseline gap-1 rounded px-1 {{ $seg->correct ? 'bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-500/15' }}">@if ($seg->correct){{ $seg->expected }}@else<span class="text-red-700 line-through dark:text-red-400">{{ $seg->given !== '' ? $seg->given : '—' }}</span><span class="font-medium">{{ $seg->expected }}</span>@endif</span>@else{{ $seg->text }}@endif@endforeach</p>
+                        </section>
+
+                        {{-- Resumo por IA: conferência, depois que o aluno já se
+                             comprometeu com uma resposta. Antes disso seria cola. --}}
+                        @if ($this->awaitingSummary)
+                            <section
+                                class="border-surface-variant bg-primary-container/10 space-y-2 rounded-lg border p-4"
+                                wire:poll.{{ config('summarizer.poll_interval', '2s') }}="pollCheckSummary"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <flux:icon name="sparkles" class="text-primary size-4 animate-pulse" />
+                                    <flux:heading size="xs">Resumo de IA</flux:heading>
+                                </div>
+                                <div class="bg-surface-variant h-3 w-full animate-pulse rounded"></div>
+                                <div class="bg-surface-variant h-3 w-3/4 animate-pulse rounded"></div>
+                            </section>
+                        @elseif ($note->ai_summary)
+                            <section class="border-surface-variant bg-primary-container/10 rounded-lg border p-4" x-data="readAloud(@js($note->ai_summary))">
+                                <div class="mb-2 flex items-center gap-2">
+                                    <flux:icon name="sparkles" class="text-primary size-4 shrink-0" />
+                                    <flux:heading size="xs" class="min-w-0 truncate">Resumo de IA</flux:heading>
+                                    <flux:spacer />
+                                    <flux:modal.trigger name="confirm-regenerate-summary">
+                                        <flux:button size="sm" variant="subtle" class="shrink-0">Gerar novamente</flux:button>
+                                    </flux:modal.trigger>
+                                </div>
+
+                                <flux:text class="text-sm">{{ $note->ai_summary }}</flux:text>
+
+                                {{-- Locução por IA. Gerada sob demanda porque o free tier do
+                                     provedor permite poucas por dia; uma vez pronta, fica
+                                     guardada e toca na hora. --}}
+                                <div class="mt-3">
+                                    @if ($this->summaryAudioUrl)
+                                        <div
+                                            x-data="aiAudioPlayer"
+                                            class="border-outline-variant/40 bg-surface-container flex items-center gap-3 rounded-full border py-2 pr-4 pl-2"
+                                        >
+                                            <audio
+                                                x-ref="audio"
+                                                preload="none"
+                                                src="{{ $this->summaryAudioUrl }}"
+                                                x-on:play="onPlay()"
+                                                x-on:pause="onPause()"
+                                                x-on:ended="onEnded()"
+                                                x-on:timeupdate="current = $event.target.currentTime"
+                                                x-on:loadedmetadata="duration = $event.target.duration"
+                                                class="hidden"
+                                            ></audio>
+
+                                            <button
+                                                type="button"
+                                                x-on:click="toggle()"
+                                                class="bg-primary text-on-primary hover:bg-primary-container flex size-9 shrink-0 items-center justify-center rounded-full transition-colors"
+                                                x-bind:aria-label="playing ? 'Pausar locução' : 'Ouvir locução'"
+                                            >
+                                                <flux:icon name="play" variant="micro" x-show="!playing" />
+                                                <flux:icon name="pause" variant="micro" x-show="playing" x-cloak />
+                                            </button>
+
+                                            <div
+                                                x-on:click="seek($event)"
+                                                class="flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-[2px]"
+                                                role="slider"
+                                                aria-label="Posição da locução"
+                                                x-bind:aria-valuenow="Math.round(progress)"
+                                                aria-valuemin="0"
+                                                aria-valuemax="100"
+                                            >
+                                                <template x-for="(height, i) in bars" :key="i">
+                                                    <span
+                                                        class="flex-1 rounded-full transition-[height,background-color] duration-75"
+                                                        x-bind:class="(i / bars.length) * 100 <= progress ? 'bg-primary' : 'bg-outline-variant'"
+                                                        x-bind:style="`height: ${playing ? height : 12}%`"
+                                                    ></span>
+                                                </template>
+                                            </div>
+
+                                            <span
+                                                class="text-on-surface-variant shrink-0 font-mono text-xs tabular-nums"
+                                                x-text="format(duration - current)"
+                                            >0:00</span>
+                                        </div>
+                                    @elseif ($this->awaitingAudio)
+                                        <div
+                                            class="text-on-surface-variant flex items-center gap-2 text-xs"
+                                            wire:poll.{{ config('tts.poll_interval') }}="pollCheckAudio"
+                                        >
+                                            <flux:icon name="loading" variant="micro" />
+                                            Gerando a locução. Leva cerca de um minuto.
+                                        </div>
+                                    @else
+                                        <flux:button
+                                            size="xs"
+                                            variant="subtle"
+                                            icon="musical-note"
+                                            wire:click="generateSummaryAudio"
+                                            wire:loading.attr="disabled"
+                                        >
+                                            Ouvir com voz de IA
+                                        </flux:button>
+                                    @endif
+
+                                    {{-- Leitura pela voz do navegador: instantânea e sem cota,
+                                         serve de alternativa à locução de IA. --}}
+                                    <div class="mt-2 flex items-center gap-1">
+                                        <flux:text size="xs" class="text-on-surface-variant mr-1">Voz do navegador</flux:text>
+                                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
+                                        <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
+                                    </div>
+                                </div>
+                            </section>
+                        @else
+                            <div>
+                                <flux:button
+                                    size="sm"
+                                    variant="subtle"
+                                    icon="sparkles"
+                                    wire:click="generateSummary"
+                                >
+                                    Gerar resumo com IA
+                                </flux:button>
+                            </div>
                         @endif
 
                         @if ($note->concepts)
@@ -196,33 +346,55 @@
                                 @endforeach
                             </section>
                         @endif
-                    @endunless
+                    @endif
                 </div>
 
                 <div class="border-outline-variant/50 bg-surface-container-low shrink-0 border-t px-6 py-4">
-                    @if ($revealed)
-                        <div class="flex flex-wrap items-center gap-2">
-                            <flux:button type="button" variant="ghost" wire:click="closeReview">
-                                Parar por aqui
+                    <div class="flex flex-wrap items-center gap-2">
+                        <flux:button type="button" variant="ghost" wire:click="closeReview">
+                            Parar por aqui
+                        </flux:button>
+
+                        <flux:spacer />
+
+                        @if ($clozeScore === null)
+                            <flux:button type="button" variant="danger" icon="arrow-path" wire:click="giveUp">
+                                Não lembro
                             </flux:button>
 
-                            <flux:spacer />
-
-                            <flux:button type="button" variant="danger" icon="arrow-path" wire:click="judge(false)">
-                                Travei
+                            <flux:button
+                                type="button"
+                                variant="primary"
+                                icon="check"
+                                wire:click="submitCloze"
+                                :disabled="$this->clozeSegments === []"
+                            >
+                                Conferir
                             </flux:button>
-
-                            <flux:button type="button" variant="primary" icon="check" wire:click="judge(true)">
-                                Lembrei
+                        @else
+                            <flux:button type="button" variant="primary" icon="arrow-right" wire:click="nextNote">
+                                Próxima nota
                             </flux:button>
-                        </div>
-                    @else
-                        <flux:text size="sm" class="text-on-surface-variant">
-                            Os botões aparecem depois de revelar a nota.
-                        </flux:text>
-                    @endif
+                        @endif
+                    </div>
                 </div>
             </div>
         @endif
+    </flux:modal>
+
+    <flux:modal name="confirm-regenerate-summary" class="md:w-96">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Regenerar resumo?</flux:heading>
+                <flux:text class="mt-2">O resumo de IA atual será substituído por um novo.</flux:text>
+            </div>
+            <div class="flex">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancelar</flux:button>
+                </flux:modal.close>
+                <flux:button variant="primary" wire:click="generateSummary">Regenerar</flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>

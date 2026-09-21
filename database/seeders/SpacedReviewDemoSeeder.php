@@ -70,6 +70,7 @@ class SpacedReviewDemoSeeder extends Seeder
         $note = $this->note($discipline, $token, 'A inspiração das Escrituras', [
             'review_stage' => 1,
             'next_review_at' => $today->toDateString(),
+            'summary' => 'Deus inspirou as palavras, não só as ideias. Por isso a autoridade está no texto, e não na minha leitura dele.',
             'ai_summary' => 'A Escritura é inspirada verbalmente e plenamente: a inspiração alcança as palavras, não apenas as ideias gerais dos autores.',
             'impressions' => 'A aula deixou claro que negar a inspiração verbal esvazia a autoridade do texto na pregação.',
             'life_experiences' => 'Lembrei de uma conversa em que usei a Escritura como conselho e não como autoridade.',
@@ -83,6 +84,7 @@ class SpacedReviewDemoSeeder extends Seeder
         $overdueOne = $this->note($discipline, $token, 'Os atributos incomunicáveis de Deus', [
             'review_stage' => 2,
             'next_review_at' => $today->subWeek()->toDateString(),
+            'summary' => 'Os incomunicáveis são os atributos que não têm eco na criatura. Imutável não quer dizer parado: Deus não muda de caráter.',
             'ai_summary' => 'Atributos incomunicáveis são aqueles que não têm análogo na criatura: independência, imutabilidade, eternidade e onipresença.',
             'impressions' => 'A imutabilidade não é imobilidade: Deus não muda de caráter, mas age na história.',
             'life_experiences' => 'Usei isso para consolar alguém que temia que Deus tivesse mudado de opinião sobre ela.',
@@ -95,6 +97,7 @@ class SpacedReviewDemoSeeder extends Seeder
         $overdueThree = $this->note($discipline, $token, 'A doutrina da Trindade e as heresias antigas', [
             'review_stage' => 1,
             'next_review_at' => $today->subWeeks(3)->toDateString(),
+            'summary' => 'Uma essência, três pessoas. Modalismo apaga as pessoas, arianismo rebaixa o Filho: erram em direções opostas.',
             'ai_summary' => 'Um Deus em três pessoas, sem divisão de essência nem confusão de pessoas. Modalismo e ariano erram em lados opostos.',
             'impressions' => 'As heresias trinitárias sempre sacrificam ou a unidade ou a distinção das pessoas.',
             'life_experiences' => 'Reconheci linguagem modalista numa música que eu cantava sem perceber.',
@@ -107,6 +110,7 @@ class SpacedReviewDemoSeeder extends Seeder
         $this->note($discipline, $token, 'A providência e o decreto divino', [
             'review_stage' => 4,
             'next_review_at' => $today->toDateString(),
+            'summary' => 'Decreto é o plano eterno; providência é esse plano acontecendo no tempo, junto com as causas segundas.',
             'ai_summary' => 'O decreto é o plano eterno de Deus; a providência é sua execução no tempo, sustentando, governando e concorrendo com as causas segundas.',
             'impressions' => 'Esta nota já passou por três revisões: uma revisão bem-sucedida agora a consolida.',
             'life_experiences' => 'Serviu para explicar a alguém por que oração e decreto não se anulam.',
@@ -117,6 +121,7 @@ class SpacedReviewDemoSeeder extends Seeder
             'review_stage' => 5,
             'next_review_at' => null,
             'consolidated_at' => $today->subWeeks(2),
+            'summary' => 'Criação do nada, por decisão livre, para a glória de Deus. Nada obrigou Deus a criar.',
             'ai_summary' => 'Criação do nada, por livre decisão de Deus, para a manifestação de sua glória. Esta nota já saiu da fila.',
             'impressions' => 'Consolidada: aparece no histórico, não no painel.',
             'tags' => ['criação'],
@@ -125,9 +130,21 @@ class SpacedReviewDemoSeeder extends Seeder
         $this->note($discipline, $token, 'A aliança das obras', [
             'review_stage' => 3,
             'next_review_at' => $today->addWeeks(2)->toDateString(),
+            'summary' => 'Adão responde como cabeça federal de todos nós. A condição era obediência perfeita.',
             'ai_summary' => 'Aliança feita com Adão como cabeça federal da humanidade, com condição de obediência perfeita.',
             'impressions' => 'Agendada para duas semanas à frente: não deve aparecer na fila de hoje.',
             'tags' => ['aliança'],
+        ]);
+
+        // Devida hoje, mas sem resumo escrito: fica fora da fila e alimenta o
+        // aviso de notas pendentes na tela principal.
+        $this->note($discipline, $token, 'A perseverança dos santos', [
+            'review_stage' => 1,
+            'next_review_at' => $today->toDateString(),
+            'summary' => null,
+            'ai_summary' => null,
+            'impressions' => 'Sem resumo escrito: só entra na fila depois que eu resumir.',
+            'tags' => ['soteriologia'],
         ]);
     }
 
@@ -150,6 +167,7 @@ class SpacedReviewDemoSeeder extends Seeder
         $this->note($discipline, $token, 'A controvérsia pelagiana', [
             'review_stage' => 1,
             'next_review_at' => $today->toDateString(),
+            'summary' => 'Pelágio negou a corrupção herdada; Agostinho respondeu que a graça é causa da obediência, não prêmio por ela.',
             'ai_summary' => 'Pelágio negava a corrupção herdada e a necessidade da graça preveniente; Agostinho respondeu com a graça como causa, não prêmio.',
             'impressions' => 'Devida, mas só será cobrada no dia da aula desta disciplina.',
             'tags' => ['patrística', 'graça'],

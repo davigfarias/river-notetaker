@@ -37,6 +37,7 @@ final readonly class GetReviewAgenda
 
             $dueQuery = Notes::query()
                 ->with('discipline')
+                ->summarized()
                 ->where('access_token_id', $accessTokenId)
                 ->whereNull('consolidated_at')
                 ->whereNotNull('next_review_at')
@@ -58,12 +59,32 @@ final readonly class GetReviewAgenda
                 totalDue: $totalDue,
                 upcoming: $this->upcomingLessons($accessTokenId, $today),
                 hasLessonToday: $disciplinesToday->isNotEmpty(),
+                awaitingSummaryCount: $this->awaitingSummaryCount($accessTokenId),
             ));
         } catch (\Exception $e) {
             Log::error("Erro: {$e->getMessage()}");
 
             return Outcome::failure(message: 'Não foi possível montar a fila de revisão de hoje.');
         }
+    }
+
+    /**
+     * Quantas notas ainda devem o resumo escrito à mão. Enquanto ele não vier,
+     * elas ficam fora da fila: não há texto para apagar em lacunas.
+     */
+    private function awaitingSummaryCount(int $accessTokenId): int
+    {
+        $disciplinesInRotation = Disciplines::query()
+            ->whereNull('completed_at')
+            ->whereNotNull('class_weekday')
+            ->pluck('id');
+
+        return (int) Notes::query()
+            ->awaitingSummary()
+            ->where('access_token_id', $accessTokenId)
+            ->whereNull('consolidated_at')
+            ->whereIn('discipline_id', $disciplinesInRotation)
+            ->count();
     }
 
     /**
@@ -88,6 +109,7 @@ final readonly class GetReviewAgenda
                     weekdayLabel: $weekday->label(),
                     date: $nextLesson->toDateString(),
                     dueCount: (int) Notes::query()
+                        ->summarized()
                         ->where('access_token_id', $accessTokenId)
                         ->where('discipline_id', $discipline->id)
                         ->whereNull('consolidated_at')

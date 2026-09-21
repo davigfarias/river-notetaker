@@ -291,35 +291,36 @@ test('o componente mostra os cartões da fila do dia', function () {
         ->assertSee('1ª revisão');
 });
 
-test('a modal abre com os ganchos e sem os botões de julgamento', function () {
+test('a modal abre cobrando o resumo em lacunas e sem entregar o corpo da nota', function () {
     $discipline = disciplineOn(Weekday::Thursday);
-    $note = dueNote($discipline, TODAY, attributes: ['impressions' => 'Impressão secreta da aula']);
+    $note = dueNote($discipline, TODAY, attributes: [
+        'summary' => 'A inspiração alcança as palavras do texto.',
+        'impressions' => 'Impressão secreta da aula',
+    ]);
 
     Livewire::test('revisoes-do-dia')
         ->call('openReview', $note->id)
         ->assertSet('showReviewModal', true)
-        ->assertSet('revealed', false)
-        ->assertSee('Tente lembrar o conteúdo desta nota antes de revelar.')
+        ->assertSet('clozeScore', null)
+        ->assertSee('Complete o seu resumo')
+        ->assertSee('Conferir')
         ->assertDontSee('Impressão secreta da aula')
-        ->assertDontSee('Lembrei')
-        ->call('reveal')
-        ->assertSee('Impressão secreta da aula')
-        ->assertSee('Lembrei')
-        ->assertSee('Travei');
+        ->assertDontSee('Resultado');
 });
 
-test('julgar uma nota puxa a próxima da fila sem fechar a modal', function () {
+test('responder o cloze puxa a próxima da fila sem fechar a modal', function () {
     $discipline = disciplineOn(Weekday::Thursday);
     $first = dueNote($discipline, '2026-09-10', attributes: ['title' => 'Primeira da fila']);
     $second = dueNote($discipline, TODAY, attributes: ['title' => 'Segunda da fila']);
 
     Livewire::test('revisoes-do-dia')
         ->call('openReview', $first->id)
-        ->call('reveal')
-        ->call('judge', true)
+        ->call('giveUp')
+        ->assertSet('clozeScore', 0)
+        ->call('nextNote')
         ->assertSet('showReviewModal', true)
         ->assertSet('noteIdUnderReview', $second->id)
-        ->assertSet('revealed', false);
+        ->assertSet('clozeScore', null);
 });
 
 test('a modal fecha quando a fila do dia acaba', function () {
@@ -328,10 +329,60 @@ test('a modal fecha quando a fila do dia acaba', function () {
 
     Livewire::test('revisoes-do-dia')
         ->call('openReview', $note->id)
-        ->call('reveal')
-        ->call('judge', true)
+        ->call('giveUp')
+        ->call('nextNote')
         ->assertSet('showReviewModal', false)
         ->assertSet('noteIdUnderReview', null);
+});
+
+test('uma nota sem resumo escrito fica fora da fila do dia', function () {
+    $discipline = disciplineOn(Weekday::Thursday);
+    Notes::factory()
+        ->dueOn(TODAY)
+        ->withoutSummary()
+        ->create([
+            'discipline_id' => $discipline->id,
+            'access_token_id' => test()->token->id,
+            'title' => 'Ainda não resumida',
+        ]);
+
+    expect(agenda()->due)->toHaveCount(0)
+        ->and(agenda()->totalDue)->toBe(0);
+});
+
+test('a tela principal conta quantas notas ainda devem resumo', function () {
+    $discipline = disciplineOn(Weekday::Thursday);
+    dueNote($discipline, TODAY);
+
+    Notes::factory()
+        ->count(2)
+        ->dueOn(TODAY)
+        ->withoutSummary()
+        ->create([
+            'discipline_id' => $discipline->id,
+            'access_token_id' => test()->token->id,
+        ]);
+
+    expect(agenda()->awaitingSummaryCount)->toBe(2)
+        ->and(agenda()->awaitingSummaryLabel())->toBe('2 notas sem resumo');
+
+    Livewire::test('revisoes-do-dia')
+        ->assertSee('2 notas sem resumo')
+        ->assertSee('Elas não entram na revisão enquanto você não escrever o resumo.');
+});
+
+test('uma nota consolidada não conta como pendente de resumo', function () {
+    $discipline = disciplineOn(Weekday::Thursday);
+
+    Notes::factory()
+        ->consolidated()
+        ->withoutSummary()
+        ->create([
+            'discipline_id' => $discipline->id,
+            'access_token_id' => test()->token->id,
+        ]);
+
+    expect(agenda()->awaitingSummaryCount)->toBe(0);
 });
 
 test('uma nota que não está na fila de hoje não pode ser aberta', function () {
@@ -392,8 +443,17 @@ test('rodar o seeder duas vezes não duplica nada', function () {
     $this->seed(Database\Seeders\SpacedReviewDemoSeeder::class);
 
     expect(Disciplines::count())->toBe(3)
-        ->and(Notes::count())->toBe(8)
+        ->and(Notes::count())->toBe(9)
         ->and(agenda()->totalDue)->toBe(4);
+});
+
+test('a nota semeada sem resumo fica fora da fila e alimenta o aviso', function () {
+    $this->seed(Database\Seeders\SpacedReviewDemoSeeder::class);
+
+    $agenda = agenda();
+
+    expect($agenda->due->pluck('title'))->not->toContain('A perseverança dos santos (demo)')
+        ->and($agenda->awaitingSummaryCount)->toBe(1);
 });
 
 test('a fila semeada tem uma nota a um clique da consolidação', function () {

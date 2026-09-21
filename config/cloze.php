@@ -21,4 +21,17 @@ return [
 
     'min_word_length' => 2,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Piso de acerto da revisão
+    |--------------------------------------------------------------------------
+    |
+    | Percentual de lacunas que a revisão espaçada de notas exige para contar
+    | como "lembrei" e subir um degrau da escada. Abaixo disso a nota volta ao
+    | primeiro degrau.
+    |
+    */
+
+    'pass_score' => 70,
+
 ];

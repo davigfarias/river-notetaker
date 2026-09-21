@@ -28,6 +28,7 @@ class NotesDTO implements Arrayable, Wireable
         public ?string $impressions = null,
         public ?array $pastoral_advice = null,
         public ?string $life_experiences = null,
+        public ?string $summary = null,
         public ?string $ai_summary = null,
         public ?array $reference_material_ids = null,
         public ?array $reference_materials = null,
@@ -69,6 +70,7 @@ class NotesDTO implements Arrayable, Wireable
             'reference_materials' => $this->reference_materials,
             'impressions' => $this->impressions,
             'life_experiences' => $this->life_experiences,
+            'summary' => $this->summary,
             'ai_summary' => $this->ai_summary,
             'updated_at' => $this->updated_at,
             'date' => $this->date(),
@@ -90,6 +92,7 @@ class NotesDTO implements Arrayable, Wireable
             impressions: $model->impressions,
             pastoral_advice: $model->pastoral_advice ? $model->pastoral_advice->map(fn ($a) => AdvicesDTO::fromModel($a))->all() : [],
             life_experiences: $model->life_experiences,
+            summary: $model->summary,
             ai_summary: $model->ai_summary,
             reference_material_ids: $model->referenceMaterials ? $model->referenceMaterials->pluck('id')->all() : [],
             reference_materials: $model->referenceMaterials
@@ -128,6 +131,7 @@ class NotesDTO implements Arrayable, Wireable
                 ? array_map(fn ($a) => AdvicesDTO::fromLivewire($a), $value['pastoral_advice'])
                 : null,
             life_experiences: $value['life_experiences'] ?? null,
+            summary: $value['summary'] ?? null,
             ai_summary: $value['ai_summary'] ?? null,
 
             reference_material_ids: isset($value['reference_material_ids'])

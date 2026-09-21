@@ -6,8 +6,6 @@ use App\Actions\AddAdviceToNote;
 use App\Actions\AddConceptToNote;
 use App\Actions\GetDisciplineNotes as DisciplineNotes;
 use App\Actions\GetSingleDisciplineData as DisciplineData;
-use App\Actions\GenerateNoteSummary;
-use App\Actions\GenerateSummaryAudio;
 use App\Actions\GetTags;
 use App\Actions\ObserveTerm;
 use App\Actions\SubActions\UpdateNote;
@@ -17,12 +15,9 @@ use App\DTO\DisciplinesDTO;
 use App\DTO\NotesDTO;
 use App\DTO\SoleAdviceDTO;
 use App\DTO\SoleConceptDTO;
-use App\Models\NoteAudio;
-use App\Models\Notes;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Session;
 use Livewire\Component;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -48,7 +43,7 @@ new #[Title('Disciplinas')] class extends Component
 
     public array $draft = [];
 
-    public array $editing = ['title' => false, 'impressions' => false, 'life_experiences' => false];
+    public array $editing = ['title' => false, 'summary' => false, 'impressions' => false, 'life_experiences' => false];
 
     public SoleConceptDTO $editConceptForm;
 
@@ -69,21 +64,6 @@ new #[Title('Disciplinas')] class extends Component
     public SoleAdviceDTO $addAdviceForm;
 
     public bool $addingAdvice = false;
-
-    #[Session]
-    public ?int $awaitingSummaryNoteId = null;
-
-    #[Session]
-    public ?int $awaitingSummarySince = null;
-
-    #[Session]
-    public ?string $awaitingSummaryBaseline = null;
-
-    #[Session]
-    public ?int $awaitingAudioNoteId = null;
-
-    #[Session]
-    public ?int $awaitingAudioSince = null;
 
     public function boot(
         DisciplineData $disciplineData,
@@ -225,174 +205,6 @@ new #[Title('Disciplinas')] class extends Component
             $this->editingAdvice = false;
             unset($this->notes, $this->selectedNote);
         }
-    }
-
-    #[Computed]
-    public function awaitingSummary(): bool
-    {
-        return $this->awaitingSummaryNoteId !== null
-            && $this->selectedNote !== null
-            && $this->awaitingSummaryNoteId === $this->selectedNote->id;
-    }
-
-    public function generateSummary(GenerateNoteSummary $action): void
-    {
-        $noteId = $this->selectedNote->id;
-
-        $outcome = $action->handle($noteId);
-
-        match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
-        };
-
-        if ($outcome->success) {
-            $this->awaitingSummaryNoteId = $noteId;
-            $this->awaitingSummarySince = now()->timestamp;
-            $this->awaitingSummaryBaseline = Notes::find($noteId)?->ai_summary;
-            unset($this->awaitingSummary);
-        }
-
-        Flux::modal('confirm-regenerate-summary')->close();
-    }
-
-    public function pollCheckSummary(): void
-    {
-        $summary = Notes::find($this->selectedNote->id)?->ai_summary;
-
-        if ($summary !== null && $summary !== $this->awaitingSummaryBaseline) {
-            $this->stopAwaitingSummary();
-            unset($this->notes, $this->selectedNote);
-
-            return;
-        }
-
-        $deadline = (int) config('summarizer.job_timeout', 60) + 15;
-
-        if ($this->awaitingSummarySince !== null
-            && now()->timestamp - $this->awaitingSummarySince > $deadline) {
-            $this->stopAwaitingSummary();
-
-            Flux::toast(
-                heading: 'Tempo esgotado',
-                text: 'A geração do resumo demorou mais que o esperado. Tente novamente.',
-                variant: 'danger',
-            );
-        }
-    }
-
-    protected function stopAwaitingSummary(): void
-    {
-        $this->awaitingSummaryNoteId = null;
-        $this->awaitingSummarySince = null;
-        $this->awaitingSummaryBaseline = null;
-        unset($this->awaitingSummary);
-    }
-
-    /**
-     * A locução da nota selecionada, quando já foi gerada para o resumo atual.
-     */
-    #[Computed]
-    public function summaryAudio(): ?NoteAudio
-    {
-        if ($this->selectedNote === null) {
-            return null;
-        }
-
-        $note = Notes::find($this->selectedNote->id);
-
-        return $note === null ? null : app(GenerateSummaryAudio::class)->cachedAudioFor($note);
-    }
-
-    /**
-     * URL da locução, assinada pelo conteúdo para o navegador poder cacheá-la
-     * para sempre sem servir um áudio velho depois que o resumo muda.
-     */
-    #[Computed]
-    public function summaryAudioUrl(): ?string
-    {
-        $audio = $this->summaryAudio;
-
-        return $audio === null ? null : route('notas.resumo.audio', [
-            'note' => $audio->note_id,
-            'v' => substr($audio->signature, 0, 12),
-        ]);
-    }
-
-    #[Computed]
-    public function awaitingAudio(): bool
-    {
-        return $this->awaitingAudioNoteId !== null
-            && $this->selectedNote !== null
-            && $this->awaitingAudioNoteId === $this->selectedNote->id;
-    }
-
-    public function generateSummaryAudio(GenerateSummaryAudio $action): void
-    {
-        $noteId = $this->selectedNote->id;
-
-        $outcome = $action->handle($noteId);
-
-        match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
-        };
-
-        if ($outcome->success) {
-            $this->awaitingAudioNoteId = $noteId;
-            $this->awaitingAudioSince = now()->timestamp;
-            unset($this->awaitingAudio, $this->summaryAudio, $this->summaryAudioUrl);
-        }
-    }
-
-    public function pollCheckAudio(): void
-    {
-        unset($this->summaryAudio, $this->summaryAudioUrl);
-
-        if ($this->summaryAudio !== null) {
-            $this->stopAwaitingAudio();
-
-            return;
-        }
-
-        /*
-         * O job marca o registro como falho assim que desiste, então a falha
-         * aparece em segundos em vez de esperar o prazo inteiro — importante
-         * porque um erro de cota volta em menos de um segundo.
-         */
-        $record = Notes::find($this->awaitingAudioNoteId)?->audio;
-
-        if ($record?->status->isFailed()) {
-            $this->stopAwaitingAudio();
-
-            Flux::toast(
-                heading: 'A locução não ficou pronta',
-                text: $record->failure_reason ?? 'Não foi possível gerar a locução desta nota.',
-                variant: 'danger',
-            );
-
-            return;
-        }
-
-        $deadline = (int) config('tts.job_timeout', 180) + 30;
-
-        if ($this->awaitingAudioSince !== null
-            && now()->timestamp - $this->awaitingAudioSince > $deadline) {
-            $this->stopAwaitingAudio();
-
-            Flux::toast(
-                heading: 'A locução não ficou pronta',
-                text: 'A geração demorou mais que o esperado. Tente de novo mais tarde.',
-                variant: 'danger',
-            );
-        }
-    }
-
-    protected function stopAwaitingAudio(): void
-    {
-        $this->awaitingAudioNoteId = null;
-        $this->awaitingAudioSince = null;
-        unset($this->awaitingAudio);
     }
 
     public function verifyConceptExistence(ObserveTerm $action): void

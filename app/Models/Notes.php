@@ -10,8 +10,10 @@ use Carbon\CarbonImmutable;
 use Database\Factories\DisciplineFactory;
 use Database\Factories\NoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +31,7 @@ use Laravel\Scout\Searchable;
  * @property array<int, string>|null $tags
  * @property string|null $impressions
  * @property string|null $life_experiences
+ * @property string|null $summary
  * @property string|null $ai_summary
  * @property int $review_stage
  * @property CarbonImmutable|null $next_review_at
@@ -42,6 +45,7 @@ use Laravel\Scout\Searchable;
     'access_token_id',
     'impressions',
     'life_experiences',
+    'summary',
     'ai_summary',
     'review_stage',
     'next_review_at',
@@ -58,6 +62,7 @@ class Notes extends Model
     {
         return [
             'tags' => 'array',
+            'summary' => 'string',
             'ai_summary' => 'string',
             'review_stage' => 'integer',
             'next_review_at' => 'immutable_date',
@@ -130,6 +135,37 @@ class Notes extends Model
     }
 
     /**
+     * Notas que já têm o resumo escrito à mão. São as únicas que a revisão
+     * espaçada cobra: sem resumo não há o que apagar em lacunas.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function summarized(Builder $query): void
+    {
+        $query->whereNotNull('summary')->where('summary', '!=', '');
+    }
+
+    /**
+     * O avesso de summarized(): as notas que ainda devem resumo e por isso
+     * ficam fora da fila.
+     *
+     * @param  Builder<$this>  $query
+     */
+    #[Scope]
+    protected function awaitingSummary(Builder $query): void
+    {
+        $query->where(function (Builder $query): void {
+            $query->whereNull('summary')->orWhere('summary', '');
+        });
+    }
+
+    public function hasSummary(): bool
+    {
+        return filled($this->summary);
+    }
+
+    /**
      * A nota está cobrando revisão na data informada.
      */
     public function isDueForReview(CarbonImmutable $on): bool
@@ -151,7 +187,8 @@ class Notes extends Model
      *     tags: array<int, string>|null,
      *     discipline_id: int,
      *     impressions: string|null,
-     *     life_experiences: string|null
+     *     life_experiences: string|null,
+     *     summary: string|null
      * }
      */
     public function toSearchableArray(): array
@@ -162,6 +199,7 @@ class Notes extends Model
             'discipline_id' => $this->discipline_id,
             'impressions' => $this->impressions,
             'life_experiences' => $this->life_experiences,
+            'summary' => $this->summary,
         ];
     }
 }

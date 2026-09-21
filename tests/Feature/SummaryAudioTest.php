@@ -2,11 +2,13 @@
 
 use App\Actions\GenerateSummaryAudio;
 use App\Enums\SummaryAudioStatus;
+use App\Enums\Weekday;
 use App\Jobs\GenerateSummaryAudioJob;
 use App\Models\AccessToken;
 use App\Models\Disciplines;
 use App\Models\NoteAudio;
 use App\Models\Notes;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Queue;
 use Laravel\Ai\Audio;
 use Laravel\Ai\Exceptions\ProviderOverloadedException;
@@ -17,14 +19,31 @@ use Livewire\Livewire;
 beforeEach(function () {
     $this->token = AccessToken::factory()->create();
     $this->withSession(['access_token_id' => $this->token->id]);
-    $this->discipline = Disciplines::factory()->create(['slug' => 'teologia-'.uniqid()]);
+    $this->discipline = Disciplines::factory()->create([
+        'slug' => 'teologia-'.uniqid(),
+        'class_weekday' => Weekday::fromDate(CarbonImmutable::now()),
+    ]);
     $this->note = Notes::create([
         'title' => 'A graça de Deus',
         'discipline_id' => $this->discipline->id,
         'access_token_id' => $this->token->id,
+        'summary' => 'A graça alcança o pecador antes de qualquer mérito dele.',
         'ai_summary' => 'A graça é o favor imerecido de Deus para com o pecador.',
+        'review_stage' => 1,
+        'next_review_at' => CarbonImmutable::now()->toDateString(),
     ]);
 });
+
+/**
+ * O player vive na modal de revisão, e ela só entrega o resumo por IA depois
+ * que o aluno responde o cloze do resumo escrito por ele.
+ */
+function reviewPlayerFor(Notes $note)
+{
+    return Livewire::test('revisoes-do-dia')
+        ->call('openReview', $note->id)
+        ->call('giveUp');
+}
 
 /** Grava um áudio em cache válido para o resumo atual da nota. */
 function cacheAudioFor(Notes $note, string $bytes = 'audio-do-resumo'): NoteAudio
@@ -157,14 +176,14 @@ test('the route forbids a note belonging to another access token', function () {
 });
 
 test('the component shows the button before any audio exists', function () {
-    Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+    reviewPlayerFor($this->note)
         ->assertSee('Ouvir com voz de IA');
 });
 
 test('the component renders the player once the audio is cached', function () {
     $audio = cacheAudioFor($this->note);
 
-    Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+    reviewPlayerFor($this->note)
         ->assertDontSee('Ouvir com voz de IA')
         ->assertSee(substr($audio->signature, 0, 12))
         ->assertSee('x-data="aiAudioPlayer"', escape: false)
@@ -175,7 +194,7 @@ test('the component renders the player once the audio is cached', function () {
 test('the component polls only after the audio was requested', function () {
     Queue::fake();
 
-    $component = Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug]);
+    $component = reviewPlayerFor($this->note);
 
     expect($component->instance()->awaitingAudio)->toBeFalse();
 
@@ -187,7 +206,7 @@ test('the component polls only after the audio was requested', function () {
 test('polling stops itself once the audio lands', function () {
     Queue::fake();
 
-    $component = Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+    $component = reviewPlayerFor($this->note)
         ->call('generateSummaryAudio');
 
     cacheAudioFor($this->note);
@@ -200,7 +219,7 @@ test('polling stops itself once the audio lands', function () {
 test('polling gives up after the deadline and blames the daily quota', function () {
     Queue::fake();
 
-    $component = Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+    $component = reviewPlayerFor($this->note)
         ->call('generateSummaryAudio');
 
     $this->travel(config('tts.job_timeout') + 60)->seconds();
@@ -252,14 +271,14 @@ test('the route refuses to serve a record that is still pending', function () {
 test('a failed record shows the button again instead of a broken player', function () {
     NoteAudio::factory()->failed()->create(['note_id' => $this->note->id]);
 
-    Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+    reviewPlayerFor($this->note)
         ->assertSee('Ouvir com voz de IA');
 });
 
 test('polling surfaces the failure as soon as the job gives up', function () {
     Queue::fake();
 
-    $component = Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+    $component = reviewPlayerFor($this->note)
         ->call('generateSummaryAudio');
 
     expect($component->instance()->awaitingAudio)->toBeTrue();
@@ -273,7 +292,7 @@ test('polling surfaces the failure as soon as the job gives up', function () {
 });
 
 test('the summary header keeps only the regenerate button, so it survives phone widths', function () {
-    $html = Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])->html();
+    $html = reviewPlayerFor($this->note)->html();
 
     // O cabeçalho é tudo entre o título do bloco e o texto do resumo.
     $header = str($html)->after('Resumo de IA')->before($this->note->ai_summary)->toString();
