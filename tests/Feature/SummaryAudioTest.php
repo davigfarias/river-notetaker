@@ -36,7 +36,7 @@ beforeEach(function () {
 
 /**
  * O player vive na modal de revisão, e ela só entrega o resumo por IA depois
- * que o aluno responde o cloze do resumo escrito por ele.
+ * que o aluno responde o quiz de múltipla escolha do resumo escrito por ele.
  */
 function reviewPlayerFor(Notes $note)
 {

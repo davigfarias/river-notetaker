@@ -1,13 +1,14 @@
 <?php
 
+use App\Actions\GenerateNoteQuiz;
 use App\Actions\GenerateNoteSummary;
 use App\Actions\GenerateSummaryAudio;
 use App\Actions\GetNote;
 use App\Actions\GetReviewAgenda;
-use App\Actions\Orchestrators\SubmitNoteClozeOrchestrator;
-use App\Actions\SelectClozeBlanks;
-use App\Actions\TokenizeAnswerText;
-use App\Actions\BuildClozeResultSegments;
+use App\Actions\Orchestrators\SubmitNoteQuizOrchestrator;
+use App\Actions\RecordNoteReview;
+use App\Actions\ResolveNoteQuizPool;
+use App\Actions\SelectQuizQuestionsForSession;
 use App\DTO\NotesDTO;
 use App\DTO\ReviewAgendaDTO;
 use App\Models\NoteAudio;
@@ -26,38 +27,45 @@ new class extends Component
     public ?int $noteIdUnderReview = null;
 
     /**
-     * Índices das palavras apagadas do resumo. São sorteados a cada abertura,
-     * então a mesma nota nunca cobra exatamente as mesmas palavras duas vezes.
+     * As perguntas sorteadas para esta sessão: id, texto e alternativas já
+     * embaralhadas, sem indicar qual é a correta — isso fica só no banco,
+     * comparado no servidor em submitQuiz().
      *
-     * @var array<int, int>
+     * @var array<int, array{id: int, question: string, options: array<int, string>}>
      */
     #[Locked]
-    public array $clozeIndices = [];
+    public array $quizQuestions = [];
 
     /**
-     * O que o usuário digitou em cada lacuna, chaveado pelo índice da palavra.
+     * A alternativa escolhida em cada pergunta, chaveada pelo id da pergunta.
      *
-     * @var array<int|string, string>
+     * @var array<int, string>
      */
-    public array $clozeInputs = [];
+    public array $quizAnswers = [];
 
     /**
-     * Correção lacuna a lacuna, preenchida depois de submeter.
+     * Correção pergunta a pergunta, preenchida depois de submeter.
      *
-     * @var array<int, array{index: int, expected: string, given: string, correct: bool}>
+     * @var array<int, array{question: string, chosen: string, correct_answer: string, correct: bool}>
      */
     #[Locked]
-    public array $clozeBlanks = [];
+    public array $quizResults = [];
 
     /**
      * Enquanto for null o usuário ainda está respondendo; preenchido, a modal
      * mostra o resultado.
      */
     #[Locked]
-    public ?int $clozeScore = null;
+    public ?int $quizScore = null;
 
     #[Locked]
     public ?bool $lastRecalled = null;
+
+    #[Session]
+    public ?int $awaitingQuizNoteId = null;
+
+    #[Session]
+    public ?int $awaitingQuizSince = null;
 
     #[Session]
     public ?int $awaitingSummaryNoteId = null;
@@ -107,18 +115,19 @@ new class extends Component
 
         unset($this->noteUnderReview);
 
-        $this->startCloze();
+        $this->startQuiz();
     }
 
     /**
-     * Apaga uma parte das palavras do resumo escrito pelo aluno. É o mesmo
-     * motor do modo estudo, só que sobre a nota em vez da pergunta do capítulo.
+     * Carrega o pool de perguntas cacheado para o resumo atual da nota e
+     * sorteia as desta sessão. Se o pool ainda não existe para este resumo
+     * (primeira revisão, ou resumo editado desde a última), dispara a
+     * geração e a modal mostra o spinner até o polling encontrar o pool.
      */
-    private function startCloze(): void
+    private function startQuiz(): void
     {
-        $this->reset('clozeIndices', 'clozeInputs', 'clozeBlanks', 'clozeScore', 'lastRecalled');
-
-        unset($this->clozeSegments, $this->clozeResultSegments);
+        $this->reset('quizQuestions', 'quizAnswers', 'quizResults', 'quizScore', 'lastRecalled');
+        $this->stopAwaitingQuiz();
 
         $summary = (string) ($this->noteUnderReview?->summary ?? '');
 
@@ -126,73 +135,96 @@ new class extends Component
             return;
         }
 
-        $tokens = app(TokenizeAnswerText::class)->handle($summary)->data ?? [];
+        $pool = app(ResolveNoteQuizPool::class)
+            ->handle($this->noteIdUnderReview, $this->contentHashFor($summary))
+            ->data;
 
-        $this->clozeIndices = app(SelectClozeBlanks::class)->handle($tokens)->data ?? [];
+        if ($pool === null || $pool->isEmpty()) {
+            $this->generateQuiz();
+
+            return;
+        }
+
+        $this->quizQuestions = app(SelectQuizQuestionsForSession::class)->handle($pool)->data ?? [];
     }
 
-    /**
-     * O resumo partido para a tela: segmentos de texto visível e as lacunas,
-     * que carregam o índice a que cada input se liga.
-     *
-     * @return array<int, array{blank: bool, index?: int, text?: string}>
-     */
+    private function contentHashFor(string $summary): string
+    {
+        return hash('sha256', $summary);
+    }
+
+    private function generateQuiz(): void
+    {
+        if ($this->noteIdUnderReview === null) {
+            return;
+        }
+
+        $outcome = app(GenerateNoteQuiz::class)->handle($this->noteIdUnderReview);
+
+        if (! $outcome->success) {
+            Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
+
+            return;
+        }
+
+        $this->awaitingQuizNoteId = $this->noteIdUnderReview;
+        $this->awaitingQuizSince = now()->timestamp;
+    }
+
     #[Computed]
-    public function clozeSegments(): array
+    public function awaitingQuiz(): bool
+    {
+        return $this->awaitingQuizNoteId !== null
+            && $this->awaitingQuizNoteId === $this->noteIdUnderReview;
+    }
+
+    public function pollCheckQuiz(): void
     {
         $summary = (string) ($this->noteUnderReview?->summary ?? '');
 
-        if ($summary === '' || $this->clozeIndices === []) {
-            return [];
+        $pool = app(ResolveNoteQuizPool::class)
+            ->handle($this->noteIdUnderReview, $this->contentHashFor($summary))
+            ->data;
+
+        if ($pool !== null && $pool->isNotEmpty()) {
+            $this->quizQuestions = app(SelectQuizQuestionsForSession::class)->handle($pool)->data ?? [];
+            $this->stopAwaitingQuiz();
+
+            return;
         }
 
-        $blankIndices = array_flip($this->clozeIndices);
-        $tokens = app(TokenizeAnswerText::class)->handle($summary)->data ?? [];
+        $deadline = (int) config('quiz.job_timeout', 60) + 15;
 
-        $segments = [];
+        if ($this->awaitingQuizSince !== null
+            && now()->timestamp - $this->awaitingQuizSince > $deadline) {
+            $this->stopAwaitingQuiz();
 
-        foreach ($tokens as $token) {
-            if ($token['word'] && isset($blankIndices[$token['index']])) {
-                $segments[] = ['blank' => true, 'index' => $token['index']];
-
-                continue;
-            }
-
-            $segments[] = ['blank' => false, 'text' => $token['text']];
+            Flux::toast(
+                heading: 'Tempo esgotado',
+                text: 'A geração das perguntas demorou mais que o esperado. Tente novamente.',
+                variant: 'danger',
+            );
         }
-
-        return $segments;
     }
 
-    /**
-     * O resumo corrigido: cada lacuna com o que foi digitado e o esperado.
-     *
-     * @return array<int, App\DTO\ClozeResultSegment>
-     */
-    #[Computed]
-    public function clozeResultSegments(): array
+    protected function stopAwaitingQuiz(): void
     {
-        if ($this->clozeBlanks === []) {
-            return [];
-        }
-
-        return app(BuildClozeResultSegments::class)
-            ->handle((string) ($this->noteUnderReview?->summary ?? ''), $this->clozeBlanks)
-            ->data ?? [];
+        $this->awaitingQuizNoteId = null;
+        $this->awaitingQuizSince = null;
+        unset($this->awaitingQuiz);
     }
 
-    public function submitCloze(SubmitNoteClozeOrchestrator $orchestrator): void
+    public function submitQuiz(SubmitNoteQuizOrchestrator $orchestrator): void
     {
-        if ($this->noteIdUnderReview === null || $this->clozeScore !== null) {
+        if ($this->noteIdUnderReview === null || $this->quizScore !== null) {
             return;
         }
 
         $outcome = $orchestrator->handle(
             $this->noteIdUnderReview,
             (int) session('access_token_id'),
-            (string) ($this->noteUnderReview?->summary ?? ''),
-            $this->clozeIndices,
-            $this->clozeInputs,
+            array_column($this->quizQuestions, 'id'),
+            $this->quizAnswers,
         );
 
         if (! $outcome->success) {
@@ -201,11 +233,11 @@ new class extends Component
             return;
         }
 
-        $this->clozeScore = $outcome->data['score'];
+        $this->quizScore = $outcome->data['score'];
         $this->lastRecalled = $outcome->data['recalled'];
-        $this->clozeBlanks = $outcome->data['blanks'];
+        $this->quizResults = $outcome->data['results'];
 
-        unset($this->agenda, $this->clozeResultSegments);
+        unset($this->agenda);
 
         Flux::toast(
             text: $this->lastRecalled
@@ -217,13 +249,50 @@ new class extends Component
 
     /**
      * Saída de escape: entrega em branco, pontua zero e devolve a nota ao
-     * primeiro degrau. Mais honesto do que chutar todas as lacunas.
+     * primeiro degrau. Mais honesto do que chutar todas as perguntas.
+     *
+     * Se o pool ainda estiver sendo gerado (sem perguntas carregadas), não dá
+     * para corrigir contra nada: registra a desistência direto, sem passar
+     * pelo orquestrador de correção.
      */
-    public function giveUp(SubmitNoteClozeOrchestrator $orchestrator): void
+    public function giveUp(SubmitNoteQuizOrchestrator $orchestrator): void
     {
-        $this->clozeInputs = [];
+        if ($this->quizQuestions === []) {
+            $this->recordGiveUpWithoutQuestions();
 
-        $this->submitCloze($orchestrator);
+            return;
+        }
+
+        $this->quizAnswers = [];
+
+        $this->submitQuiz($orchestrator);
+    }
+
+    private function recordGiveUpWithoutQuestions(): void
+    {
+        if ($this->noteIdUnderReview === null || $this->quizScore !== null) {
+            return;
+        }
+
+        $outcome = app(RecordNoteReview::class)->handle(
+            $this->noteIdUnderReview,
+            (int) session('access_token_id'),
+            false,
+        );
+
+        if (! $outcome->success) {
+            Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
+
+            return;
+        }
+
+        $this->quizScore = 0;
+        $this->lastRecalled = false;
+        $this->quizResults = [];
+
+        unset($this->agenda);
+
+        Flux::toast(text: 'Sem problema: ela volta na próxima aula.', variant: 'warning');
     }
 
     /**
@@ -246,7 +315,7 @@ new class extends Component
 
         unset($this->noteUnderReview);
 
-        $this->startCloze();
+        $this->startQuiz();
     }
 
     public function closeReview(): void
@@ -254,9 +323,10 @@ new class extends Component
         $this->showReviewModal = false;
         $this->noteIdUnderReview = null;
 
-        $this->reset('clozeIndices', 'clozeInputs', 'clozeBlanks', 'clozeScore', 'lastRecalled');
+        $this->reset('quizQuestions', 'quizAnswers', 'quizResults', 'quizScore', 'lastRecalled');
+        $this->stopAwaitingQuiz();
 
-        unset($this->noteUnderReview, $this->clozeSegments, $this->clozeResultSegments);
+        unset($this->noteUnderReview);
     }
 
     public function updatedShowReviewModal(): void

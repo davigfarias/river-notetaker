@@ -139,35 +139,78 @@
                         </section>
                     @endif
 
-                    @if ($clozeScore === null)
-                        {{-- Fase de resposta: o resumo do aluno volta com buracos.
-                             Preencher as lacunas é a prova de recall; o placar é
-                             que decide a revisão, não a autoavaliação. --}}
-                        @if ($this->clozeSegments)
-                            <section class="space-y-2">
-                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Complete o seu resumo</flux:heading>
-                                <p class="font-sans text-base leading-loose text-on-surface">@foreach ($this->clozeSegments as $seg)@if ($seg['blank'])<input type="text" wire:model="clozeInputs.{{ $seg['index'] }}" class="cloze-blank" autocomplete="off" autocapitalize="off" spellcheck="false" />@else{{ $seg['text'] }}@endif@endforeach</p>
+                    @if ($quizScore === null)
+                        {{-- Fase de resposta: perguntas de múltipla escolha geradas a
+                             partir do resumo escrito pelo aluno. Responder é a prova
+                             de recall; o placar é que decide a revisão, não a
+                             autoavaliação. --}}
+                        @if ($this->awaitingQuiz)
+                            <section
+                                class="border-surface-variant bg-primary-container/10 space-y-2 rounded-lg border p-4"
+                                wire:poll.{{ config('quiz.poll_interval', '2s') }}="pollCheckQuiz"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <flux:icon name="sparkles" class="text-primary size-4 animate-pulse" />
+                                    <flux:heading size="xs">Gerando as perguntas</flux:heading>
+                                </div>
+                                <div class="bg-surface-variant h-3 w-full animate-pulse rounded"></div>
+                                <div class="bg-surface-variant h-3 w-3/4 animate-pulse rounded"></div>
                             </section>
-                        @else
+                        @elseif ($quizQuestions)
+                            <section class="space-y-5">
+                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Responda as perguntas</flux:heading>
+
+                                @foreach ($quizQuestions as $question)
+                                    <div wire:key="quiz-question-{{ $question['id'] }}" class="space-y-2">
+                                        <flux:text class="font-medium">{{ $question['question'] }}</flux:text>
+
+                                        <flux:radio.group wire:model="quizAnswers.{{ $question['id'] }}">
+                                            @foreach ($question['options'] as $option)
+                                                <flux:radio wire:key="quiz-option-{{ $question['id'] }}-{{ $loop->index }}" value="{{ $option }}" label="{{ $option }}" />
+                                            @endforeach
+                                        </flux:radio.group>
+                                    </div>
+                                @endforeach
+                            </section>
+                        @elseif (! $note->summary)
                             <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
                                 <flux:icon.pencil-square class="text-on-surface-variant size-6" />
                                 <flux:text>Esta nota ainda não tem resumo escrito, então não há o que cobrar.</flux:text>
                             </div>
+                        @else
+                            <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
+                                <flux:icon.exclamation-triangle class="text-on-surface-variant size-6" />
+                                <flux:text>Não foi possível gerar as perguntas desta revisão. Tente novamente mais tarde.</flux:text>
+                            </div>
                         @endif
                     @else
-                        {{-- Fase de resultado: o diff primeiro, depois o resto da nota. --}}
+                        {{-- Fase de resultado: a correção primeiro, depois o resto da nota. --}}
                         <section class="space-y-3">
                             <div class="flex flex-wrap items-center gap-3">
                                 <flux:heading size="sm" class="text-on-surface-variant uppercase">Resultado</flux:heading>
                                 <flux:badge size="sm" variant="pill" :color="$lastRecalled ? 'green' : 'amber'">
-                                    {{ $clozeScore }}%
+                                    {{ $quizScore }}%
                                 </flux:badge>
                                 <flux:text size="sm" class="text-on-surface-variant">
                                     {{ $lastRecalled ? 'Lembrou: a nota sobe um degrau.' : 'A nota volta para o primeiro degrau.' }}
                                 </flux:text>
                             </div>
 
-                            <p class="font-sans text-base leading-loose text-on-surface">@foreach ($this->clozeResultSegments as $seg)@if ($seg->blank)<span class="mx-0.5 inline-flex items-baseline gap-1 rounded px-1 {{ $seg->correct ? 'bg-green-500/15 text-green-700 dark:text-green-400' : 'bg-red-500/15' }}">@if ($seg->correct){{ $seg->expected }}@else<span class="text-red-700 line-through dark:text-red-400">{{ $seg->given !== '' ? $seg->given : '—' }}</span><span class="font-medium">{{ $seg->expected }}</span>@endif</span>@else{{ $seg->text }}@endif@endforeach</p>
+                            <div class="space-y-3">
+                                @foreach ($quizResults as $result)
+                                    <div wire:key="quiz-result-{{ $loop->index }}" class="space-y-1">
+                                        <flux:text class="font-medium">{{ $result['question'] }}</flux:text>
+                                        <flux:text size="sm" class="{{ $result['correct'] ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400' }}">
+                                            @if ($result['correct'])
+                                                {{ $result['chosen'] }}
+                                            @else
+                                                <span class="line-through">{{ $result['chosen'] !== '' ? $result['chosen'] : '—' }}</span>
+                                                <span class="font-medium text-on-surface">{{ $result['correct_answer'] }}</span>
+                                            @endif
+                                        </flux:text>
+                                    </div>
+                                @endforeach
+                            </div>
                         </section>
 
                         {{-- Resumo por IA: conferência, depois que o aluno já se
@@ -357,7 +400,7 @@
 
                         <flux:spacer />
 
-                        @if ($clozeScore === null)
+                        @if ($quizScore === null)
                             <flux:button type="button" variant="danger" icon="arrow-path" wire:click="giveUp">
                                 Não lembro
                             </flux:button>
@@ -366,8 +409,8 @@
                                 type="button"
                                 variant="primary"
                                 icon="check"
-                                wire:click="submitCloze"
-                                :disabled="$this->clozeSegments === []"
+                                wire:click="submitQuiz"
+                                :disabled="$quizQuestions === [] || count($quizAnswers) < count($quizQuestions)"
                             >
                                 Conferir
                             </flux:button>

@@ -24,7 +24,7 @@ beforeEach(function () {
 
 /**
  * Nota na fila de revisão de hoje. O resumo por IA agora só aparece dentro da
- * modal de revisão, depois que o aluno já respondeu o cloze do resumo dele.
+ * modal de revisão, depois que o aluno já respondeu o quiz do resumo dele.
  */
 function dueNoteWithSummary(int $disciplineId, int $tokenId, string $title, array $attributes = []): Notes
 {
@@ -42,7 +42,7 @@ function dueNoteWithSummary(int $disciplineId, int $tokenId, string $title, arra
 }
 
 /**
- * Abre a revisão da nota e entrega o cloze, que é o que destrava a fase de
+ * Abre a revisão da nota e desiste do quiz, que é o que destrava a fase de
  * resultado — onde o resumo por IA vive.
  */
 function reviewResultFor(Notes $note)

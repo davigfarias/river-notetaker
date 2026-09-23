@@ -1,5 +1,6 @@
 <?php
 
+use App\Ai\Agents\QuizQuestionGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,6 +17,20 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->beforeEach(function () {
+        // A modal de revisão dispara a geração do quiz assim que abre (fila
+        // sync roda o job na hora). Sem esse fake, qualquer teste que chame
+        // openReview() faria uma chamada real à Groq. Testes que precisam de
+        // perguntas específicas chamam QuizQuestionGenerator::fake() de novo.
+        QuizQuestionGenerator::fake([
+            ['questions' => array_fill(0, (int) config('quiz.pool_size'), [
+                'question' => 'Pergunta de teste?',
+                'correct_answer' => 'Resposta certa',
+                'distractors' => ['Distrator um', 'Distrator dois', 'Distrator três'],
+                'explanation' => 'Explicação de teste.',
+            ])],
+        ]);
+    })
     ->in('Feature');
 
 pest()->extend(TestCase::class)

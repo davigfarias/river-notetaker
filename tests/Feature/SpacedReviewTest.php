@@ -291,24 +291,27 @@ test('o componente mostra os cartões da fila do dia', function () {
         ->assertSee('1ª revisão');
 });
 
-test('a modal abre cobrando o resumo em lacunas e sem entregar o corpo da nota', function () {
+test('a modal abre cobrando perguntas de múltipla escolha e sem entregar o corpo da nota', function () {
     $discipline = disciplineOn(Weekday::Thursday);
     $note = dueNote($discipline, TODAY, attributes: [
         'summary' => 'A inspiração alcança as palavras do texto.',
         'impressions' => 'Impressão secreta da aula',
     ]);
 
-    Livewire::test('revisoes-do-dia')
+    $component = Livewire::test('revisoes-do-dia')
         ->call('openReview', $note->id)
         ->assertSet('showReviewModal', true)
-        ->assertSet('clozeScore', null)
-        ->assertSee('Complete o seu resumo')
+        ->assertSet('quizScore', null);
+
+    // Fila sync já rodou o job de geração por trás; o poll pega o pool pronto.
+    $component->call('pollCheckQuiz')
+        ->assertSee('Responda as perguntas')
         ->assertSee('Conferir')
         ->assertDontSee('Impressão secreta da aula')
         ->assertDontSee('Resultado');
 });
 
-test('responder o cloze puxa a próxima da fila sem fechar a modal', function () {
+test('desistir puxa a próxima da fila sem fechar a modal', function () {
     $discipline = disciplineOn(Weekday::Thursday);
     $first = dueNote($discipline, '2026-09-10', attributes: ['title' => 'Primeira da fila']);
     $second = dueNote($discipline, TODAY, attributes: ['title' => 'Segunda da fila']);
@@ -316,11 +319,11 @@ test('responder o cloze puxa a próxima da fila sem fechar a modal', function ()
     Livewire::test('revisoes-do-dia')
         ->call('openReview', $first->id)
         ->call('giveUp')
-        ->assertSet('clozeScore', 0)
+        ->assertSet('quizScore', 0)
         ->call('nextNote')
         ->assertSet('showReviewModal', true)
         ->assertSet('noteIdUnderReview', $second->id)
-        ->assertSet('clozeScore', null);
+        ->assertSet('quizScore', null);
 });
 
 test('a modal fecha quando a fila do dia acaba', function () {
