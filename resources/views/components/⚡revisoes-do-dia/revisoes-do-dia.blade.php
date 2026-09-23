@@ -335,60 +335,6 @@
                                 </flux:button>
                             </div>
                         @endif
-
-                        @if ($note->concepts)
-                            <section class="space-y-3">
-                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Definições</flux:heading>
-
-                                @foreach ($note->concepts as $concept)
-                                    <div wire:key="review-definition-{{ $concept->id }}">
-                                        <flux:text class="font-medium">{{ $concept->term }}</flux:text>
-                                        <flux:text class="whitespace-pre-line">{{ $concept->definition }}</flux:text>
-                                    </div>
-                                @endforeach
-                            </section>
-                        @endif
-
-                        @if ($note->impressions)
-                            <section class="space-y-2">
-                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Impressões</flux:heading>
-                                <flux:text class="whitespace-pre-line">{{ $note->impressions }}</flux:text>
-                            </section>
-                        @endif
-
-                        @if ($note->life_experiences)
-                            <section class="space-y-2">
-                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Experiências</flux:heading>
-                                <flux:text class="whitespace-pre-line">{{ $note->life_experiences }}</flux:text>
-                            </section>
-                        @endif
-
-                        @if ($note->pastoral_advice)
-                            <section class="space-y-3">
-                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Conselhos pastorais</flux:heading>
-
-                                @foreach ($note->pastoral_advice as $advice)
-                                    <div wire:key="review-advice-{{ $advice->id }}">
-                                        @if ($advice->category)
-                                            <flux:badge size="sm" variant="pill">{{ $advice->category }}</flux:badge>
-                                        @endif
-                                        <flux:text class="mt-1 whitespace-pre-line">{{ $advice->advice }}</flux:text>
-                                    </div>
-                                @endforeach
-                            </section>
-                        @endif
-
-                        @if ($note->reference_materials)
-                            <section class="space-y-2">
-                                <flux:heading size="sm" class="text-on-surface-variant uppercase">Referências</flux:heading>
-
-                                @foreach ($note->reference_materials as $material)
-                                    <flux:text size="sm" wire:key="review-material-{{ $material['id'] }}">
-                                        {{ $material['title'] }}@if ($material['author']) — {{ $material['author'] }}@endif
-                                    </flux:text>
-                                @endforeach
-                            </section>
-                        @endif
                     @endif
                 </div>
 
