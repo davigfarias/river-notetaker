@@ -420,11 +420,9 @@
                 <div>
                     <flux:label>Trecho</flux:label>
                     <div wire:ignore class="mt-1">
-                        @if ($editingCitation)
-                            <div x-data="markdownEditor('editCitationForm.quote_text')">
-                                <textarea x-ref="textarea"></textarea>
-                            </div>
-                        @endif
+                        <div x-data="markdownEditor('editCitationForm.quote_text')">
+                            <textarea x-ref="textarea"></textarea>
+                        </div>
                     </div>
                 </div>
                 <flux:input label="Localização" wire:model="editCitationForm.location" />
@@ -546,11 +544,9 @@
                 <div>
                     <flux:label>Anotação</flux:label>
                     <div wire:ignore class="mt-1">
-                        @if ($editingReadingNote)
-                            <div x-data="markdownEditor('editReadingNoteForm.body')">
-                                <textarea x-ref="textarea"></textarea>
-                            </div>
-                        @endif
+                        <div x-data="markdownEditor('editReadingNoteForm.body')">
+                            <textarea x-ref="textarea"></textarea>
+                        </div>
                     </div>
                 </div>
                 <flux:error name="editReadingNoteForm.body" />
