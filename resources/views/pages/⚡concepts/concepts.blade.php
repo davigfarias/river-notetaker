@@ -57,7 +57,7 @@
                         x-on:graph-updated.window="updateGraph($event.detail.graph)"
                         class="relative"
                     >
-                        <div x-ref="container" class="h-[420px] w-full rounded-lg border border-surface-variant"></div>
+                        <div x-ref="container" class="h-[calc(100vh-12rem)] w-full rounded-lg border border-surface-variant"></div>
 
                         <div class="absolute right-3 top-3 flex flex-col gap-1">
                             <flux:button size="sm" icon="plus" x-on:click="zoomIn" aria-label="Aproximar" />
@@ -300,12 +300,27 @@
                     <flux:label>Conceitos relacionados</flux:label>
 
                     @if ($this->linkedConcepts->isNotEmpty())
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex max-h-40 flex-wrap gap-2 overflow-y-auto pr-1">
                             @foreach ($this->linkedConcepts as $linked)
-                                <flux:badge wire:key="linked-concept-{{ $linked->id }}" size="lg" color="zinc">
-                                    {{ $linked->term }}
-                                    <flux:badge.close wire:click="unlinkConcept({{ $linked->id }})" />
-                                </flux:badge>
+                                <div wire:key="linked-concept-{{ $linked->id }}" x-data="conceptPopover" class="relative">
+                                    <div x-ref="trigger" x-on:mouseenter="open" x-on:mouseleave="scheduleClose">
+                                        <flux:badge size="lg" color="zinc">
+                                            {{ $linked->term }}
+                                            <flux:badge.close wire:click="unlinkConcept({{ $linked->id }})" />
+                                        </flux:badge>
+                                    </div>
+
+                                    <div
+                                        x-ref="panel"
+                                        popover="manual"
+                                        x-on:mouseenter="open"
+                                        x-on:mouseleave="scheduleClose"
+                                        class="fixed z-50 m-0 max-h-[70vh] w-[min(32rem,90vw)] overflow-y-auto rounded-xl border border-surface-variant bg-surface-container p-4 text-sm leading-relaxed text-on-surface shadow-xl"
+                                    >
+                                        <p class="mb-2 font-semibold">{{ $linked->term }}</p>
+                                        <p class="whitespace-pre-wrap">{{ $linked->definition }}</p>
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     @endif
@@ -320,15 +335,30 @@
                     @if (filled($relatedSearch))
                         <div class="divide-y divide-surface-variant overflow-hidden rounded-lg border border-surface-variant">
                             @forelse ($this->linkableResults as $result)
-                                <button
-                                    type="button"
-                                    wire:key="linkable-{{ $result->id }}"
-                                    wire:click="linkConcept({{ $result->id }})"
-                                    class="flex w-full items-center justify-between p-3 text-left text-sm hover:bg-surface-container-low"
-                                >
-                                    {{ $result->term }}
-                                    <flux:icon name="plus" class="size-4 text-on-surface-variant" />
-                                </button>
+                                <div wire:key="linkable-{{ $result->id }}" x-data="conceptPopover" class="relative">
+                                    <button
+                                        type="button"
+                                        x-ref="trigger"
+                                        x-on:mouseenter="open"
+                                        x-on:mouseleave="scheduleClose"
+                                        wire:click="linkConcept({{ $result->id }})"
+                                        class="flex w-full items-center justify-between p-3 text-left text-sm text-on-surface hover:bg-surface-container-low"
+                                    >
+                                        {{ $result->term }}
+                                        <flux:icon name="plus" class="size-4 text-on-surface-variant" />
+                                    </button>
+
+                                    <div
+                                        x-ref="panel"
+                                        popover="manual"
+                                        x-on:mouseenter="open"
+                                        x-on:mouseleave="scheduleClose"
+                                        class="fixed z-50 m-0 max-h-[70vh] w-[min(32rem,90vw)] overflow-y-auto rounded-xl border border-surface-variant bg-surface-container p-4 text-sm leading-relaxed text-on-surface shadow-xl"
+                                    >
+                                        <p class="mb-2 font-semibold">{{ $result->term }}</p>
+                                        <p class="whitespace-pre-wrap">{{ $result->definition }}</p>
+                                    </div>
+                                </div>
                             @empty
                                 <div class="p-3 text-sm text-on-surface-variant">Nenhum conceito encontrado.</div>
                             @endforelse

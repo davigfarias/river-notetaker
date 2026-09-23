@@ -43,6 +43,20 @@ test('unlinking removes the relation in both directions', function () {
     $this->assertDatabaseMissing('concept_concept', ['concept_id' => $b->id, 'related_concept_id' => $a->id]);
 });
 
+test('linking a concept keeps the search open and excludes the newly linked concept from results', function () {
+    $a = Concepts::create(['term' => 'Graça', 'definition' => 'Favor imerecido.']);
+    $b = Concepts::create(['term' => 'Fé', 'definition' => 'Confiança em Cristo.']);
+
+    $component = Livewire::test('pages::concepts')
+        ->set('editingConceptId', $a->id)
+        ->set('relatedSearch', 'F')
+        ->call('linkConcept', $b->id);
+
+    $component->assertSet('relatedSearch', 'F');
+
+    expect($component->get('linkableResults')->pluck('id')->all())->not->toContain($b->id);
+});
+
 test('a concept cannot be linked to itself', function () {
     $a = Concepts::create(['term' => 'Graça', 'definition' => 'Favor imerecido.']);
 

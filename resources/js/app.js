@@ -1,6 +1,7 @@
 import EasyMDE from 'easymde';
 import 'easymde/dist/easymde.min.css';
 import { Network } from 'vis-network/standalone';
+import { computePosition, autoUpdate, offset, flip, shift } from '@floating-ui/dom';
 import './session-modal';
 
 document.addEventListener('click', (event) => {
@@ -254,6 +255,48 @@ document.addEventListener('alpine:init', () => {
             },
         };
     });
+
+    // Painel flutuante com a definição completa de um conceito (alguns têm
+    // quase duas páginas de texto — por isso é um popover grande e rolável,
+    // não um tooltip). Usa a Popover API nativa (`popover="manual"`) pra
+    // escapar do clipping do <flux:modal>, igual o próprio Flux faz nos
+    // tooltips dele: elementos com popover entram no "top layer" do
+    // navegador, acima do conteúdo normal da modal.
+    Alpine.data('conceptPopover', () => ({
+        cleanup: null,
+        closeTimer: null,
+        open() {
+            clearTimeout(this.closeTimer);
+
+            const trigger = this.$refs.trigger;
+            const panel = this.$refs.panel;
+
+            if (!panel.matches(':popover-open')) {
+                panel.showPopover();
+            }
+
+            this.cleanup ??= autoUpdate(trigger, panel, () => {
+                computePosition(trigger, panel, {
+                    strategy: 'fixed',
+                    placement: 'top',
+                    middleware: [offset(8), flip(), shift({ padding: 8 })],
+                }).then(({ x, y }) => {
+                    Object.assign(panel.style, { left: `${x}px`, top: `${y}px` });
+                });
+            });
+        },
+        scheduleClose() {
+            this.closeTimer = setTimeout(() => this.close(), 150);
+        },
+        close() {
+            this.cleanup?.();
+            this.cleanup = null;
+            this.$refs.panel?.hidePopover();
+        },
+        destroy() {
+            this.close();
+        },
+    }));
 
     // A lista de vozes carrega de forma assíncrona; pedir uma vez aqui faz o
     // primeiro clique já encontrar as vozes populadas.

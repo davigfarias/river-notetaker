@@ -66,16 +66,15 @@ new #[Title('Conceitos')] #[Lazy] class extends Component
     }
 
     /**
-     * @return array{nodes: array<int, array{id: int, label: string, title: string}>, edges: array<int, array{from: int, to: int}>}
+     * @return array{nodes: array<int, array{id: int, label: string}>, edges: array<int, array{from: int, to: int}>}
      */
     #[Computed]
     public function graphData(): array
     {
-        $nodes = Concepts::all(['id', 'term', 'definition'])
+        $nodes = Concepts::all(['id', 'term'])
             ->map(fn (Concepts $concept): array => [
                 'id' => $concept->id,
                 'label' => $concept->term,
-                'title' => e($concept->definition),
             ])
             ->values()
             ->all();
@@ -128,7 +127,6 @@ new #[Title('Conceitos')] #[Lazy] class extends Component
             return;
         }
 
-        $this->relatedSearch = '';
         unset($this->linkableResults, $this->linkedConcepts, $this->graphData);
 
         $this->dispatch('graph-updated', graph: $this->graphData);
