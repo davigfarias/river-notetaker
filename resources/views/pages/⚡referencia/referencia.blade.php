@@ -152,7 +152,11 @@
             </flux:heading>
 
             <form wire:submit="addCitation" class="mt-4 space-y-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
-                <flux:textarea wire:model="citationForm.quote_text" rows="3" placeholder="Cole ou digite o trecho citado..." />
+                <div wire:ignore>
+                    <div x-data="markdownEditor('citationForm.quote_text')">
+                        <textarea x-ref="textarea" placeholder="Cole ou digite o trecho citado..."></textarea>
+                    </div>
+                </div>
                 <flux:error name="citationForm.quote_text" />
                 <div class="flex flex-col sm:flex-row gap-3">
                     <flux:input wire:model="citationForm.location" placeholder="Localização (ex: p. 42, 01:12:30)" class="sm:max-w-64" />
@@ -174,7 +178,9 @@
             <div wire:loading.delay.remove wire:target="addCitation,updateCitation,deleteCitation" class="mt-6 space-y-3">
                 @forelse ($this->material->citations as $citation)
                     <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4" x-data="readAloud(@js($citation->quote_text))">
-                        <p class="italic text-on-surface-variant leading-relaxed">&ldquo;{{ $citation->quote_text }}&rdquo;</p>
+                        <div class="prose dark:prose-invert prose-p:italic prose-p:text-on-surface-variant max-w-none leading-relaxed">
+                            {!! Str::markdown($citation->quote_text) !!}
+                        </div>
                         <div class="mt-2 flex items-center gap-3">
                             @if ($citation->location)
                                 <flux:text size="sm" class="text-on-surface-variant/80">{{ $citation->location }}</flux:text>
@@ -233,7 +239,11 @@
             </div>
 
             <form wire:submit="addReadingNote" class="mt-4 space-y-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
-                <flux:textarea wire:model="readingNoteForm.body" rows="3" placeholder="O que você pensou lendo ou assistindo isto..." />
+                <div wire:ignore>
+                    <div x-data="markdownEditor('readingNoteForm.body')">
+                        <textarea x-ref="textarea" placeholder="O que você pensou lendo ou assistindo isto..."></textarea>
+                    </div>
+                </div>
                 <flux:error name="readingNoteForm.body" />
                 <div class="flex flex-col gap-3 sm:flex-row">
                     <flux:input wire:model="readingNoteForm.title" placeholder="Título (opcional)" class="sm:max-w-64" />
@@ -288,7 +298,9 @@
                                     wire:click="confirmDeleteReadingNote({{ $note->id }})" />
                             </div>
                         </div>
-                        <p class="mt-2 leading-relaxed whitespace-pre-line text-on-surface">{{ $note->body }}</p>
+                        <div class="prose dark:prose-invert mt-2 max-w-none leading-relaxed text-on-surface">
+                            {!! Str::markdown($note->body) !!}
+                        </div>
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             @if ($note->location)
                                 <flux:badge size="sm" color="zinc">{{ $note->location }}</flux:badge>
@@ -405,7 +417,16 @@
         <flux:modal name="edit-citation" wire:model.self="editingCitation" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <form wire:submit="updateCitation" class="space-y-4">
                 <flux:heading size="lg">Editar citação</flux:heading>
-                <flux:textarea label="Trecho" wire:model="editCitationForm.quote_text" rows="4" />
+                <div>
+                    <flux:label>Trecho</flux:label>
+                    <div wire:ignore class="mt-1">
+                        @if ($editingCitation)
+                            <div x-data="markdownEditor('editCitationForm.quote_text')">
+                                <textarea x-ref="textarea"></textarea>
+                            </div>
+                        @endif
+                    </div>
+                </div>
                 <flux:input label="Localização" wire:model="editCitationForm.location" />
                 <flux:textarea label="Nota pessoal" wire:model="editCitationForm.personal_note" rows="2" />
                 <div class="flex">
@@ -522,7 +543,16 @@
         <flux:modal name="edit-reading-note" wire:model.self="editingReadingNote" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <form wire:submit="updateReadingNote" class="space-y-4">
                 <flux:heading size="lg">Editar anotação</flux:heading>
-                <flux:textarea label="Anotação" wire:model="editReadingNoteForm.body" rows="5" />
+                <div>
+                    <flux:label>Anotação</flux:label>
+                    <div wire:ignore class="mt-1">
+                        @if ($editingReadingNote)
+                            <div x-data="markdownEditor('editReadingNoteForm.body')">
+                                <textarea x-ref="textarea"></textarea>
+                            </div>
+                        @endif
+                    </div>
+                </div>
                 <flux:error name="editReadingNoteForm.body" />
                 <flux:input label="Título (opcional)" wire:model="editReadingNoteForm.title" />
                 <flux:input label="Localização (opcional)" wire:model="editReadingNoteForm.location" />
