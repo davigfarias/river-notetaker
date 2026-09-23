@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DownloadExportController;
+use App\Http\Controllers\ExportNoteMarkdownController;
 use App\Http\Controllers\StreamSummaryAudioController;
 use App\Http\Middleware\EnsureAccessTokenIsValid;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,10 @@ Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
     Route::get('/notas/{note}/resumo/audio', StreamSummaryAudioController::class)
         ->whereNumber('note')
         ->name('notas.resumo.audio');
+
+    Route::get('/notas/{note}/exportar', ExportNoteMarkdownController::class)
+        ->whereNumber('note')
+        ->name('notas.exportar');
 
     Route::livewire('/historico', 'pages::historico')->name('historico');
 

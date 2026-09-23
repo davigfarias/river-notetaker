@@ -67,6 +67,9 @@
                             <flux:badge>{{ $this->selectedNote->year() }}</flux:badge>
                         </div>
 
+                        <flux:button variant="ghost" icon="arrow-down-tray" href="{{ route('notas.exportar', $this->selectedNote->id) }}">
+                            Exportar
+                        </flux:button>
                     </div>
 
                     <section class="group relative mb-4">
