@@ -106,7 +106,7 @@
                             </div>
                         @endif
                         <flux:text size="sm" class="text-on-surface-variant">
-                            {{ $material->citations_count }} {{ \Illuminate\Support\Str::plural('citação', $material->citations_count, 'citações') }}
+                            {{ $material->citations_count }} {{ $material->citations_count === 1 ? 'citação' : 'citações' }}
                         </flux:text>
                     </div>
                 </a>

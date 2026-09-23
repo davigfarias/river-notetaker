@@ -70,7 +70,7 @@
                         <flux:heading class="mt-2">{{ $work->title }}</flux:heading>
                         <flux:text size="sm" class="mt-1">
                             {{ $work->author }}{{ $work->year ? ', '.$work->year : '' }} ·
-                            {{ $work->citations_count }} {{ \Illuminate\Support\Str::plural('citação', $work->citations_count, 'citações') }}
+                            {{ $work->citations_count }} {{ $work->citations_count === 1 ? 'citação' : 'citações' }}
                         </flux:text>
                     </a>
                 @empty
