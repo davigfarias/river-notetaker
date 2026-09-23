@@ -164,7 +164,7 @@
                                     <div wire:key="quiz-question-{{ $question['id'] }}" class="space-y-2">
                                         <flux:text class="font-medium">{{ $question['question'] }}</flux:text>
 
-                                        <flux:radio.group wire:model="quizAnswers.{{ $question['id'] }}">
+                                        <flux:radio.group wire:model.live="quizAnswers.{{ $question['id'] }}">
                                             @foreach ($question['options'] as $option)
                                                 <flux:radio wire:key="quiz-option-{{ $question['id'] }}-{{ $loop->index }}" value="{{ $option }}" label="{{ $option }}" />
                                             @endforeach
