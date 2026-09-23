@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Scout\Searchable;
 
 /**
@@ -30,6 +31,14 @@ class Concepts extends Model
     public function concept(): BelongsTo
     {
         return $this->belongsTo(Notes::class, 'note_id'); // Boa prática: explicitar a foreign_key
+    }
+
+    /**
+     * @return BelongsToMany<Concepts, $this>
+     */
+    public function relatedConcepts(): BelongsToMany
+    {
+        return $this->belongsToMany(Concepts::class, 'concept_concept', 'concept_id', 'related_concept_id');
     }
 
     /**

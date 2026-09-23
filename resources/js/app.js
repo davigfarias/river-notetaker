@@ -1,5 +1,6 @@
 import EasyMDE from 'easymde';
 import 'easymde/dist/easymde.min.css';
+import { Network } from 'vis-network/standalone';
 import './session-modal';
 
 document.addEventListener('click', (event) => {
@@ -207,6 +208,52 @@ document.addEventListener('alpine:init', () => {
             }
         },
     }));
+
+    // Grafo de conceitos relacionados (estilo Obsidian Graph View).
+    // `initialGraph` é `{nodes, edges}` já no formato do vis-network.
+    // A instância do vis.Network usa campos privados de classe (#foo), que
+    // quebram se o Alpine transformar o objeto em proxy reativo — por isso
+    // fica numa variável de closure, fora do `this` reativo do componente.
+    Alpine.data('conceptGraph', (initialGraph) => {
+        let network = null;
+
+        return {
+            init() {
+                network = new Network(
+                    this.$refs.container,
+                    { nodes: initialGraph.nodes, edges: initialGraph.edges },
+                    {
+                        physics: { stabilization: true },
+                        nodes: {
+                            shape: 'dot',
+                            size: 12,
+                            color: { background: '#e2c7ff', border: '#cba6f7', highlight: '#e2c7ff' },
+                            font: { color: '#e1e0f8', size: 14 },
+                        },
+                        edges: {
+                            color: { color: '#4a444f', highlight: '#e2c7ff' },
+                        },
+                        interaction: { hover: true, tooltipDelay: 100, zoomView: true, dragView: true },
+                    },
+                );
+            },
+            updateGraph(graph) {
+                network.setData({ nodes: graph.nodes, edges: graph.edges });
+            },
+            zoomIn() {
+                network.moveTo({ scale: network.getScale() * 1.3, animation: { duration: 150 } });
+            },
+            zoomOut() {
+                network.moveTo({ scale: network.getScale() / 1.3, animation: { duration: 150 } });
+            },
+            resetZoom() {
+                network.fit({ animation: { duration: 200 } });
+            },
+            destroy() {
+                network?.destroy();
+            },
+        };
+    });
 
     // A lista de vozes carrega de forma assíncrona; pedir uma vez aqui faz o
     // primeiro clique já encontrar as vozes populadas.

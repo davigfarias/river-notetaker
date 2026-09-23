@@ -47,6 +47,28 @@
             </div>
         </div>
 
+        <details class="mb-8 rounded-xl border border-surface-variant bg-surface-container-low">
+            <summary class="cursor-pointer select-none px-6 py-4 font-medium">Mapa de conceitos</summary>
+
+            <div class="p-4 pt-0">
+                <div wire:ignore>
+                    <div
+                        x-data="conceptGraph(@js($this->graphData))"
+                        x-on:graph-updated.window="updateGraph($event.detail.graph)"
+                        class="relative"
+                    >
+                        <div x-ref="container" class="h-[420px] w-full rounded-lg border border-surface-variant"></div>
+
+                        <div class="absolute right-3 top-3 flex flex-col gap-1">
+                            <flux:button size="sm" icon="plus" x-on:click="zoomIn" aria-label="Aproximar" />
+                            <flux:button size="sm" icon="minus" x-on:click="zoomOut" aria-label="Afastar" />
+                            <flux:button size="sm" icon="arrows-pointing-out" x-on:click="resetZoom" aria-label="Ajustar ao mapa" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </details>
+
         <div class="mb-8">
             <flux:input
                 icon="magnifying-glass"
@@ -273,6 +295,47 @@
                 <div>
                     @error('editConceptForm.definition') <span class="error">{{ $message }}</span> @enderror
                 </div>
+
+                <div class="space-y-3">
+                    <flux:label>Conceitos relacionados</flux:label>
+
+                    @if ($this->linkedConcepts->isNotEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($this->linkedConcepts as $linked)
+                                <flux:badge wire:key="linked-concept-{{ $linked->id }}" size="lg" color="zinc">
+                                    {{ $linked->term }}
+                                    <flux:badge.close wire:click="unlinkConcept({{ $linked->id }})" />
+                                </flux:badge>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <flux:input
+                        wire:model.live.debounce.400ms="relatedSearch"
+                        icon="magnifying-glass"
+                        placeholder="Buscar conceito para relacionar..."
+                        clearable
+                    />
+
+                    @if (filled($relatedSearch))
+                        <div class="divide-y divide-surface-variant overflow-hidden rounded-lg border border-surface-variant">
+                            @forelse ($this->linkableResults as $result)
+                                <button
+                                    type="button"
+                                    wire:key="linkable-{{ $result->id }}"
+                                    wire:click="linkConcept({{ $result->id }})"
+                                    class="flex w-full items-center justify-between p-3 text-left text-sm hover:bg-surface-container-low"
+                                >
+                                    {{ $result->term }}
+                                    <flux:icon name="plus" class="size-4 text-on-surface-variant" />
+                                </button>
+                            @empty
+                                <div class="p-3 text-sm text-on-surface-variant">Nenhum conceito encontrado.</div>
+                            @endforelse
+                        </div>
+                    @endif
+                </div>
+
                 <div class="flex">
                     <flux:spacer />
                     <flux:button
