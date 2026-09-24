@@ -238,6 +238,10 @@
                 @endif
             </div>
 
+            <div class="mt-6">
+                <livewire:revisoes-da-referencia :reference-material-id="$this->id" wire:key="revisoes-referencia-{{ $this->id }}" />
+            </div>
+
             <form wire:submit="addReadingNote" class="mt-4 space-y-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
                 <div wire:ignore>
                     <div x-data="markdownEditor('readingNoteForm.body')">

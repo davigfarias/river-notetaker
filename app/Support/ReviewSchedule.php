@@ -80,6 +80,29 @@ final readonly class ReviewSchedule
     }
 
     /**
+     * Mesma escada, mas contada em dias corridos: usada por conteúdo sem um
+     * "dia de aula" para ancorar, como as anotações de leitura.
+     */
+    public static function dueDateForDaily(int $stage, CarbonInterface $from): ?CarbonImmutable
+    {
+        if (self::isConsolidated(self::normalizeStage($stage))) {
+            return null;
+        }
+
+        $daysAhead = self::STEPS[self::normalizeStage($stage)] ?? 1;
+
+        return CarbonImmutable::instance($from)->startOfDay()->addDays($daysAhead);
+    }
+
+    /**
+     * Data da primeira cobrança de uma anotação recém-criada: amanhã.
+     */
+    public static function firstDueDateDaily(CarbonInterface $from): ?CarbonImmutable
+    {
+        return self::dueDateForDaily(1, $from);
+    }
+
+    /**
      * Data da primeira cobrança das notas escritas antes da disciplina entrar na
      * rotação. Esse acúmulo já está devendo revisão, então vale desde a aula de
      * hoje, se houver, em vez de esperar o próximo encontro.

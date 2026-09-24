@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\ReviewSchedule;
 use Carbon\CarbonImmutable;
 use Database\Factories\ReadingNoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 
@@ -24,6 +26,9 @@ use Laravel\Scout\Searchable;
  * @property string|null $location
  * @property array<int, string>|null $tags
  * @property int|null $page_snapshot
+ * @property int $review_stage
+ * @property CarbonImmutable|null $next_review_at
+ * @property CarbonImmutable|null $consolidated_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
@@ -48,6 +53,9 @@ class ReadingNote extends Model
         return [
             'tags' => 'array',
             'page_snapshot' => 'integer',
+            'review_stage' => 'integer',
+            'next_review_at' => 'immutable_date',
+            'consolidated_at' => 'immutable_datetime',
         ];
     }
 
@@ -65,6 +73,30 @@ class ReadingNote extends Model
     public function accessToken(): BelongsTo
     {
         return $this->belongsTo(AccessToken::class);
+    }
+
+    /**
+     * @return MorphMany<ReviewLog, $this>
+     */
+    public function reviewLogs(): MorphMany
+    {
+        return $this->morphMany(ReviewLog::class, 'reviewable');
+    }
+
+    /**
+     * A anotação está cobrando revisão na data informada.
+     */
+    public function isDueForReview(CarbonImmutable $on): bool
+    {
+        return ! $this->isConsolidated()
+            && $this->next_review_at instanceof CarbonImmutable
+            && $this->next_review_at->lessThanOrEqualTo($on->startOfDay());
+    }
+
+    public function isConsolidated(): bool
+    {
+        return $this->consolidated_at instanceof CarbonImmutable
+            || ReviewSchedule::isConsolidated($this->review_stage ?? 0);
     }
 
     /**

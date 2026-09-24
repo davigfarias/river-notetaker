@@ -79,3 +79,26 @@ test('a escada inteira funciona quando a aula é no domingo', function () {
     expect($due?->toDateString())->toBe('2026-11-15')
         ->and($due?->isoWeekday())->toBe(Weekday::Sunday->value);
 });
+
+test('o intervalo diário é medido em dias corridos, sem dia de aula', function (int $stage, string $expected) {
+    $today = CarbonImmutable::parse('2026-09-17');
+
+    $due = ReviewSchedule::dueDateForDaily($stage, $today);
+
+    expect($due?->toDateString())->toBe($expected);
+})->with([
+    [1, '2026-09-18'],
+    [2, '2026-09-19'],
+    [3, '2026-09-21'],
+    [4, '2026-09-25'],
+]);
+
+test('uma anotação consolidada não recebe nova data diária', function () {
+    expect(ReviewSchedule::dueDateForDaily(5, CarbonImmutable::parse('2026-09-17')))->toBeNull();
+});
+
+test('a primeira cobrança diária de uma anotação nova é amanhã', function () {
+    $due = ReviewSchedule::firstDueDateDaily(CarbonImmutable::parse('2026-09-17'));
+
+    expect($due?->toDateString())->toBe('2026-09-18');
+});
