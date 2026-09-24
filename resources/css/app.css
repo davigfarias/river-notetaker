@@ -10,66 +10,113 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Flux hardcodes zinc-* throughout its stubs — remapped to Catppuccin Mocha's neutral scale so unpublished Flux components (modal, button, table, toast...) match the app. https://fluxui.dev/docs/theming */
-    --color-zinc-50: #cdd6f4;
-    --color-zinc-100: #bac2de;
-    --color-zinc-200: #a6adc8;
-    --color-zinc-300: #9399b2;
-    --color-zinc-400: #7f849c;
-    --color-zinc-500: #6c7086;
-    --color-zinc-600: #585b70;
-    --color-zinc-700: #45475a;
-    --color-zinc-800: #313244;
-    --color-zinc-900: #181825;
-    --color-zinc-950: #11111b;
+    /* Light mode — Tailwind's stock zinc scale (not remapped). Flux hardcodes zinc-* throughout its
+       stubs expecting normal Tailwind contrast; the dark theme below remaps it to Catppuccin instead. */
 
-    /* Mocha Studio palette — see mocha_studio/DESIGN.md */
-    --color-surface: #111222;
-    --color-surface-bright: #37384a;
-    --color-surface-container-lowest: #0b0d1d;
-    --color-surface-container-low: #191a2b;
-    --color-surface-container: #1d1e2f;
-    --color-surface-container-high: #27293a;
-    --color-surface-container-highest: #323345;
-    --color-surface-variant: #323345;
+    /* Light mode palette, styled after Laravel Cloud's dashboard */
+    --color-surface: #ffffff;
+    --color-surface-bright: #ffffff;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f9f9fb;
+    --color-surface-container: #f4f4f6;
+    --color-surface-container-high: #ececee;
+    --color-surface-container-highest: #e4e4e7;
+    --color-surface-variant: #ececee;
 
-    --color-on-surface: #e1e0f8;
-    --color-on-surface-variant: #cdc3d1;
-    --color-outline: #968e9a;
-    --color-outline-variant: #4a444f;
+    --color-on-surface: #11181c;
+    --color-on-surface-variant: #687076;
+    --color-outline: #8b8d98;
+    --color-outline-variant: #dbdbdf;
 
-    --color-primary: #e2c7ff;
-    --color-on-primary: #3f1e66;
-    --color-primary-container: #cba6f7;
-    --color-on-primary-container: #57377f;
+    /* Laravel Cloud's actual app chrome (login/dashboard, not the marketing site) is black-and-white:
+       solid buttons are near-black, not blue — blue only shows up as ordinary hyperlink color. --color-primary
+       drives all UI chrome here (buttons, active nav item, icons), so it goes monochrome; primary-container is
+       the hover/pressed shade one step lighter. Category colors elsewhere (badges, tags) are untouched —
+       those carry meaning and were never the complaint. */
+    --color-primary: #171717;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #3f3f46;
+    --color-on-primary-container: #f4f4f5;
 
     --color-accent: var(--color-primary);
     --color-accent-content: var(--color-primary-container);
     --color-accent-foreground: var(--color-on-primary);
 
-    --color-secondary: #bac3ff;
-    --color-on-secondary-container: #abb5f4;
-    --color-secondary-container: #3b457c;
+    /* Radix Indigo, same solid/text-safe pairing as primary above. */
+    --color-secondary: #3e63dd;
+    --color-secondary-container: #3a5bc7;
+    --color-on-secondary-container: #e8ecff;
 
-    --color-tertiary: #bad2ff;
-    --color-tertiary-container: #8cb7fd;
-    --color-on-tertiary-container: #0e4786;
+    /* Radix Cyan, same solid/text-safe pairing as primary above. */
+    --color-tertiary: #00a2c7;
+    --color-tertiary-container: #107d98;
+    --color-on-tertiary-container: #e0fbff;
 
-    --color-error: #ffb4ab;
-    --color-on-error: #690005;
-    --color-error-container: #93000a;
-    --color-on-error-container: #ffdad6;
+    --color-error: #dc2626;
+    --color-on-error: #ffffff;
+    --color-error-container: #fee2e2;
+    --color-on-error-container: #991b1b;
 
-    --color-background: #111222;
-    --color-on-background: #e1e0f8;
+    --color-background: #ffffff;
+    --color-on-background: #11181c;
 }
 
-/* Flux's own dist CSS sets --color-accent inside a .dark selector, which outranks the plain :root declaration from @theme above — this app is always .dark, so it needs the same treatment. https://fluxui.dev/docs/theming */
+/* Dark mode — the app's original Mocha Studio palette (Catppuccin-derived). See mocha_studio/DESIGN.md.
+   Flux's own dist CSS sets some of these vars (e.g. --color-accent) inside a .dark selector, which outranks
+   the plain :root declaration from @theme above, so every token needs re-declaring here too, not just for
+   the mode switch itself. https://fluxui.dev/docs/theming */
 @layer theme {
     .dark {
+        --color-zinc-50: #cdd6f4;
+        --color-zinc-100: #bac2de;
+        --color-zinc-200: #a6adc8;
+        --color-zinc-300: #9399b2;
+        --color-zinc-400: #7f849c;
+        --color-zinc-500: #6c7086;
+        --color-zinc-600: #585b70;
+        --color-zinc-700: #45475a;
+        --color-zinc-800: #313244;
+        --color-zinc-900: #181825;
+        --color-zinc-950: #11111b;
+
+        --color-surface: #111222;
+        --color-surface-bright: #37384a;
+        --color-surface-container-lowest: #0b0d1d;
+        --color-surface-container-low: #191a2b;
+        --color-surface-container: #1d1e2f;
+        --color-surface-container-high: #27293a;
+        --color-surface-container-highest: #323345;
+        --color-surface-variant: #323345;
+
+        --color-on-surface: #e1e0f8;
+        --color-on-surface-variant: #cdc3d1;
+        --color-outline: #968e9a;
+        --color-outline-variant: #4a444f;
+
+        --color-primary: #e2c7ff;
+        --color-on-primary: #3f1e66;
+        --color-primary-container: #cba6f7;
+        --color-on-primary-container: #57377f;
+
         --color-accent: var(--color-primary);
         --color-accent-content: var(--color-primary-container);
         --color-accent-foreground: var(--color-on-primary);
+
+        --color-secondary: #bac3ff;
+        --color-on-secondary-container: #abb5f4;
+        --color-secondary-container: #3b457c;
+
+        --color-tertiary: #bad2ff;
+        --color-tertiary-container: #8cb7fd;
+        --color-on-tertiary-container: #0e4786;
+
+        --color-error: #ffb4ab;
+        --color-on-error: #690005;
+        --color-error-container: #93000a;
+        --color-on-error-container: #ffdad6;
+
+        --color-background: #111222;
+        --color-on-background: #e1e0f8;
     }
 }
 
@@ -139,9 +186,14 @@
 
 
 :root {
+  --sb-thumb-color: #dbdbdf;
+  --sb-thumb-color-hover: #b9bbc6;
+  --sb-size: 8px;
+}
+
+.dark {
   --sb-thumb-color: #45475a;
   --sb-thumb-color-hover: #585b70;
-  --sb-size: 8px;
 }
 
 /* Single styled scrollbar for every scroll container: page shell, panes, and rendered markdown. */

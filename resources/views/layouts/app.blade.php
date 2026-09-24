@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="dark" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,6 +9,13 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
+    {{-- Aplica o tema salvo antes do CSS carregar, evitando flash do tema errado. Padrão: dark. --}}
+    <script>
+        if ((localStorage.getItem('theme') ?? 'dark') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -17,7 +24,7 @@
 
 <body class="h-screen overflow-hidden flex flex-col bg-background text-on-background antialiased">
 
-<div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,var(--color-primary-container),transparent_60%)] opacity-20"></div>
+<div class="pointer-events-none fixed inset-0 -z-10 hidden bg-[radial-gradient(ellipse_at_top_right,var(--color-primary-container),transparent_60%)] opacity-20 dark:block"></div>
 
 <flux:header
     container
@@ -78,6 +85,33 @@
     <flux:spacer />
 
     <div class="flex items-center gap-2">
+        <div class="hidden dark:block">
+            <flux:button
+                x-data
+                x-on:click="
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                "
+                variant="ghost"
+                icon="sun"
+                size="sm"
+                aria-label="Alternar para modo claro"
+            />
+        </div>
+        <div class="block dark:hidden">
+            <flux:button
+                x-data
+                x-on:click="
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                "
+                variant="ghost"
+                icon="moon"
+                size="sm"
+                aria-label="Alternar para modo escuro"
+            />
+        </div>
+
         <livewire:busca-global />
 
         {{ $headerActions ?? '' }}
