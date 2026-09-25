@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 
 /**
@@ -39,6 +40,14 @@ class Concepts extends Model
     public function relatedConcepts(): BelongsToMany
     {
         return $this->belongsToMany(Concepts::class, 'concept_concept', 'concept_id', 'related_concept_id');
+    }
+
+    /**
+     * @return HasMany<Principle, $this>
+     */
+    public function principles(): HasMany
+    {
+        return $this->hasMany(Principle::class, 'concept_id');
     }
 
     /**

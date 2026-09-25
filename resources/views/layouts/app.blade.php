@@ -53,6 +53,15 @@
             </flux:navbar.item>
         </a>
 
+        <a href="{{ route('principios') }}" wire:navigate class="contents">
+            <flux:navbar.item
+                icon="scale"
+                :current="request()->routeIs('principios*')"
+            >
+                Princípios
+            </flux:navbar.item>
+        </a>
+
         <a href="{{ route('pastoral') }}" wire:navigate class="contents">
             <flux:navbar.item
                 icon="users"
@@ -138,6 +147,12 @@
            class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
             <flux:icon name="light-bulb" class="size-6" />
             <span>Conceitos</span>
+        </a>
+        <a wire:navigate href="{{ route('principios') }}"
+           @if (request()->routeIs('principios*')) data-current @endif
+           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
+            <flux:icon name="scale" class="size-6" />
+            <span>Princípios</span>
         </a>
         <a wire:navigate href="{{ route('pastoral') }}"
            @if (request()->routeIs('pastoral')) data-current @endif

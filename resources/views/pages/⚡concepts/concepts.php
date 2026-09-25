@@ -3,6 +3,7 @@
 use App\Actions\{
     AddSoleConcept,
     GenerateConceptDefinition,
+    GetConceptPrincipleUsages,
     GetConceptsByLetter,
     GetRecentConcepts,
     LinkConcepts,
@@ -54,6 +55,18 @@ new #[Title('Conceitos')] #[Lazy] class extends Component
         };
 
         return $check->success ? $check->data : collect();
+    }
+
+    /**
+     * @return array<int, \Illuminate\Support\Collection<int, \App\Models\Principle>>
+     */
+    #[Computed]
+    public function conceptUsages(): array
+    {
+        return app(GetConceptPrincipleUsages::class)
+            ->handle($this->concepts->pluck('id')->all())
+            ->data
+            ->all();
     }
 
     /**

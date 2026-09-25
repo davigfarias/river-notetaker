@@ -144,10 +144,37 @@
                         </button>
 
                         <!-- Título do Conceito -->
-                        <div class="relative z-10 mb-3">
+                        <div class="relative z-10 mb-3 flex items-center gap-2">
                             <flux:heading size="lg" class="group-hover:text-primary transition-colors">
                                 {{ $concept->term }}
                             </flux:heading>
+
+                            @if (($this->conceptUsages[$concept->id] ?? null)?->isNotEmpty())
+                                <div x-data="conceptPopover" class="relative">
+                                    <button type="button" x-ref="trigger" x-on:mouseenter="open" x-on:mouseleave="scheduleClose" class="text-on-surface-variant hover:text-primary">
+                                        <flux:icon name="information-circle" class="size-4" />
+                                    </button>
+
+                                    <div
+                                        x-ref="panel"
+                                        popover="manual"
+                                        x-on:mouseenter="open"
+                                        x-on:mouseleave="scheduleClose"
+                                        class="fixed z-50 m-0 w-64 rounded-xl border border-surface-variant bg-surface-container p-3 text-sm leading-relaxed text-on-surface shadow-xl"
+                                    >
+                                        <p class="mb-2 font-semibold">Aparece em:</p>
+                                        <ul class="space-y-1">
+                                            @foreach ($this->conceptUsages[$concept->id] as $usage)
+                                                <li>
+                                                    <a href="{{ route('principios.show', $usage->principleTopic->slug) }}" wire:navigate class="text-primary hover:underline">
+                                                        {{ $usage->principleTopic->title }}
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Definição (Sem ícone, fonte grande) -->
