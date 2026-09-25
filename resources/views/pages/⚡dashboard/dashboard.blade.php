@@ -8,7 +8,7 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach(range(1, 5) as $i)
-                <div class="group border-surface-variant bg-surface-container-low hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md">
+                <div class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md">
 
                 <div class="primary bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
 
@@ -61,7 +61,7 @@
                         @foreach ($group['disciplines'] as $discipline)
                             <div
                                 wire:key="discipline-{{ $discipline->id }}"
-                                class="group border-surface-variant bg-surface-container-low hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md"
+                                class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md"
                             >
                                 <a
                                     href="{{ route('disciplinas.show', $discipline->slug) }}"
