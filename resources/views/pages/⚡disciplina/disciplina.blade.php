@@ -11,6 +11,42 @@
                 </div>
                 <flux:heading size="lg">{{ $disciplineDTO->title }}</flux:heading>
                 <flux:text class="mt-1">Histórico de Notas</flux:text>
+
+                @if ($this->allPrincipleTopics->isNotEmpty())
+                    @php
+                        $linkedTopics = $this->allPrincipleTopics->whereIn('id', $this->linkedTopicIds);
+                        $availableTopics = $this->allPrincipleTopics->whereNotIn('id', $this->linkedTopicIds);
+                    @endphp
+
+                    <div class="mt-3 space-y-2">
+                        <flux:text size="sm" class="text-on-surface-variant">Temas de princípios</flux:text>
+
+                        @if ($linkedTopics->isNotEmpty())
+                            <div class="flex flex-wrap gap-1">
+                                @foreach ($linkedTopics as $topic)
+                                    <flux:badge size="sm" wire:key="linked-topic-{{ $topic->id }}">
+                                        {{ $topic->title }}
+                                        <flux:badge.close wire:click="toggleTopic({{ $topic->id }})" />
+                                    </flux:badge>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @if ($availableTopics->isNotEmpty())
+                            <flux:select wire:model.live="topicToAdd" size="sm">
+                                <flux:select.option value="">Adicionar tema...</flux:select.option>
+                                @foreach ($availableTopics as $topic)
+                                    <flux:select.option value="{{ $topic->id }}">{{ $topic->title }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                        @else
+                            <flux:text size="sm" class="text-on-surface-variant">
+                                Todos os temas já vinculados.
+                                <a href="{{ route('principios') }}" wire:navigate class="text-primary hover:underline">Criar outro tema</a>
+                            </flux:text>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <div class="border-outline-variant shrink-0 border-b p-3">
@@ -101,9 +137,12 @@
                         </div>
 
                         @if (filled($this->selectedNote->summary))
-                            <div class="prose dark:prose-invert">
-                                {!! Str::markdown($this->selectedNote->summary) !!}
-                            </div>
+                            @include('partials.note-field-links', [
+                                'field' => 'summary',
+                                'html' => $this->renderWithLinks($this->selectedNote->summary, $this->notePrincipleLinks->get('summary', collect())),
+                                'links' => $this->notePrincipleLinks->get('summary', collect()),
+                                'linkablePrinciples' => $this->linkablePrinciples,
+                            ])
                         @else
                             <div class="border-outline-variant/60 flex flex-col items-start gap-2 rounded-lg border border-dashed p-4">
                                 <flux:text size="sm" class="text-on-surface-variant">
@@ -123,16 +162,12 @@
                         </div>
                         <div class="flex flex-wrap gap-2">
                             @foreach ($this->allTags as $tag)
-                                <button
-                                    type="button"
+                                <x-tag-toggle
                                     wire:click="toggleTag('{{ $tag->title }}')"
-                                    class="rounded-full border px-3 py-1.5 text-sm transition-all
-                                    {{ in_array($tag->title, $this->selectedNote->tags ?? [], true)
-                                        ? 'border-primary bg-primary text-white'
-                                        : 'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' }}"
+                                    :active="in_array($tag->title, $this->selectedNote->tags ?? [], true)"
                                 >
                                     {{ $tag->title }}
-                                </button>
+                                </x-tag-toggle>
                             @endforeach
                         </div>
                     </section>
@@ -220,9 +255,12 @@
                                                 <flux:icon name="pencil" class="size-4" />
                                             </button>
                                         </div>
-                                        <div class="prose dark:prose-invert">
-                                            {!! Str::markdown($this->selectedNote->impressions) !!}
-                                        </div>
+                                        @include('partials.note-field-links', [
+                                            'field' => 'impressions',
+                                            'html' => $this->renderWithLinks($this->selectedNote->impressions, $this->notePrincipleLinks->get('impressions', collect())),
+                                            'links' => $this->notePrincipleLinks->get('impressions', collect()),
+                                            'linkablePrinciples' => $this->linkablePrinciples,
+                                        ])
                                     </section>
                                 @endif
 
@@ -240,9 +278,12 @@
                                                 <flux:icon name="pencil" class="size-4" />
                                             </button>
                                         </div>
-                                        <div class="prose dark:prose-invert">
-                                            {!! Str::markdown($this->selectedNote->life_experiences) !!}
-                                        </div>
+                                        @include('partials.note-field-links', [
+                                            'field' => 'life_experiences',
+                                            'html' => $this->renderWithLinks($this->selectedNote->life_experiences, $this->notePrincipleLinks->get('life_experiences', collect())),
+                                            'links' => $this->notePrincipleLinks->get('life_experiences', collect()),
+                                            'linkablePrinciples' => $this->linkablePrinciples,
+                                        ])
                                     </section>
                                 @endif
                             </div>
@@ -412,6 +453,36 @@
                             <div class="flex">
                                 <flux:spacer />
                                 <flux:button variant="primary" wire:click="addAdvice">Adicionar</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
+
+                    <flux:modal name="link-principle" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
+                        <div class="space-y-4">
+                            <flux:heading size="lg">Linkar princípio</flux:heading>
+                            <flux:text class="text-sm text-on-surface-variant italic">"{{ $pendingSnippet }}"</flux:text>
+
+                            <flux:input
+                                wire:model.live.debounce.300ms="principleSearch"
+                                icon="magnifying-glass"
+                                placeholder="Buscar princípio..."
+                                clearable
+                            />
+
+                            <div class="max-h-72 divide-y divide-surface-variant overflow-y-auto rounded-lg border border-surface-variant">
+                                @forelse ($this->filteredLinkablePrinciples as $principle)
+                                    <button
+                                        type="button"
+                                        wire:key="linkable-principle-{{ $principle->id }}"
+                                        wire:click="linkPendingPrinciple({{ $principle->id }})"
+                                        class="flex w-full items-center gap-2 p-3 text-left text-sm hover:bg-surface-container-low"
+                                    >
+                                        <flux:badge size="sm">{{ $principle->principleTopic->title }}</flux:badge>
+                                        {{ $principle->title ?? $principle->concept->term }}
+                                    </button>
+                                @empty
+                                    <div class="p-3 text-sm text-on-surface-variant">Nenhum princípio encontrado.</div>
+                                @endforelse
                             </div>
                         </div>
                     </flux:modal>

@@ -114,6 +114,14 @@ class Notes extends Model
     }
 
     /**
+     * @return HasMany<PrincipleNoteLink, $this>
+     */
+    public function principleLinks(): HasMany
+    {
+        return $this->hasMany(PrincipleNoteLink::class, 'note_id');
+    }
+
+    /**
      * @return BelongsToMany<ReferenceMaterial, $this>
      */
     public function referenceMaterials(): BelongsToMany

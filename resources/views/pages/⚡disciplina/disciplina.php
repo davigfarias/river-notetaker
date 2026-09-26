@@ -5,18 +5,27 @@ namespace App\Livewire;
 use App\Actions\AddAdviceToNote;
 use App\Actions\AddConceptToNote;
 use App\Actions\GetDisciplineNotes as DisciplineNotes;
+use App\Actions\GetLinkableDisciplinePrinciples;
+use App\Actions\GetNotePrincipleLinks;
+use App\Actions\GetPrincipleTopics;
 use App\Actions\GetSingleDisciplineData as DisciplineData;
 use App\Actions\GetTags;
+use App\Actions\LinkPrincipleToNote;
 use App\Actions\ObserveTerm;
 use App\Actions\SubActions\UpdateNote;
+use App\Actions\ToggleDisciplineTopic;
+use App\Actions\UnlinkPrincipleFromNote;
 use App\Actions\UpdateAdvice;
 use App\Actions\UpdateConcept;
 use App\DTO\DisciplinesDTO;
 use App\DTO\NotesDTO;
 use App\DTO\SoleAdviceDTO;
 use App\DTO\SoleConceptDTO;
+use App\Enums\NoteAnnotatableField;
+use App\Models\Disciplines;
 use Flux\Flux;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\Attributes\Title;
@@ -65,6 +74,14 @@ new #[Title('Disciplinas')] class extends Component
 
     public bool $addingAdvice = false;
 
+    public string $pendingField = '';
+
+    public string $pendingSnippet = '';
+
+    public string $principleSearch = '';
+
+    public ?int $topicToAdd = null;
+
     public function boot(
         DisciplineData $disciplineData,
         DisciplineNotes $disciplineNotes,
@@ -109,6 +126,145 @@ new #[Title('Disciplinas')] class extends Component
     {
         $this->selectedNoteId = $id;
         $this->mobileDetail = true;
+    }
+
+    /**
+     * @return Collection<string, Collection<int, \App\Models\PrincipleNoteLink>>
+     */
+    #[Computed]
+    public function notePrincipleLinks(): Collection
+    {
+        return app(GetNotePrincipleLinks::class)
+            ->handle($this->selectedNote->id)
+            ->data
+            ->groupBy(fn ($link) => $link->field->value);
+    }
+
+    /**
+     * @return Collection<int, \App\Models\Principle>
+     */
+    #[Computed]
+    public function linkablePrinciples(): Collection
+    {
+        return app(GetLinkableDisciplinePrinciples::class)->handle($this->disciplineDTO->id)->data;
+    }
+
+    /**
+     * @return Collection<int, \App\Models\Principle>
+     */
+    #[Computed]
+    public function filteredLinkablePrinciples(): Collection
+    {
+        $principles = $this->linkablePrinciples;
+
+        if (blank($this->principleSearch)) {
+            return $principles;
+        }
+
+        $term = mb_strtolower($this->principleSearch);
+
+        return $principles
+            ->filter(fn ($p) => str_contains(mb_strtolower($p->title ?? $p->concept->term), $term))
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, \App\Models\PrincipleTopic>
+     */
+    #[Computed]
+    public function allPrincipleTopics(): Collection
+    {
+        return app(GetPrincipleTopics::class)->handle()->data;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    #[Computed]
+    public function linkedTopicIds(): array
+    {
+        return Disciplines::find($this->disciplineDTO->id)->principleTopics->pluck('id')->all();
+    }
+
+    public function updatedTopicToAdd(ToggleDisciplineTopic $action): void
+    {
+        $topicId = $this->topicToAdd;
+        $this->topicToAdd = null;
+
+        if ($topicId === null || in_array($topicId, $this->linkedTopicIds, true)) {
+            return;
+        }
+
+        $this->toggleTopic($topicId, $action);
+    }
+
+    public function toggleTopic(int $topicId, ToggleDisciplineTopic $action): void
+    {
+        $outcome = $action->handle($this->disciplineDTO->id, $topicId);
+
+        if (! $outcome->success) {
+            Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
+        }
+
+        unset($this->linkedTopicIds, $this->linkablePrinciples, $this->filteredLinkablePrinciples);
+    }
+
+    public function renderWithLinks(string $markdown, Collection $links): string
+    {
+        $html = Str::markdown($markdown);
+
+        foreach ($links as $link) {
+            $escaped = e($link->snippet);
+            $principleLabel = $link->principle->title ?? $link->principle->concept->term;
+
+            $html = str_replace(
+                $escaped,
+                '<mark class="rounded bg-primary/20 px-0.5" title="Princípio: '.e($principleLabel).'" data-link-id="'.$link->id.'">'.$escaped.'</mark>',
+                $html
+            );
+        }
+
+        return $html;
+    }
+
+    public function startLinkingPrinciple(string $field, string $snippet): void
+    {
+        if (! NoteAnnotatableField::tryFrom($field)) {
+            return;
+        }
+
+        $this->pendingField = $field;
+        $this->pendingSnippet = $snippet;
+        $this->principleSearch = '';
+        $this->modal('link-principle')->show();
+    }
+
+    public function linkPendingPrinciple(int $principleId, LinkPrincipleToNote $action): void
+    {
+        $outcome = $action->handle($principleId, $this->selectedNote->id, $this->pendingField, $this->pendingSnippet);
+
+        match ($outcome->success) {
+            true => Flux::toast(text: $outcome->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+        };
+
+        if ($outcome->success) {
+            $this->modal('link-principle')->close();
+            $this->reset('pendingField', 'pendingSnippet', 'principleSearch');
+            unset($this->notePrincipleLinks);
+        }
+    }
+
+    public function unlinkPrincipleFromNote(int $linkId, UnlinkPrincipleFromNote $action): void
+    {
+        $outcome = $action->handle($linkId);
+
+        match ($outcome->success) {
+            true => Flux::toast(text: $outcome->message, variant: 'success'),
+            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+        };
+
+        unset($this->notePrincipleLinks);
     }
 
     #[Computed]

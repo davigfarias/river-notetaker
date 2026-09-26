@@ -16,6 +16,18 @@
         <div class="mb-8">
             <flux:text class="uppercase tracking-wide text-on-surface-variant">Tema</flux:text>
             <flux:heading size="xl" level="1">{{ $this->topic->title }}</flux:heading>
+
+            @if ($this->topic->disciplines->isNotEmpty())
+                <div class="mt-3 flex flex-wrap gap-1">
+                    @foreach ($this->topic->disciplines as $discipline)
+                        <flux:badge size="sm">{{ $discipline->title }}</flux:badge>
+                    @endforeach
+                </div>
+            @else
+                <flux:text class="mt-3 text-sm text-on-surface-variant">
+                    Nenhuma disciplina usa este tema ainda. Vincule pela tela da disciplina.
+                </flux:text>
+            @endif
         </div>
 
         <div class="mb-10 flex flex-wrap justify-center gap-4">
@@ -102,12 +114,33 @@
                             <x-timeline.content class="group">
                                 <div class="flex items-start gap-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-6">
                                     <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            @if ($principle->type === \App\Enums\PrincipleType::Concept)
+                                                <flux:badge size="sm">Conceito</flux:badge>
+                                            @endif
+
+                                            @if ($principle->noteLinks->isNotEmpty())
+                                                <x-info-popover>
+                                                    <p class="mb-2 font-semibold">Aplicado em:</p>
+                                                    <ul class="space-y-2">
+                                                        @foreach ($principle->noteLinks as $link)
+                                                            <li>
+                                                                <a href="{{ route('disciplinas.show', ['slug' => $link->note->discipline->slug, 'nota' => $link->note_id]) }}" wire:navigate class="block text-primary hover:underline">
+                                                                    {{ $link->note->title }}
+                                                                </a>
+                                                                <p class="text-xs text-on-surface-variant whitespace-pre-wrap">“{{ $link->snippet }}”</p>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </x-info-popover>
+                                            @endif
+                                        </div>
+
                                         @if ($principle->type === \App\Enums\PrincipleType::Concept)
-                                            <flux:badge size="sm" class="mb-2">Conceito</flux:badge>
-                                            <flux:heading size="lg">{{ $principle->concept->term }}</flux:heading>
+                                            <flux:heading size="lg" class="mt-2">{{ $principle->concept->term }}</flux:heading>
                                             <p class="mt-2 text-on-surface-variant leading-relaxed whitespace-pre-wrap">{{ $principle->concept->definition }}</p>
                                         @else
-                                            <flux:heading size="lg">{{ $principle->title }}</flux:heading>
+                                            <flux:heading size="lg" class="mt-2">{{ $principle->title }}</flux:heading>
                                             <div class="prose dark:prose-invert max-w-none mt-2 leading-relaxed">
                                                 {!! Str::markdown($principle->body) !!}
                                             </div>

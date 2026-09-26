@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -53,6 +54,14 @@ class Principle extends Model
     public function concept(): BelongsTo
     {
         return $this->belongsTo(Concepts::class);
+    }
+
+    /**
+     * @return HasMany<PrincipleNoteLink, $this>
+     */
+    public function noteLinks(): HasMany
+    {
+        return $this->hasMany(PrincipleNoteLink::class);
     }
 
     protected static function newFactory(): PrincipleFactory

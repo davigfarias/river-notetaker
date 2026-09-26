@@ -217,14 +217,46 @@ document.addEventListener('alpine:init', () => {
     // fica numa variável de closure, fora do `this` reativo do componente.
     Alpine.data('conceptGraph', (initialGraph) => {
         let network = null;
+        let graph = initialGraph;
+
+        // Acima disso a física contínua (arrastar com "mola") custa CPU demais;
+        // estabiliza uma vez e congela o layout.
+        const LARGE_GRAPH_NODES = 300;
 
         return {
+            // O mapa fica num <details> fechado: montar só ao abrir evita travar
+            // a página inteira com a simulação de centenas de nós.
             init() {
+                const details = this.$el.closest('details');
+
+                if (!details || details.open) {
+                    this.mount();
+
+                    return;
+                }
+
+                details.addEventListener('toggle', () => details.open && this.mount());
+            },
+            mount() {
+                if (network) {
+                    return;
+                }
+
+                const isLarge = graph.nodes.length > LARGE_GRAPH_NODES;
+
                 network = new Network(
                     this.$refs.container,
-                    { nodes: initialGraph.nodes, edges: initialGraph.edges },
+                    { nodes: graph.nodes, edges: graph.edges },
                     {
-                        physics: { stabilization: true },
+                        // improvedLayout (Kamada-Kawai) é o que explode com muitos nós.
+                        layout: { improvedLayout: false },
+                        // updateInterval baixo = vis-network devolve o controle ao
+                        // navegador com mais frequência (blocos curtos, sem engasgo).
+                        physics: {
+                            solver: 'barnesHut',
+                            barnesHut: { theta: isLarge ? 0.8 : 0.5 },
+                            stabilization: { iterations: isLarge ? 100 : 400, updateInterval: 5 },
+                        },
                         nodes: {
                             shape: 'dot',
                             size: 12,
@@ -237,18 +269,23 @@ document.addEventListener('alpine:init', () => {
                         interaction: { hover: true, tooltipDelay: 100, zoomView: true, dragView: true },
                     },
                 );
+
+                if (isLarge) {
+                    network.once('stabilizationIterationsDone', () => network.setOptions({ physics: false }));
+                }
             },
-            updateGraph(graph) {
-                network.setData({ nodes: graph.nodes, edges: graph.edges });
+            updateGraph(newGraph) {
+                graph = newGraph;
+                network?.setData({ nodes: graph.nodes, edges: graph.edges });
             },
             zoomIn() {
-                network.moveTo({ scale: network.getScale() * 1.3, animation: { duration: 150 } });
+                network?.moveTo({ scale: network.getScale() * 1.3, animation: { duration: 150 } });
             },
             zoomOut() {
-                network.moveTo({ scale: network.getScale() / 1.3, animation: { duration: 150 } });
+                network?.moveTo({ scale: network.getScale() / 1.3, animation: { duration: 150 } });
             },
             resetZoom() {
-                network.fit({ animation: { duration: 200 } });
+                network?.fit({ animation: { duration: 200 } });
             },
             destroy() {
                 network?.destroy();
@@ -295,6 +332,84 @@ document.addEventListener('alpine:init', () => {
         },
         destroy() {
             this.close();
+        },
+    }));
+
+    // Posiciona um botão "+" flutuante sobre um trecho de texto selecionado
+    // (dentro de summary/impressions/life_experiences já renderizados).
+    // Clicar nele abre, no servidor, o modal 'link-principle' (busca entre
+    // todos os princípios das disciplinas da nota) — este componente só
+    // cuida da seleção e do posicionamento, nunca lista princípios.
+    Alpine.data('linkable', (field) => ({
+        pendingSnippet: '',
+        virtualEl: null,
+        cleanup: null,
+        onDocumentSelectionChange: null,
+        init() {
+            // O Chrome só desfaz a seleção depois do mouseup quando se clica
+            // dentro do trecho já selecionado — então o mouseup ainda vê a
+            // seleção velha. Esconder aqui, quando a seleção de fato some,
+            // evita o "+" preso na tela.
+            this.onDocumentSelectionChange = () => {
+                const selection = window.getSelection();
+
+                if (!selection || selection.isCollapsed || !this.$el.contains(selection.anchorNode)) {
+                    this.hideTrigger();
+                }
+            };
+
+            document.addEventListener('selectionchange', this.onDocumentSelectionChange);
+        },
+        hideTrigger() {
+            this.cleanup?.();
+            this.cleanup = null;
+            this.$refs.trigger?.hidePopover();
+        },
+        anchor(el) {
+            this.cleanup?.();
+            this.cleanup = autoUpdate(this.virtualEl, el, () => {
+                computePosition(this.virtualEl, el, {
+                    strategy: 'fixed',
+                    placement: 'top',
+                    middleware: [offset(6), flip(), shift({ padding: 8 })],
+                }).then(({ x, y }) => {
+                    Object.assign(el.style, { left: `${x}px`, top: `${y}px` });
+                });
+            });
+        },
+        onSelectionChange(event) {
+            // Clicar no próprio "+" (que é `popover`) também dispara
+            // `mouseup`, que borbulha até aqui — sem essa guarda, reabriria
+            // o "+" no meio do clique.
+            if (event.target.closest('[popover]')) {
+                return;
+            }
+
+            const selection = window.getSelection();
+            const text = selection?.toString().trim();
+
+            if (!text || !this.$el.contains(selection.anchorNode)) {
+                this.$refs.trigger.hidePopover();
+
+                return;
+            }
+
+            this.pendingSnippet = text;
+
+            const range = selection.getRangeAt(0);
+            this.virtualEl = { getBoundingClientRect: () => range.getBoundingClientRect() };
+
+            this.anchor(this.$refs.trigger);
+            this.$refs.trigger.showPopover();
+        },
+        openPicker() {
+            this.hideTrigger();
+            this.$wire.call('startLinkingPrinciple', field, this.pendingSnippet);
+            window.getSelection()?.removeAllRanges();
+        },
+        destroy() {
+            this.cleanup?.();
+            document.removeEventListener('selectionchange', this.onDocumentSelectionChange);
         },
     }));
 

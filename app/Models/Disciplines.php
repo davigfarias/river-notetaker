@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 
@@ -90,6 +91,18 @@ class Disciplines extends Model
     public function note(): HasMany
     {
         return $this->hasMany(Notes::class);
+    }
+
+    /**
+     * Temas de princípios que essa disciplina usa como fonte pra linkar
+     * trechos de nota (ex.: Teologia Apocalíptica pode usar temas de
+     * Hermenêutica e de Teologia Sistemática ao mesmo tempo).
+     *
+     * @return BelongsToMany<PrincipleTopic, $this>
+     */
+    public function principleTopics(): BelongsToMany
+    {
+        return $this->belongsToMany(PrincipleTopic::class, 'discipline_principle_topic', 'discipline_id', 'principle_topic_id');
     }
 
     /**
