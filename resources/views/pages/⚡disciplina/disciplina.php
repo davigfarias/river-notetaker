@@ -211,7 +211,7 @@ new #[Title('Disciplinas')] class extends Component
 
     public function renderWithLinks(string $markdown, Collection $links): string
     {
-        $html = Str::markdown($markdown);
+        $html = Str::markdownRich($markdown);
 
         foreach ($links as $link) {
             $escaped = e($link->snippet);

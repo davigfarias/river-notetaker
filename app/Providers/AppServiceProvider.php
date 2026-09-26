@@ -7,7 +7,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use League\CommonMark\Extension\Footnote\FootnoteExtension;
+use League\CommonMark\Extension\Highlight\HighlightExtension;
 use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
         Livewire::addPersistentMiddleware([
             EnsureAccessTokenIsValid::class,
         ]);
+
+        Str::macro('markdownRich', fn (string $string, array $options = []): string => Str::markdown($string, $options, [
+            new FootnoteExtension,
+            new HighlightExtension,
+        ]));
     }
 
     /**

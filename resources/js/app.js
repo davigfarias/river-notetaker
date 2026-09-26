@@ -85,6 +85,36 @@ const pickVoice = (lang) => {
 // Número de barras da waveform do player de locução.
 const BAR_COUNT = 28;
 
+// Envolve a seleção com `==destaque==` (extensão Highlight do CommonMark, renderiza como <mark>).
+function toggleHighlight(editor) {
+    const cm = editor.codemirror;
+    const selection = cm.getSelection();
+    cm.replaceSelection(`==${selection || 'texto'}==`);
+
+    if (!selection) {
+        const cursor = cm.getCursor();
+        cm.setSelection({ line: cursor.line, ch: cursor.ch - 7 }, { line: cursor.line, ch: cursor.ch - 2 });
+    }
+
+    cm.focus();
+}
+
+// Insere uma referência de rodapé `[^n]` no cursor e sua definição `[^n]: ` no fim do texto
+// (extensão Footnote do CommonMark). `n` é o próximo número livre no documento.
+function insertFootnote(editor) {
+    const cm = editor.codemirror;
+    const used = [...cm.getValue().matchAll(/\[\^(\d+)\]/g)].map((match) => parseInt(match[1], 10));
+    const next = used.length ? Math.max(...used) + 1 : 1;
+
+    cm.replaceSelection(`[^${next}]`);
+
+    const lastLine = cm.lastLine();
+    const needsBlankLine = cm.getLine(lastLine).trim() !== '';
+    cm.replaceRange(`${needsBlankLine ? '\n\n' : '\n'}[^${next}]: `, { line: lastLine, ch: cm.getLine(lastLine).length });
+    cm.setCursor({ line: cm.lastLine(), ch: cm.getLine(cm.lastLine()).length });
+    cm.focus();
+}
+
 document.addEventListener('alpine:init', () => {
     // Indica se a página de criar nota tem edições não salvas.
     // Alimentado por `resources/views/pages/⚡create/create.js` (100% client-side).
@@ -104,7 +134,29 @@ document.addEventListener('alpine:init', () => {
         init() {
             const options = {
                 element: this.$refs.textarea,
-                toolbar: ['bold', 'italic', 'horizontal-rule', '|', 'unordered-list', 'ordered-list'],
+                toolbar: [
+                    'bold',
+                    'italic',
+                    {
+                        name: 'highlight',
+                        action: toggleHighlight,
+                        className: 'fa fa-tint',
+                        title: 'Destacar',
+                    },
+                    'horizontal-rule',
+                    '|',
+                    'unordered-list',
+                    'ordered-list',
+                    '|',
+                    'image',
+                    'table',
+                    {
+                        name: 'footnote',
+                        action: insertFootnote,
+                        className: 'fa fa-superscript',
+                        title: 'Nota de rodapé',
+                    },
+                ],
                 spellChecker: false,
                 status: false,
                 initialValue: this.$wire.$get(field) ?? '',

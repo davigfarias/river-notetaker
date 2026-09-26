@@ -142,7 +142,7 @@
                                         @else
                                             <flux:heading size="lg" class="mt-2">{{ $principle->title }}</flux:heading>
                                             <div class="prose dark:prose-invert max-w-none mt-2 leading-relaxed">
-                                                {!! Str::markdown($principle->body) !!}
+                                                {!! Str::markdownRich($principle->body) !!}
                                             </div>
                                         @endif
                                     </div>

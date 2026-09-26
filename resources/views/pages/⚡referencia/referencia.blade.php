@@ -161,7 +161,7 @@
                 @forelse ($this->material->citations as $citation)
                     <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4" x-data="readAloud(@js($citation->quote_text))">
                         <div class="prose dark:prose-invert prose-p:italic prose-p:text-on-surface-variant max-w-none leading-relaxed">
-                            {!! Str::markdown($citation->quote_text) !!}
+                            {!! Str::markdownRich($citation->quote_text) !!}
                         </div>
                         <div class="mt-2 flex items-center gap-3">
                             @if ($citation->location)
@@ -278,7 +278,7 @@
                             </div>
                         </div>
                         <div class="prose dark:prose-invert mt-2 max-w-none leading-relaxed text-on-surface">
-                            {!! Str::markdown($note->body) !!}
+                            {!! Str::markdownRich($note->body) !!}
                         </div>
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             @if ($note->location)
