@@ -1,3 +1,13 @@
+@php
+    $navItems = [
+        ['route' => 'dashboard', 'icon' => 'squares-2x2', 'label' => 'Disciplinas', 'active' => ['dashboard']],
+        ['route' => 'concepts', 'icon' => 'light-bulb', 'label' => 'Conceitos', 'active' => ['concepts']],
+        ['route' => 'principios', 'icon' => 'scale', 'label' => 'Princípios', 'active' => ['principios*']],
+        ['route' => 'pastoral', 'icon' => 'users', 'label' => 'Conselhos Pastorais', 'mobileLabel' => 'Conselhos', 'active' => ['pastoral']],
+        ['route' => 'referencias', 'icon' => 'book-open', 'label' => 'Referências', 'active' => ['referencias*', 'referencias.show']],
+        ['route' => 'historico', 'icon' => 'clock', 'label' => 'Histórico', 'active' => ['historico']],
+    ];
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -35,59 +45,16 @@
 
     <flux:navbar class="max-md:hidden">
 
-        <a href="{{ route('dashboard') }}" wire:navigate class="contents">
-            <flux:navbar.item
-                icon="squares-2x2"
-                :current="request()->routeIs('dashboard')"
-            >
-                Disciplinas
-            </flux:navbar.item>
-        </a>
-
-        <a href="{{ route('concepts') }}" wire:navigate class="contents">
-            <flux:navbar.item
-                icon="light-bulb"
-                :current="request()->routeIs('concepts')"
-            >
-                Conceitos
-            </flux:navbar.item>
-        </a>
-
-        <a href="{{ route('principios') }}" wire:navigate class="contents">
-            <flux:navbar.item
-                icon="scale"
-                :current="request()->routeIs('principios*')"
-            >
-                Princípios
-            </flux:navbar.item>
-        </a>
-
-        <a href="{{ route('pastoral') }}" wire:navigate class="contents">
-            <flux:navbar.item
-                icon="users"
-                :current="request()->routeIs('pastoral')"
-            >
-                Conselhos Pastorais
-            </flux:navbar.item>
-        </a>
-
-        <a href="{{ route('referencias') }}" wire:navigate class="contents">
-            <flux:navbar.item
-                icon="book-open"
-                :current="request()->routeIs('referencias*')"
-            >
-                Referências
-            </flux:navbar.item>
-        </a>
-
-        <a href="{{ route('historico') }}" wire:navigate class="contents">
-            <flux:navbar.item
-                icon="clock"
-                :current="request()->routeIs('historico')"
-            >
-                Histórico
-            </flux:navbar.item>
-        </a>
+        @foreach ($navItems as $item)
+            <a href="{{ route($item['route']) }}" wire:navigate class="contents">
+                <flux:navbar.item
+                    :icon="$item['icon']"
+                    :current="request()->routeIs(...$item['active'])"
+                >
+                    {{ $item['label'] }}
+                </flux:navbar.item>
+            </a>
+        @endforeach
 
     </flux:navbar>
 
@@ -136,42 +103,14 @@
 
 <nav class="shrink-0 border-t border-outline-variant bg-surface-container-lowest/95 backdrop-blur-md md:hidden">
     <div class="mx-auto flex max-w-md items-stretch justify-around">
-        <a wire:navigate href="{{ route('dashboard') }}"
-           @if (request()->routeIs('dashboard')) data-current @endif
-           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
-            <flux:icon name="squares-2x2" class="size-6" />
-            <span>Disciplinas</span>
-        </a>
-        <a wire:navigate href="{{ route('concepts') }}"
-           @if (request()->routeIs('concepts')) data-current @endif
-           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
-            <flux:icon name="light-bulb" class="size-6" />
-            <span>Conceitos</span>
-        </a>
-        <a wire:navigate href="{{ route('principios') }}"
-           @if (request()->routeIs('principios*')) data-current @endif
-           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
-            <flux:icon name="scale" class="size-6" />
-            <span>Princípios</span>
-        </a>
-        <a wire:navigate href="{{ route('pastoral') }}"
-           @if (request()->routeIs('pastoral')) data-current @endif
-           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
-            <flux:icon name="users" class="size-6" />
-            <span>Conselhos</span>
-        </a>
-        <a wire:navigate href="{{ route('referencias') }}"
-           @if (request()->routeIs('referencias*') || request()->routeIs('referencias.show')) data-current @endif
-           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
-            <flux:icon name="book-open" class="size-6" />
-            <span>Referências</span>
-        </a>
-        <a wire:navigate href="{{ route('historico') }}"
-           @if (request()->routeIs('historico')) data-current @endif
-           class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
-            <flux:icon name="clock" class="size-6" />
-            <span>Histórico</span>
-        </a>
+        @foreach ($navItems as $item)
+            <a wire:navigate href="{{ route($item['route']) }}"
+               @if (request()->routeIs(...$item['active'])) data-current @endif
+               class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
+                <flux:icon :name="$item['icon']" class="size-6" />
+                <span>{{ $item['mobileLabel'] ?? $item['label'] }}</span>
+            </a>
+        @endforeach
     </div>
 </nav>
 
@@ -209,7 +148,7 @@
 </footer>
 
 @persist('toast')
-<flux:toast />
+<flux:toast position="bottom center" />
 @endpersist
 
 {{-- livewire-autocomplete: carregado globalmente (antes de @livewireScripts) para

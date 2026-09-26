@@ -17,7 +17,7 @@
                 @foreach (range(1, 5) as $i)
                     <div class="group border-surface-variant bg-surface-container-low hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md">
 
-                        <div class="primary bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
+                        <div class="bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
 
                         <div class="absolute top-2 right-2 z-10">
                             <flux:skeleton class="size-5 rounded-full" />
@@ -106,18 +106,16 @@
 
         <!-- Lista/Empty State -->
         @if($this->concepts->isEmpty())
-            <div class="flex flex-col items-center justify-center py-24 px-6 text-center rounded-xl border border-surface-variant bg-surface-container-low border-dashed">
-                <flux:icon name="document-magnifying-glass" class="size-10 text-surface-variant-content/50 mb-3" />
-                <flux:heading size="md">Nenhum conceito encontrado</flux:heading>
-                <flux:text class="mt-2 text-surface-variant-content">
-                    Ainda não existem conceitos
-                    @if($selectedLetter)
-                        iniciados com a letra "{{ $selectedLetter }}"
-                    @else
-                        cadastrados
-                    @endif.
-                </flux:text>
-            </div>
+            @php
+                $emptyStateDescription = $selectedLetter
+                    ? 'Ainda não existem conceitos iniciados com a letra "'.$selectedLetter.'".'
+                    : 'Ainda não existem conceitos cadastrados.';
+            @endphp
+            <x-empty-state
+                icon="document-magnifying-glass"
+                heading="Nenhum conceito encontrado"
+                :description="$emptyStateDescription"
+            />
         @else
             <!-- Ajustado para grid responsivo -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -133,7 +131,7 @@
                         class="group border-surface-variant bg-surface-container-low hover:bg-surface-variant/40 relative flex min-h-56 flex-col overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md"
                     >
                         <!-- Efeito de fundo no hover -->
-                        <div class="primary bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110 pointer-events-none"></div>
+                        <div class="bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110 pointer-events-none"></div>
 
                         <button
                             type="button"
@@ -150,30 +148,18 @@
                             </flux:heading>
 
                             @if (($this->conceptUsages[$concept->id] ?? null)?->isNotEmpty())
-                                <div x-data="conceptPopover" class="relative">
-                                    <button type="button" x-ref="trigger" x-on:mouseenter="open" x-on:mouseleave="scheduleClose" class="text-on-surface-variant hover:text-primary">
-                                        <flux:icon name="information-circle" class="size-4" />
-                                    </button>
-
-                                    <div
-                                        x-ref="panel"
-                                        popover="manual"
-                                        x-on:mouseenter="open"
-                                        x-on:mouseleave="scheduleClose"
-                                        class="fixed z-50 m-0 w-64 rounded-xl border border-surface-variant bg-surface-container p-3 text-sm leading-relaxed text-on-surface shadow-xl"
-                                    >
-                                        <p class="mb-2 font-semibold">Aparece em:</p>
-                                        <ul class="space-y-1">
-                                            @foreach ($this->conceptUsages[$concept->id] as $usage)
-                                                <li>
-                                                    <a href="{{ route('principios.show', $usage->principleTopic->slug) }}" wire:navigate class="text-primary hover:underline">
-                                                        {{ $usage->principleTopic->title }}
-                                                    </a>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                </div>
+                                <x-info-popover width="w-64">
+                                    <p class="mb-2 font-semibold">Aparece em:</p>
+                                    <ul class="space-y-1">
+                                        @foreach ($this->conceptUsages[$concept->id] as $usage)
+                                            <li>
+                                                <a href="{{ route('principios.show', $usage->principleTopic->slug) }}" wire:navigate class="text-primary hover:underline">
+                                                    {{ $usage->principleTopic->title }}
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </x-info-popover>
                             @endif
                         </div>
 
@@ -311,17 +297,13 @@
                     label="Termo"
                     wire:model='editConceptForm.term'
                     placeholder="Ex: Graça" />
-                <div>
-                    @error('editConceptForm.term') <span class="error">{{ $message }}</span> @enderror
-                </div>
+                <flux:error name="editConceptForm.term" />
                 <flux:textarea
                     label="Definição"
                     wire:model='editConceptForm.definition'
                     placeholder="Favor imerecido..."
                 />
-                <div>
-                    @error('editConceptForm.definition') <span class="error">{{ $message }}</span> @enderror
-                </div>
+                <flux:error name="editConceptForm.definition" />
 
                 <div class="space-y-3">
                     <flux:label>Conceitos relacionados</flux:label>
@@ -329,25 +311,16 @@
                     @if ($this->linkedConcepts->isNotEmpty())
                         <div class="flex max-h-40 flex-wrap gap-2 overflow-y-auto pr-1">
                             @foreach ($this->linkedConcepts as $linked)
-                                <div wire:key="linked-concept-{{ $linked->id }}" x-data="conceptPopover" class="relative">
-                                    <div x-ref="trigger" x-on:mouseenter="open" x-on:mouseleave="scheduleClose">
+                                <x-info-popover wire:key="linked-concept-{{ $linked->id }}" width="w-[min(32rem,90vw)] max-h-[70vh] overflow-y-auto">
+                                    <x-slot:trigger>
                                         <flux:badge size="lg" color="zinc">
                                             {{ $linked->term }}
                                             <flux:badge.close wire:click="unlinkConcept({{ $linked->id }})" />
                                         </flux:badge>
-                                    </div>
-
-                                    <div
-                                        x-ref="panel"
-                                        popover="manual"
-                                        x-on:mouseenter="open"
-                                        x-on:mouseleave="scheduleClose"
-                                        class="fixed z-50 m-0 max-h-[70vh] w-[min(32rem,90vw)] overflow-y-auto rounded-xl border border-surface-variant bg-surface-container p-4 text-sm leading-relaxed text-on-surface shadow-xl"
-                                    >
-                                        <p class="mb-2 font-semibold">{{ $linked->term }}</p>
-                                        <p class="whitespace-pre-wrap">{{ $linked->definition }}</p>
-                                    </div>
-                                </div>
+                                    </x-slot:trigger>
+                                    <p class="mb-2 font-semibold">{{ $linked->term }}</p>
+                                    <p class="whitespace-pre-wrap">{{ $linked->definition }}</p>
+                                </x-info-popover>
                             @endforeach
                         </div>
                     @endif
@@ -362,30 +335,20 @@
                     @if (filled($relatedSearch))
                         <div class="divide-y divide-surface-variant overflow-hidden rounded-lg border border-surface-variant">
                             @forelse ($this->linkableResults as $result)
-                                <div wire:key="linkable-{{ $result->id }}" x-data="conceptPopover" class="relative">
-                                    <button
-                                        type="button"
-                                        x-ref="trigger"
-                                        x-on:mouseenter="open"
-                                        x-on:mouseleave="scheduleClose"
-                                        wire:click="linkConcept({{ $result->id }})"
-                                        class="flex w-full items-center justify-between p-3 text-left text-sm text-on-surface hover:bg-surface-container-low"
-                                    >
-                                        {{ $result->term }}
-                                        <flux:icon name="plus" class="size-4 text-on-surface-variant" />
-                                    </button>
-
-                                    <div
-                                        x-ref="panel"
-                                        popover="manual"
-                                        x-on:mouseenter="open"
-                                        x-on:mouseleave="scheduleClose"
-                                        class="fixed z-50 m-0 max-h-[70vh] w-[min(32rem,90vw)] overflow-y-auto rounded-xl border border-surface-variant bg-surface-container p-4 text-sm leading-relaxed text-on-surface shadow-xl"
-                                    >
-                                        <p class="mb-2 font-semibold">{{ $result->term }}</p>
-                                        <p class="whitespace-pre-wrap">{{ $result->definition }}</p>
-                                    </div>
-                                </div>
+                                <x-info-popover wire:key="linkable-{{ $result->id }}" width="w-[min(32rem,90vw)] max-h-[70vh] overflow-y-auto">
+                                    <x-slot:trigger>
+                                        <button
+                                            type="button"
+                                            wire:click="linkConcept({{ $result->id }})"
+                                            class="flex w-full items-center justify-between p-3 text-left text-sm text-on-surface hover:bg-surface-container-low"
+                                        >
+                                            {{ $result->term }}
+                                            <flux:icon name="plus" class="size-4 text-on-surface-variant" />
+                                        </button>
+                                    </x-slot:trigger>
+                                    <p class="mb-2 font-semibold">{{ $result->term }}</p>
+                                    <p class="whitespace-pre-wrap">{{ $result->definition }}</p>
+                                </x-info-popover>
                             @empty
                                 <div class="p-3 text-sm text-on-surface-variant">Nenhum conceito encontrado.</div>
                             @endforelse

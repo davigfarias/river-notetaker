@@ -111,38 +111,20 @@
                 </div>
             @endif
 
-            <div class="mt-8 flex gap-1 overflow-x-auto whitespace-nowrap border-b border-surface-variant">
-                <button type="button" wire:click="$set('activeTab', 'citacoes')"
-                    @class([
-                        'flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
-                        'border-primary text-primary' => $activeTab === 'citacoes',
-                        'border-transparent text-on-surface-variant hover:text-on-surface' => $activeTab !== 'citacoes',
-                    ])>
-                    <flux:icon name="chat-bubble-bottom-center-text" class="size-4" />
+            <flux:radio.group wire:model.live="activeTab" variant="segmented" class="mt-8">
+                <flux:radio value="citacoes" icon="chat-bubble-bottom-center-text">
                     Citações
                     <flux:badge size="sm">{{ $this->material->citations_count }}</flux:badge>
-                </button>
-                <button type="button" wire:click="$set('activeTab', 'perguntas')"
-                    @class([
-                        'flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
-                        'border-primary text-primary' => $activeTab === 'perguntas',
-                        'border-transparent text-on-surface-variant hover:text-on-surface' => $activeTab !== 'perguntas',
-                    ])>
-                    <flux:icon name="academic-cap" class="size-4" />
+                </flux:radio>
+                <flux:radio value="perguntas" icon="academic-cap">
                     Capítulos e Perguntas
                     <flux:badge size="sm">{{ $this->material->chapters->count() }}</flux:badge>
-                </button>
-                <button type="button" wire:click="$set('activeTab', 'anotacoes')"
-                    @class([
-                        'flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
-                        'border-secondary text-secondary' => $activeTab === 'anotacoes',
-                        'border-transparent text-on-surface-variant hover:text-on-surface' => $activeTab !== 'anotacoes',
-                    ])>
-                    <flux:icon name="pencil-square" class="size-4" />
+                </flux:radio>
+                <flux:radio value="anotacoes" icon="pencil-square">
                     Anotações
                     <flux:badge size="sm">{{ $this->material->reading_notes_count }}</flux:badge>
-                </button>
-            </div>
+                </flux:radio>
+            </flux:radio.group>
 
             <div class="mt-6" @if ($activeTab !== 'citacoes') hidden @endif>
 
@@ -198,10 +180,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
-                        <flux:icon name="chat-bubble-bottom-center-text" class="size-9 text-surface-variant-content/50 mb-3" />
-                        <flux:text class="text-surface-variant-content">Nenhuma citação registrada para esta obra ainda.</flux:text>
-                    </div>
+                    <x-empty-state icon="chat-bubble-bottom-center-text" heading="Nenhuma citação registrada para esta obra ainda." />
                 @endforelse
             </div>
             </div>{{-- /citacoes tab --}}
@@ -256,15 +235,11 @@
                 @if ($this->allTags->isNotEmpty())
                     <div class="flex flex-wrap gap-2">
                         @foreach ($this->allTags as $tag)
-                            <button type="button" wire:key="new-note-tag-{{ $tag->id }}"
+                            <x-tag-toggle wire:key="new-note-tag-{{ $tag->id }}"
                                 wire:click="toggleReadingNoteTag('{{ $tag->title }}')"
-                                @class([
-                                    'rounded-full border px-3 py-1 text-xs transition-all',
-                                    'border-secondary bg-secondary text-white' => in_array($tag->title, $readingNoteForm->tags, true),
-                                    'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' => ! in_array($tag->title, $readingNoteForm->tags, true),
-                                ])>
+                                :active="in_array($tag->title, $readingNoteForm->tags, true)">
                                 {{ $tag->title }}
-                            </button>
+                            </x-tag-toggle>
                         @endforeach
                     </div>
                 @endif
@@ -322,11 +297,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low px-6 py-16 text-center">
-                        <flux:icon name="pencil-square" class="mb-3 size-9 text-surface-variant-content/50" />
-                        <flux:text class="text-surface-variant-content">Nenhuma anotação nesta obra ainda.</flux:text>
-                        <flux:text size="sm" class="mt-1 text-surface-variant-content/70">Citação é a palavra do autor. Anotação é a sua.</flux:text>
-                    </div>
+                    <x-empty-state icon="pencil-square" heading="Nenhuma anotação nesta obra ainda." description="Citação é a palavra do autor. Anotação é a sua." />
                 @endforelse
             </div>
             </div>{{-- /anotacoes tab --}}
@@ -384,10 +355,7 @@
                             </div>
                         </details>
                     @empty
-                        <div class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
-                            <flux:icon name="academic-cap" class="size-9 text-surface-variant-content/50 mb-3" />
-                            <flux:text class="text-surface-variant-content">Nenhum capítulo cadastrado para esta obra ainda.</flux:text>
-                        </div>
+                        <x-empty-state icon="academic-cap" heading="Nenhum capítulo cadastrado para esta obra ainda." />
                     @endforelse
                 </div>
             </div>{{-- /perguntas tab --}}
@@ -559,15 +527,11 @@
                 @if ($this->allTags->isNotEmpty())
                     <div class="flex flex-wrap gap-2">
                         @foreach ($this->allTags as $tag)
-                            <button type="button" wire:key="edit-note-tag-{{ $tag->id }}"
+                            <x-tag-toggle wire:key="edit-note-tag-{{ $tag->id }}"
                                 wire:click="toggleEditReadingNoteTag('{{ $tag->title }}')"
-                                @class([
-                                    'rounded-full border px-3 py-1 text-xs transition-all',
-                                    'border-secondary bg-secondary text-white' => in_array($tag->title, $editReadingNoteForm->tags, true),
-                                    'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' => ! in_array($tag->title, $editReadingNoteForm->tags, true),
-                                ])>
+                                :active="in_array($tag->title, $editReadingNoteForm->tags, true)">
                                 {{ $tag->title }}
-                            </button>
+                            </x-tag-toggle>
                         @endforeach
                     </div>
                 @endif

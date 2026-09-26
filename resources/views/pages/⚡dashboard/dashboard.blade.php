@@ -8,9 +8,9 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach(range(1, 5) as $i)
-                <div class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md">
+                <div class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex min-h-40 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md">
 
-                <div class="primary bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
+                <div class="bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
 
                     <div class="absolute top-2 right-2 z-10">
                        <flux:skeleton class="size-5 rounded-full" />
@@ -61,7 +61,7 @@
                         @foreach ($group['disciplines'] as $discipline)
                             <div
                                 wire:key="discipline-{{ $discipline->id }}"
-                                class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex h-48 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md"
+                                class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex min-h-40 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md"
                             >
                                 <a
                                     href="{{ route('disciplinas.show', $discipline->slug) }}"
@@ -70,7 +70,7 @@
                                     aria-label="{{ $discipline->title }}"
                                 ></a>
 
-                                <div class="primary bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
+                                <div class="bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
 
                                 <div class="absolute top-2 right-2 z-10 flex gap-1">
                                     <flux:button
@@ -120,7 +120,7 @@
                 <button
                     type="button"
                     wire:click="openCreateModal"
-                    class="group border-outline-variant/50 hover:border-primary/50 hover:bg-surface-variant/20 flex h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors"
+                    class="group border-outline-variant/50 hover:border-primary/50 hover:bg-surface-variant/20 flex min-h-40 flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors"
                 >
                     <div class="bg-surface-container group-hover:bg-primary-container/20 mb-3 flex h-12 w-12 items-center justify-center rounded-full transition-colors">
                         <flux:icon

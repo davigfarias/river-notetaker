@@ -50,17 +50,16 @@
         </div>
 
         @if ($this->themes->isEmpty())
-            <div class="flex flex-col items-center justify-center py-24 px-6 text-center rounded-xl border border-surface-variant bg-surface-container-low border-dashed">
-                <flux:icon name="hand-raised" class="size-10 text-surface-variant-content/50 mb-3" />
-                <flux:heading size="md">Nenhum conselho encontrado</flux:heading>
-                <flux:text class="mt-2 text-surface-variant-content">
-                    @if(!empty($search))
-                        Nenhum conselho corresponde à busca "{{ $search }}".
-                    @else
-                        Ainda não existem conselhos pastorais cadastrados.
-                    @endif
-                </flux:text>
-            </div>
+            @php
+                $emptyAdviceDescription = filled($search)
+                    ? 'Nenhum conselho corresponde à busca "'.$search.'".'
+                    : 'Ainda não existem conselhos pastorais cadastrados.';
+            @endphp
+            <x-empty-state
+                icon="hand-raised"
+                heading="Nenhum conselho encontrado"
+                :description="$emptyAdviceDescription"
+            />
         @else
             <div class="space-y-10">
                 @foreach ($this->themes as $theme)
@@ -114,7 +113,7 @@
                             :options="['allow-new' => true, 'auto-select' => false]"
                         />
                     </flux:field>
-                    @error('formAdvice.category') <span class="error">{{ $message }}</span> @enderror
+                    <flux:error name="formAdvice.category" />
                 </div>
 
                 <div>
@@ -123,7 +122,7 @@
                         wire:model="formAdvice.advice"
                         placeholder="O conselho pastoral em si..."
                     />
-                    @error('formAdvice.advice') <span class="error">{{ $message }}</span> @enderror
+                    <flux:error name="formAdvice.advice" />
                 </div>
 
                 <div class="flex">
@@ -146,14 +145,14 @@
                     label="Tema principal"
                     wire:model="editAdviceForm.category"
                     placeholder="Ex: Casamento" />
-                @error('editAdviceForm.category') <span class="error">{{ $message }}</span> @enderror
+                <flux:error name="editAdviceForm.category" />
 
                 <flux:textarea
                     label="Conselho"
                     wire:model="editAdviceForm.advice"
                     placeholder="O conselho pastoral em si..."
                 />
-                @error('editAdviceForm.advice') <span class="error">{{ $message }}</span> @enderror
+                <flux:error name="editAdviceForm.advice" />
 
                 <div class="flex">
                     <flux:spacer />

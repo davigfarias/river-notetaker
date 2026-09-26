@@ -16,21 +16,18 @@
 
     <div class="mt-8">
         @if (blank($q))
-            <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low px-6 py-20 text-center">
-                <flux:icon name="magnifying-glass" class="mb-3 size-10 text-surface-variant-content/50" />
-                <flux:heading size="md">Digite um termo pra começar</flux:heading>
-                <flux:text class="mt-2 text-surface-variant-content">
-                    A busca cobre notas, conselhos pastorais, conceitos, referências e citações.
-                </flux:text>
-            </div>
+            <x-empty-state
+                icon="magnifying-glass"
+                heading="Digite um termo pra começar"
+                description="A busca cobre notas, conselhos pastorais, conceitos, referências e citações."
+            />
         @elseif ($this->results->isEmpty())
-            <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low px-6 py-20 text-center">
-                <flux:icon name="document-magnifying-glass" class="mb-3 size-10 text-surface-variant-content/50" />
-                <flux:heading size="md">Nenhum resultado encontrado</flux:heading>
-                <flux:text class="mt-2 text-surface-variant-content">
-                    Nada corresponde à busca "{{ $q }}".
-                </flux:text>
-            </div>
+            @php($noResultsDescription = 'Nada corresponde à busca "'.$q.'".')
+            <x-empty-state
+                icon="document-magnifying-glass"
+                heading="Nenhum resultado encontrado"
+                :description="$noResultsDescription"
+            />
         @else
             <div class="flex flex-col gap-10">
                 @foreach ($this->orderedTypes as $type)

@@ -75,13 +75,11 @@
                 </div>
             </div>
         @empty
-            <div class="flex flex-col items-center justify-center py-24 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
-                <flux:icon name="arrow-down-tray" class="size-10 text-surface-variant-content/50 mb-3" />
-                <flux:heading size="md">Nenhuma exportação ainda</flux:heading>
-                <flux:text class="mt-2 text-surface-variant-content">
-                    Exporte as citações de uma obra ou de uma busca para vê-las aqui.
-                </flux:text>
-            </div>
+            <x-empty-state
+                icon="arrow-down-tray"
+                heading="Nenhuma exportação ainda"
+                description="Exporte as citações de uma obra ou de uma busca para vê-las aqui."
+            />
         @endforelse
     </div>
 

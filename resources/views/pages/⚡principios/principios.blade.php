@@ -7,7 +7,7 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach (range(1, 3) as $i)
-                <div class="border-surface-variant bg-surface-container-lowest relative flex h-32 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm">
+                <div class="border-surface-variant bg-surface-container-lowest relative flex min-h-40 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm">
                     <flux:skeleton class="h-5 w-3/4" />
                     <flux:skeleton class="h-4 w-1/3" />
                 </div>
@@ -41,21 +41,13 @@
         @else
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 @foreach ($this->topics as $topic)
-                    <div
+                    <x-card-tile
                         wire:key="topic-{{ $topic->id }}"
-                        class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex h-32 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md"
+                        :href="route('principios.show', $topic->slug)"
+                        :label="$topic->title"
                     >
-                        <a
-                            href="{{ route('principios.show', $topic->slug) }}"
-                            wire:navigate
-                            class="absolute inset-0 z-0"
-                            aria-label="{{ $topic->title }}"
-                        ></a>
-
-                        <flux:heading size="lg" class="relative z-10 group-hover:text-primary transition-colors">{{ $topic->title }}</flux:heading>
-
-                        <flux:badge size="sm" class="relative z-10 self-start">{{ $topic->principles_count }} {{ \Illuminate\Support\Str::plural('princípio', $topic->principles_count) }}</flux:badge>
-                    </div>
+                        <flux:badge size="sm" class="self-start">{{ $topic->principles_count }} {{ \Illuminate\Support\Str::plural('princípio', $topic->principles_count) }}</flux:badge>
+                    </x-card-tile>
                 @endforeach
             </div>
         @endif

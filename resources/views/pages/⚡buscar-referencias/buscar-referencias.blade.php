@@ -57,10 +57,7 @@
 
         <div wire:loading.delay.remove wire:target="q,tab,previousPage,nextPage,gotoPage">
             @if (blank($q))
-                <div class="flex flex-col items-center justify-center py-20 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
-                    <flux:icon name="magnifying-glass" class="size-9 text-surface-variant-content/50 mb-3" />
-                    <flux:text class="text-surface-variant-content">Comece a digitar para pesquisar.</flux:text>
-                </div>
+                <x-empty-state icon="magnifying-glass" heading="Comece a digitar para pesquisar." />
             @elseif ($tab === 'obras')
                 @forelse ($this->works as $work)
                     @php($icon = \App\Enums\ReferencesIcon::tryFrom($work->type) ?? \App\Enums\ReferencesIcon::BookOpen)

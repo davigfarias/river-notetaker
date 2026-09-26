@@ -46,22 +46,16 @@
 
                     <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2">
                         @foreach ($this->tags as $tag)
-                            <button
-                                type="button"
+                            <x-tag-toggle
+                                :active="in_array($tag->title, $notes->tags ?? [])"
                                 wire:click="addTag('{{ $tag->title }}')"
-                                class="rounded-full border px-3 py-1.5 text-sm transition-all focus:outline-none
-                                {{ in_array($tag->title, $notes->tags ?? [])
-                                ? 'border-primary bg-primary text-white'
-                                : 'border-surface-variant text-on-surface-variant hover:bg-surface-container-low' }}"
                             >
                                 {{ $tag->title }}
-                            </button>
+                            </x-tag-toggle>
                         @endforeach
                     </div>
 
-                    @error('notes.tags')
-                    <span class="text-sm text-red-500 mt-2 block">{{ $message }}</span>
-                    @enderror
+                    <flux:error name="notes.tags" />
                 </div>
             </section>
 
@@ -77,21 +71,19 @@
                         class="border-surface-variant flex flex-col border-b sm:flex-row"
                     >
                         <div class="border-surface-variant bg-surface-container-low/50 border-b p-3 sm:w-1/3 sm:border-r sm:border-b-0">
-                            <input
-                                type="text"
+                            <flux:input
                                 wire:model="notes.concepts.{{ $index }}.term"
                                 wire:input.debounce.500ms="verifyExistence({{ $index }})"
                                 placeholder="Termo ou Palavra-chave"
-                                class="text-on-surface w-full border-none bg-transparent p-0 outline-none focus:ring-0"
                             />
                         </div>
                         <div class="group relative bg-transparent p-3 sm:w-2/3">
-                            <textarea
+                            <flux:textarea
                                 wire:model="notes.concepts.{{ $index }}.definition"
                                 placeholder="Definição ou explicação do conceito..."
                                 rows="2"
-                                class="text-on-surface-variant w-full resize-none border-none bg-transparent p-0 outline-none focus:ring-0"
-                            ></textarea>
+                                resize="none"
+                            />
                             @if (count($notes->concepts ?? []) > 1)
                                 <button
                                     type="button"
@@ -130,20 +122,18 @@
                         class="border-surface-variant flex flex-col border-b sm:flex-row"
                     >
                         <div class="border-surface-variant bg-surface-container-low/50 border-b p-3 sm:w-1/3 sm:border-r sm:border-b-0">
-                            <input
-                                type="text"
+                            <flux:input
                                 wire:model="notes.pastoral_advice.{{ $index }}.category"
                                 placeholder="Categoria ou Tema"
-                                class="text-on-surface w-full border-none bg-transparent p-0 outline-none focus:ring-0"
                             />
                         </div>
                         <div class="group relative bg-transparent p-3 sm:w-2/3">
-                            <textarea
+                            <flux:textarea
                                 wire:model="notes.pastoral_advice.{{ $index }}.advice"
                                 placeholder="Aplicações práticas, conselhos ou observações..."
                                 rows="2"
-                                class="text-on-surface-variant w-full resize-none border-none bg-transparent p-0 outline-none focus:ring-0"
-                            ></textarea>
+                                resize="none"
+                            />
                             @if (count($notes->pastoral_advice ?? []) > 1)
                                 <button
                                     type="button"
@@ -319,17 +309,13 @@
                 label="Termo"
                 wire:model="editConceptForm.term"
                 placeholder="Ex: Graça" />
-            <div>
-                @error('editConceptForm.term') <span class="error">{{ $message }}</span> @enderror
-            </div>
+            <flux:error name="editConceptForm.term" />
             <flux:textarea
                 label="Definição"
                 wire:model="editConceptForm.definition"
                 placeholder="Favor imerecido..."
             />
-            <div>
-                @error('editConceptForm.definition') <span class="error">{{ $message }}</span> @enderror
-            </div>
+            <flux:error name="editConceptForm.definition" />
             <div class="flex">
                 <flux:spacer />
                 <flux:button

@@ -111,17 +111,12 @@
                     </div>
                 </a>
             @empty
-                <div class="col-span-full flex flex-col items-center justify-center py-24 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
-                    <flux:icon name="book-open" class="size-10 text-surface-variant-content/50 mb-3" />
-                    <flux:heading size="md">Nenhuma obra encontrada</flux:heading>
-                    <flux:text class="mt-2 text-surface-variant-content">
-                        @if (filled($filter) || filled($type))
-                            Nenhuma obra corresponde aos filtros.
-                        @else
-                            Adicione sua primeira obra à biblioteca.
-                        @endif
-                    </flux:text>
-                </div>
+                <x-empty-state
+                    icon="book-open"
+                    heading="Nenhuma obra encontrada"
+                    :description="(filled($filter) || filled($type)) ? 'Nenhuma obra corresponde aos filtros.' : 'Adicione sua primeira obra à biblioteca.'"
+                    class="col-span-full"
+                />
             @endforelse
         </div>
 

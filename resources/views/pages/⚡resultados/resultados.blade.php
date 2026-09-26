@@ -40,11 +40,11 @@
                         default => 'low',
                     };
 
-                    $badgeClasses = match ($tier) {
-                        'high' => 'bg-tertiary-fixed/15 border-tertiary-fixed/30 text-tertiary-fixed',
-                        'medium' => 'bg-secondary/15 border-secondary/30 text-secondary',
-                        'low' => 'bg-error/15 border-error/30 text-error',
-                        default => 'bg-surface-variant border-outline-variant text-on-surface-variant',
+                    $badgeColor = match ($tier) {
+                        'high' => 'cyan',
+                        'medium' => 'blue',
+                        'low' => 'red',
+                        default => 'zinc',
                     };
                 @endphp
 
@@ -56,15 +56,13 @@
                         <div class="flex-1">
                             <flux:heading size="lg" class="mb-2">{{ $row->prompt }}</flux:heading>
 
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border {{ $badgeClasses }} mb-4">
+                            <flux:badge :color="$badgeColor" :icon="$tier === 'skipped' ? 'forward' : 'check-circle'" rounded class="mb-4">
                                 @if ($tier === 'skipped')
-                                    <flux:icon.forward class="size-4" />
-                                    <span class="text-sm">Pulada</span>
+                                    Pulada
                                 @else
-                                    <flux:icon.check-circle class="size-4" />
-                                    <span class="text-sm">{{ $row->score }}% {{ $row->clozeSegments !== null ? 'de acertos' : 'de proximidade' }}</span>
+                                    {{ $row->score }}% {{ $row->clozeSegments !== null ? 'de acertos' : 'de proximidade' }}
                                 @endif
-                            </div>
+                            </flux:badge>
                         </div>
                     </div>
 

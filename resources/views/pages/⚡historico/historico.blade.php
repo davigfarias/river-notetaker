@@ -44,17 +44,17 @@
                     placeholder="Buscar por título, descrição ou ano..." clearable class="mb-4 max-w-md" />
 
         @if ($this->events->isEmpty())
-            <div class="rounded-xl border border-dashed border-surface-variant bg-surface-container-low p-10 text-center">
-                @if (filled($search))
-                    <flux:icon name="magnifying-glass" class="mx-auto size-8 text-on-surface-variant" />
-                    <flux:heading class="mt-3">Nada encontrado para "{{ $search }}"</flux:heading>
-                    <flux:text class="mt-1">Tente outro termo ou um ano, como 1517.</flux:text>
-                @else
-                    <flux:icon name="clock" class="mx-auto size-8 text-on-surface-variant" />
-                    <flux:heading class="mt-3">Nenhum evento registrado</flux:heading>
-                    <flux:text class="mt-1">Cadastre o primeiro evento para começar a sua linha do tempo.</flux:text>
-                @endif
-            </div>
+            @php
+                $noEventsHeading = filled($search) ? 'Nada encontrado para "'.$search.'"' : 'Nenhum evento registrado';
+                $noEventsDescription = filled($search)
+                    ? 'Tente outro termo ou um ano, como 1517.'
+                    : 'Cadastre o primeiro evento para começar a sua linha do tempo.';
+            @endphp
+            <x-empty-state
+                :icon="filled($search) ? 'magnifying-glass' : 'clock'"
+                :heading="$noEventsHeading"
+                :description="$noEventsDescription"
+            />
         @else
             <div class="max-h-[70vh] overflow-y-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 sm:p-6" data-historico-box>
                 <x-timeline align="start">
