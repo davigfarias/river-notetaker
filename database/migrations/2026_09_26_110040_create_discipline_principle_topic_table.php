@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('discipline_id')->constrained('disciplines')->cascadeOnDelete();
             $table->foreignId('principle_topic_id')->constrained('principle_topics')->cascadeOnDelete();
             $table->timestamps();
-            $table->unique(['discipline_id', 'principle_topic_id']);
+            $table->unique(['discipline_id', 'principle_topic_id'], 'discipline_principle_topic_unique');
         });
     }
 
