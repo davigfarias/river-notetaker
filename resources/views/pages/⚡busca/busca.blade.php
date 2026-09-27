@@ -45,14 +45,14 @@
                                     wire:navigate
                                     class="flex items-start gap-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4 transition-colors hover:bg-surface-variant/40"
                                 >
-                                    <flux:icon name="{{ $type->icon() }}" class="mt-0.5 size-5 shrink-0 text-on-surface-variant" />
+                                    <flux:icon name="{{ $type->icon() }}" class="mt-0.5 size-5 shrink-0 text-on-surface" />
                                     <div class="min-w-0 flex-1">
                                         <flux:text class="block font-medium text-on-surface">{{ $result->title }}</flux:text>
                                         @if ($result->snippet)
                                             <flux:text size="sm" class="mt-1 block text-on-surface-variant">{{ $result->snippet }}</flux:text>
                                         @endif
                                     </div>
-                                    <flux:icon name="chevron-right" class="mt-0.5 size-4 shrink-0 text-on-surface-variant" />
+                                    <flux:icon name="chevron-right" class="mt-0.5 size-4 shrink-0 text-on-surface" />
                                 </a>
                             @endforeach
                         </div>

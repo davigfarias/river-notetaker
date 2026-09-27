@@ -72,7 +72,7 @@
                             <div class="relative rounded-lg bg-surface-container-low p-4 pl-5 overflow-hidden">
                                 <div class="absolute top-0 left-0 w-1 h-full bg-secondary-container"></div>
                                 <div class="flex items-center gap-2 mb-2">
-                                    <flux:icon.pencil-square class="size-4 text-secondary-fixed" />
+                                    <flux:icon.pencil-square class="size-4 text-on-surface" />
                                     <span class="font-mono text-sm text-secondary-fixed">Frase</span>
                                 </div>
                                 <p class="font-sans text-sm leading-loose">@foreach ($row->clozeSegments as $seg)@if ($seg->blank)@if ($seg->correct)<span class="text-tertiary-fixed font-medium">{{ $seg->given }}</span>@else<span class="text-error/80 line-through decoration-1">{{ $seg->given ?: '—' }}</span> <span class="text-secondary">{{ $seg->expected }}</span>@endif@else{{ $seg->text }}@endif@endforeach</p>
@@ -83,7 +83,7 @@
                             <div class="relative rounded-lg bg-surface-container-low p-4 pl-5 overflow-hidden">
                                 <div class="absolute top-0 left-0 w-1 h-full bg-secondary-container"></div>
                                 <div class="flex items-center gap-2 mb-2">
-                                    <flux:icon.shield-check class="size-4 text-secondary-fixed" />
+                                    <flux:icon.shield-check class="size-4 text-on-surface" />
                                     <span class="font-mono text-sm text-secondary-fixed">Resposta padrão</span>
                                 </div>
                                 <p class="text-sm text-on-surface-variant">{{ $row->referenceAnswer }}</p>

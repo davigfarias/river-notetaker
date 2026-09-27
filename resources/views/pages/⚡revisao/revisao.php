@@ -40,7 +40,7 @@ new #[Title('Revisão')] class extends Component
         $outcome = $findQuestionsForChapter->handle($chapter);
 
         if (! $outcome->success) {
-            Flux::toast(text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 2500, text: $outcome->message, variant: 'danger');
             $this->redirect(route('referencias.show', $chapter->reference_material_id), navigate: true);
 
             return;

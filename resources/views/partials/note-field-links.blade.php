@@ -12,7 +12,7 @@
     @endif
     class="relative"
 >
-    <div class="prose dark:prose-invert rounded-lg border border-surface-variant bg-surface-container-lowest p-3">
+    <div class="prose dark:prose-invert max-w-none rounded-lg border border-surface-variant bg-surface-container-lowest p-3">
         {!! $html !!}
     </div>
 

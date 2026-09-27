@@ -44,8 +44,8 @@ new #[Title('Exportações')] #[Lazy] class extends Component
         $check = $action->handle($this->deletingExportId, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         $this->modal('delete-export')->close();

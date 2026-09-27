@@ -7,7 +7,7 @@
         @isset($trigger)
             {{ $trigger }}
         @else
-            <button type="button" class="text-on-surface-variant hover:text-primary">
+            <button type="button" class="text-on-surface hover:text-primary">
                 <flux:icon name="information-circle" class="size-4" />
             </button>
         @endisset

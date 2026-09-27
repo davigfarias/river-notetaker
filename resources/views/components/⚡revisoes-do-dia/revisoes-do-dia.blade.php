@@ -11,7 +11,7 @@
 
     @if ($agenda->hasNotesAwaitingSummary())
         <flux:card size="sm" class="mb-4 flex items-start gap-3">
-            <flux:icon.pencil-square class="text-on-surface-variant mt-0.5 size-5 shrink-0" />
+            <flux:icon.pencil-square class="text-on-surface mt-0.5 size-5 shrink-0" />
             <div>
                 <flux:text class="font-medium">{{ $agenda->awaitingSummaryLabel() }}.</flux:text>
                 <flux:text size="sm" class="text-on-surface-variant mt-1 block">
@@ -41,7 +41,7 @@
                     <flux:card size="sm" class="hover:border-primary/50 flex h-full min-h-40 flex-col justify-between transition-colors">
                         <div>
                             <div class="mb-2 flex items-center gap-2">
-                                <flux:icon :name="$review->discipline_icon" class="text-primary size-4" />
+                                <flux:icon :name="$review->discipline_icon" class="text-on-surface size-4" />
                                 <flux:text size="sm" class="text-on-surface-variant truncate">
                                     {{ $review->discipline_title }}
                                 </flux:text>
@@ -67,13 +67,13 @@
         </div>
     @elseif ($agenda->hasLessonToday)
         <flux:card size="sm" class="flex items-center gap-3">
-            <flux:icon.check-circle class="text-primary size-5 shrink-0" />
+            <flux:icon.check-circle class="text-on-surface size-5 shrink-0" />
             <flux:text>Nenhuma revisão pendente para a aula de hoje.</flux:text>
         </flux:card>
     @else
         <flux:card size="sm" class="space-y-3">
             <div class="flex items-center gap-3">
-                <flux:icon.calendar-days class="text-on-surface-variant size-5 shrink-0" />
+                <flux:icon.calendar-days class="text-on-surface size-5 shrink-0" />
                 <flux:text>Hoje não é dia de aula. Próximos encontros:</flux:text>
             </div>
 
@@ -174,12 +174,12 @@
                             </section>
                         @elseif (! $note->summary)
                             <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
-                                <flux:icon.pencil-square class="text-on-surface-variant size-6" />
+                                <flux:icon.pencil-square class="text-on-surface size-6" />
                                 <flux:text>Esta nota ainda não tem resumo escrito, então não há o que cobrar.</flux:text>
                             </div>
                         @else
                             <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
-                                <flux:icon.exclamation-triangle class="text-on-surface-variant size-6" />
+                                <flux:icon.exclamation-triangle class="text-on-surface size-6" />
                                 <flux:text>Não foi possível gerar as perguntas desta revisão. Tente novamente mais tarde.</flux:text>
                             </div>
                         @endif
@@ -230,7 +230,7 @@
                         @elseif ($note->ai_summary)
                             <section class="border-surface-variant bg-primary-container/10 rounded-lg border p-4" x-data="readAloud(@js($note->ai_summary))">
                                 <div class="mb-2 flex items-center gap-2">
-                                    <flux:icon name="sparkles" class="text-primary size-4 shrink-0" />
+                                    <flux:icon name="sparkles" class="text-on-surface size-4 shrink-0" />
                                     <flux:heading size="xs" class="min-w-0 truncate">Resumo de IA</flux:heading>
                                     <flux:spacer />
                                     <flux:modal.trigger name="confirm-regenerate-summary">

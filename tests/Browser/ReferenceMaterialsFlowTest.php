@@ -79,6 +79,33 @@ test('a citation can be deleted through the confirmation modal', function () {
     expect(Citation::find($citation->id))->toBeNull();
 });
 
+test('a citation can be edited in place with the markdown editor', function () {
+    [$plain, $token] = browserToken();
+
+    $material = ReferenceMaterial::factory()->create(['access_token_id' => $token->id, 'title' => 'Mero Cristianismo']);
+    $citation = Citation::factory()->create([
+        'reference_material_id' => $material->id,
+        'access_token_id' => $token->id,
+        'quote_text' => 'Trecho original.',
+    ]);
+
+    $editor = '[wire\:key="edit-citation-'.$citation->id.'"] .CodeMirror';
+
+    $page = loginWithAccessToken($plain)->navigate('/referencias/'.$material->id)->wait(0.7);
+
+    $page->click('[wire\:click="editCitation('.$citation->id.')"]')
+        ->wait(0.5)
+        ->assertSeeIn($editor, 'Trecho original.');
+
+    $page->script('document.querySelector(\'[wire\\\\:key="edit-citation-'.$citation->id.'"] .CodeMirror\').CodeMirror.setValue("Trecho editado.")');
+
+    $page->click('Salvar')
+        ->wait(1)
+        ->assertSee('Trecho editado.');
+
+    expect($citation->fresh()->quote_text)->toBe('Trecho editado.');
+});
+
 test('the search page finds a citation by its text and links back to the work', function () {
     [$plain, $token] = browserToken();
 

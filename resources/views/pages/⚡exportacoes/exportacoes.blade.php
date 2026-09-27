@@ -38,7 +38,7 @@
     <div class="mt-8 space-y-3">
         @forelse ($this->exports as $export)
             <div wire:key="export-{{ $export->id }}" class="flex items-center gap-4 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
-                <flux:icon name="{{ $export->format->value === 'pdf' ? 'document' : 'document-text' }}" class="size-8 text-on-surface-variant shrink-0" />
+                <flux:icon name="{{ $export->format->value === 'pdf' ? 'document' : 'document-text' }}" class="size-8 text-on-surface shrink-0" />
 
                 <div class="min-w-0 flex-1">
                     <flux:text class="font-medium truncate">

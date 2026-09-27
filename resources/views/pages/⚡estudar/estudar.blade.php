@@ -41,7 +41,7 @@
                     <div class="relative z-10">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="bg-secondary/10 text-secondary p-2 rounded-lg inline-flex">
-                                <flux:icon.light-bulb class="size-5" />
+                                <flux:icon.light-bulb class="text-on-surface size-5" />
                             </div>
                             <span class="font-mono text-sm tracking-wider uppercase text-secondary">Pergunta</span>
                         </div>
@@ -91,14 +91,14 @@
             <aside class="w-full lg:w-1/3">
                 <div class="bg-surface rounded-xl p-5 border border-outline-variant">
                     <h3 class="font-mono text-sm text-on-surface flex items-center gap-2 mb-3 border-b border-outline-variant pb-2">
-                        <flux:icon.sparkles class="size-4 text-secondary" />
+                        <flux:icon.sparkles class="size-4 text-on-surface" />
                         Ajuda de estudo
                     </h3>
 
                     @if ($hintLevel === 0)
                         <button type="button" wire:click="revealHint" class="w-full text-left flex items-center justify-between p-3 rounded-lg hover:bg-surface-variant/50 transition-colors group">
                             <span class="text-sm text-on-surface-variant group-hover:text-on-surface">Pedir uma dica</span>
-                            <flux:icon.question-mark-circle class="size-4 text-on-surface-variant/50 group-hover:text-primary" />
+                            <flux:icon.question-mark-circle class="size-4 text-on-surface group-hover:text-primary" />
                         </button>
                     @elseif ($this->hintPreview() === [])
                         <p class="font-sans text-sm text-on-surface-variant p-3 rounded-lg bg-surface-container-low">Nenhuma palavra-chave cadastrada para esta pergunta.</p>
@@ -113,7 +113,7 @@
                     @if ($hintLevel > 0 && $hintLevel < 3)
                         <button type="button" wire:click="revealHint" class="w-full text-left flex items-center justify-between p-3 rounded-lg hover:bg-surface-variant/50 transition-colors group mt-1">
                             <span class="text-sm text-on-surface-variant group-hover:text-on-surface">Revelar mais</span>
-                            <flux:icon.eye class="size-4 text-on-surface-variant/50 group-hover:text-primary" />
+                            <flux:icon.eye class="size-4 text-on-surface group-hover:text-primary" />
                         </button>
                     @endif
                 </div>

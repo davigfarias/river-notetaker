@@ -31,6 +31,28 @@
 <div class="mx-auto w-full max-w-4xl py-8">
 
         <div>
+            @if ($editingMaterial)
+            <form wire:submit="updateMaterial" wire:key="edit-material" x-on:keydown.escape="$wire.set('editingMaterial', false)" class="space-y-5 rounded-xl border border-primary/40 bg-surface-container-lowest p-4">
+                <flux:input label="Título" wire:model="editForm.title" />
+                <flux:input label="Autor" wire:model="editForm.author" />
+
+                @include('partials.reference-type-pills', ['model' => 'editForm.type', 'label' => 'Tipo'])
+
+                <div class="flex gap-3">
+                    <flux:input label="Ano" type="number" wire:model="editForm.year" class="w-28" />
+                    <flux:input label="Editora" wire:model="editForm.publisher" class="flex-1" />
+                </div>
+                <flux:input label="URL" wire:model="editForm.url" />
+                <flux:textarea label="Referência ABNT" wire:model="editForm.abnt_reference" rows="2" />
+
+                @include('partials.reference-reading-fields', ['model' => 'editForm'])
+
+                <div class="flex justify-end gap-2">
+                    <flux:button type="button" size="sm" variant="ghost" wire:click="$set('editingMaterial', false)">Cancelar</flux:button>
+                    <flux:button type="submit" size="sm" variant="primary">Salvar</flux:button>
+                </div>
+            </form>
+            @else
             <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
                     <flux:badge size="sm" icon="{{ $icon->icon() }}" color="zinc">{{ $icon->label() }}</flux:badge>
@@ -56,6 +78,7 @@
                     {{ app(\App\Support\Export\AbntFormatter::class)->reference($this->material) }}
                 </flux:text>
             </div>
+            @endif
 
             @if ($this->material->isTrackable())
                 @php($range = $this->material->readingRange())
@@ -148,7 +171,7 @@
                 </div>
             </form>
 
-            <div wire:loading.delay.flex wire:target="addCitation,updateCitation,deleteCitation" class="hidden flex-col gap-3 mt-6">
+            <div wire:loading.delay.flex wire:target="addCitation,deleteCitation" class="hidden flex-col gap-3 mt-6">
                 @for ($i = 0; $i < 3; $i++)
                     <div class="rounded-xl border border-surface-variant bg-surface-container-lowest p-4 space-y-2">
                         <flux:skeleton class="h-4 w-full" />
@@ -157,8 +180,26 @@
                 @endfor
             </div>
 
-            <div wire:loading.delay.remove wire:target="addCitation,updateCitation,deleteCitation" class="mt-6 space-y-3">
+            <div wire:loading.delay.remove wire:target="addCitation,deleteCitation" class="mt-6 space-y-3">
                 @forelse ($this->material->citations as $citation)
+                    @if ($editingCitationId === $citation->id)
+                    <form wire:submit="updateCitation" wire:key="edit-citation-{{ $citation->id }}" x-on:keydown.escape="$wire.set('editingCitationId', null)" class="space-y-3 rounded-xl border border-primary/40 bg-surface-container-lowest p-4">
+                        <div wire:ignore>
+                            <div x-data="markdownEditor('editCitationForm.quote_text')">
+                                <textarea x-ref="textarea"></textarea>
+                            </div>
+                        </div>
+                        <flux:error name="editCitationForm.quote_text" />
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <flux:input wire:model="editCitationForm.location" placeholder="Localização" class="sm:max-w-64" />
+                            <flux:input wire:model="editCitationForm.personal_note" placeholder="Nota pessoal (opcional)" />
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <flux:button type="button" size="sm" variant="ghost" wire:click="$set('editingCitationId', null)">Cancelar</flux:button>
+                            <flux:button type="submit" size="sm" variant="primary">Salvar</flux:button>
+                        </div>
+                    </form>
+                    @else
                     <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4" x-data="readAloud(@js($citation->quote_text))">
                         <div class="prose dark:prose-invert prose-p:italic prose-p:text-on-surface-variant max-w-none leading-relaxed">
                             {!! Str::markdownRich($citation->quote_text) !!}
@@ -179,6 +220,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 @empty
                     <x-empty-state icon="chat-bubble-bottom-center-text" heading="Nenhuma citação registrada para esta obra ainda." />
                 @endforelse
@@ -204,7 +246,7 @@
                     </form>
                 @else
                     <div class="group flex items-start gap-3">
-                        <flux:icon name="bookmark" class="mt-0.5 size-4 shrink-0 text-secondary" />
+                        <flux:icon name="bookmark" class="mt-0.5 size-4 shrink-0 text-on-surface" />
                         @if ($this->material->notes_takeaway)
                             <flux:text class="flex-1 font-medium">{{ $this->material->notes_takeaway }}</flux:text>
                         @else
@@ -249,7 +291,7 @@
                 </div>
             </form>
 
-            <div wire:loading.delay.flex wire:target="addReadingNote,updateReadingNote,deleteReadingNote" class="mt-6 hidden flex-col gap-3">
+            <div wire:loading.delay.flex wire:target="addReadingNote,deleteReadingNote" class="mt-6 hidden flex-col gap-3">
                 @for ($i = 0; $i < 3; $i++)
                     <div class="space-y-2 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
                         <flux:skeleton class="h-4 w-full" />
@@ -258,12 +300,41 @@
                 @endfor
             </div>
 
-            <div wire:loading.delay.remove wire:target="addReadingNote,updateReadingNote,deleteReadingNote" class="mt-6 space-y-3">
+            <div wire:loading.delay.remove wire:target="addReadingNote,deleteReadingNote" class="mt-6 space-y-3">
                 @forelse ($this->material->readingNotes as $note)
+                    @if ($editingReadingNoteId === $note->id)
+                    <form wire:submit="updateReadingNote" wire:key="edit-reading-note-{{ $note->id }}" x-on:keydown.escape="$wire.set('editingReadingNoteId', null)" class="space-y-3 rounded-xl border border-primary/40 bg-surface-container-lowest p-4">
+                        <div wire:ignore>
+                            <div x-data="markdownEditor('editReadingNoteForm.body')">
+                                <textarea x-ref="textarea"></textarea>
+                            </div>
+                        </div>
+                        <flux:error name="editReadingNoteForm.body" />
+                        <div class="flex flex-col gap-3 sm:flex-row">
+                            <flux:input wire:model="editReadingNoteForm.title" placeholder="Título (opcional)" class="sm:max-w-64" />
+                            <flux:input wire:model="editReadingNoteForm.location" placeholder="Localização (opcional)" />
+                        </div>
+                        @if ($this->allTags->isNotEmpty())
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($this->allTags as $tag)
+                                    <x-tag-toggle wire:key="edit-note-tag-{{ $tag->id }}"
+                                        wire:click="toggleEditReadingNoteTag('{{ $tag->title }}')"
+                                        :active="in_array($tag->title, $editReadingNoteForm->tags, true)">
+                                        {{ $tag->title }}
+                                    </x-tag-toggle>
+                                @endforeach
+                            </div>
+                        @endif
+                        <div class="flex justify-end gap-2">
+                            <flux:button type="button" size="sm" variant="ghost" wire:click="$set('editingReadingNoteId', null)">Cancelar</flux:button>
+                            <flux:button type="submit" size="sm" variant="primary">Salvar</flux:button>
+                        </div>
+                    </form>
+                    @else
                     <div wire:key="reading-note-{{ $note->id }}"
                         class="group rounded-xl border border-surface-variant border-l-4 border-l-secondary bg-surface-container-lowest p-4">
                         <div class="flex items-center gap-2">
-                            <flux:icon name="{{ $this->material->typeIcon()->icon() }}" class="size-4 shrink-0 text-secondary" />
+                            <flux:icon name="{{ $this->material->typeIcon()->icon() }}" class="size-4 shrink-0 text-on-surface" />
                             @if ($note->title)
                                 <flux:heading size="sm">{{ $note->title }}</flux:heading>
                             @endif
@@ -296,6 +367,7 @@
                             @endif
                         </div>
                     </div>
+                    @endif
                 @empty
                     <x-empty-state icon="pencil-square" heading="Nenhuma anotação nesta obra ainda." description="Citação é a palavra do autor. Anotação é a sua." />
                 @endforelse
@@ -310,7 +382,19 @@
 
                 <div class="mt-4 space-y-3">
                     @forelse ($this->material->chapters as $chapter)
-                        <details wire:key="chapter-{{ $chapter->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest">
+                        @if ($editingChapterId === $chapter->id)
+                        <form wire:submit="updateChapter" wire:key="edit-chapter-{{ $chapter->id }}" x-on:keydown.escape="$wire.set('editingChapterId', null)" class="flex flex-col gap-3 rounded-xl border border-primary/40 bg-surface-container-lowest p-4 sm:flex-row sm:items-start">
+                            <div class="flex-1">
+                                <flux:input wire:model="editChapterForm.title" placeholder="Título do capítulo" x-init="$el.focus()" />
+                                <flux:error name="editChapterForm.title" />
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <flux:button type="button" size="sm" variant="ghost" wire:click="$set('editingChapterId', null)">Cancelar</flux:button>
+                                <flux:button type="submit" size="sm" variant="primary">Salvar</flux:button>
+                            </div>
+                        </form>
+                        @else
+                        <details wire:key="chapter-{{ $chapter->id }}" wire:ignore.self class="group rounded-xl border border-surface-variant bg-surface-container-lowest">
                             <summary class="flex cursor-pointer items-center gap-3 p-4">
                                 <flux:icon name="chevron-right" class="size-4 shrink-0 transition-transform group-open:rotate-90" />
                                 <span class="font-medium">{{ $chapter->title }}</span>
@@ -330,6 +414,20 @@
                                 </div>
 
                                 @forelse ($chapter->questions as $question)
+                                    @if ($editingQuestionId === $question->id)
+                                    <form wire:submit="updateQuestion" wire:key="edit-question-{{ $question->id }}" x-on:keydown.escape="$wire.set('editingQuestionId', null)" class="space-y-3 rounded-lg border border-primary/40 bg-surface-container-low p-3">
+                                        <flux:input label="Pergunta" wire:model="editQuestionForm.prompt" x-init="$el.focus()" />
+                                        <flux:error name="editQuestionForm.prompt" />
+                                        <flux:textarea label="Resposta de referência" wire:model="editQuestionForm.referenceAnswer" rows="4" />
+                                        <flux:error name="editQuestionForm.referenceAnswer" />
+                                        <flux:input label="Palavras-chave (separadas por vírgula)" wire:model="editQuestionForm.keywords" />
+                                        <flux:checkbox label="Modo Cloze (completar lacunas)" wire:model="editQuestionForm.isCloze" />
+                                        <div class="flex justify-end gap-2">
+                                            <flux:button type="button" size="sm" variant="ghost" wire:click="$set('editingQuestionId', null)">Cancelar</flux:button>
+                                            <flux:button type="submit" size="sm" variant="primary">Salvar</flux:button>
+                                        </div>
+                                    </form>
+                                    @else
                                     <div wire:key="question-{{ $question->id }}" class="group/q rounded-lg border border-surface-variant bg-surface-container-low p-3" x-data="readAloud(@js($question->prompt . "\n\n" . $question->reference_answer))">
                                         <div class="flex items-start gap-2">
                                             <div class="flex-1">
@@ -349,11 +447,13 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                 @empty
                                     <flux:text size="sm" class="text-on-surface-variant">Nenhuma pergunta neste capítulo ainda.</flux:text>
                                 @endforelse
                             </div>
                         </details>
+                        @endif
                     @empty
                         <x-empty-state icon="academic-cap" heading="Nenhum capítulo cadastrado para esta obra ainda." />
                     @endforelse
@@ -361,50 +461,7 @@
             </div>{{-- /perguntas tab --}}
         </div>
 
-        <flux:modal name="edit-material" wire:model.self="editingMaterial" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
-            <form wire:submit="updateMaterial" class="space-y-5">
-                <flux:heading size="lg">Editar obra</flux:heading>
 
-                <flux:input label="Título" wire:model="editForm.title" />
-                <flux:input label="Autor" wire:model="editForm.author" />
-
-                @include('partials.reference-type-pills', ['model' => 'editForm.type', 'label' => 'Tipo'])
-
-                <div class="flex gap-3">
-                    <flux:input label="Ano" type="number" wire:model="editForm.year" class="w-28" />
-                    <flux:input label="Editora" wire:model="editForm.publisher" class="flex-1" />
-                </div>
-                <flux:input label="URL" wire:model="editForm.url" />
-                <flux:textarea label="Referência ABNT" wire:model="editForm.abnt_reference" rows="2" />
-
-                @include('partials.reference-reading-fields', ['model' => 'editForm'])
-
-                <div class="flex">
-                    <flux:spacer />
-                    <flux:button type="submit" variant="primary">Salvar</flux:button>
-                </div>
-            </form>
-        </flux:modal>
-
-        <flux:modal name="edit-citation" wire:model.self="editingCitation" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
-            <form wire:submit="updateCitation" class="space-y-4">
-                <flux:heading size="lg">Editar citação</flux:heading>
-                <div>
-                    <flux:label>Trecho</flux:label>
-                    <div wire:ignore class="mt-1">
-                        <div x-data="markdownEditor('editCitationForm.quote_text')">
-                            <textarea x-ref="textarea"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <flux:input label="Localização" wire:model="editCitationForm.location" />
-                <flux:textarea label="Nota pessoal" wire:model="editCitationForm.personal_note" rows="2" />
-                <div class="flex">
-                    <flux:spacer />
-                    <flux:button type="submit" variant="primary">Salvar</flux:button>
-                </div>
-            </form>
-        </flux:modal>
 
         <flux:modal name="delete-citation" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
@@ -434,17 +491,6 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="edit-chapter" wire:model.self="editingChapter" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
-            <form wire:submit="updateChapter" class="space-y-5">
-                <flux:heading size="lg">Editar capítulo</flux:heading>
-                <flux:input label="Título" wire:model="editChapterForm.title" />
-                <flux:error name="editChapterForm.title" />
-                <div class="flex">
-                    <flux:spacer />
-                    <flux:button type="submit" variant="primary">Salvar</flux:button>
-                </div>
-            </form>
-        </flux:modal>
 
         <flux:modal name="delete-chapter" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
@@ -478,21 +524,6 @@
             </form>
         </flux:modal>
 
-        <flux:modal name="edit-question" wire:model.self="editingQuestion" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
-            <form wire:submit="updateQuestion" class="space-y-4">
-                <flux:heading size="lg">Editar pergunta</flux:heading>
-                <flux:input label="Pergunta" wire:model="editQuestionForm.prompt" />
-                <flux:error name="editQuestionForm.prompt" />
-                <flux:textarea label="Resposta de referência" wire:model="editQuestionForm.referenceAnswer" rows="4" />
-                <flux:error name="editQuestionForm.referenceAnswer" />
-                <flux:input label="Palavras-chave (separadas por vírgula)" wire:model="editQuestionForm.keywords" />
-                <flux:checkbox label="Modo Cloze (completar lacunas)" wire:model="editQuestionForm.isCloze" />
-                <div class="flex">
-                    <flux:spacer />
-                    <flux:button type="submit" variant="primary">Salvar</flux:button>
-                </div>
-            </form>
-        </flux:modal>
 
         <flux:modal name="delete-question" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
@@ -510,37 +541,6 @@
             </div>
         </flux:modal>
 
-        <flux:modal name="edit-reading-note" wire:model.self="editingReadingNote" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
-            <form wire:submit="updateReadingNote" class="space-y-4">
-                <flux:heading size="lg">Editar anotação</flux:heading>
-                <div>
-                    <flux:label>Anotação</flux:label>
-                    <div wire:ignore class="mt-1">
-                        <div x-data="markdownEditor('editReadingNoteForm.body')">
-                            <textarea x-ref="textarea"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <flux:error name="editReadingNoteForm.body" />
-                <flux:input label="Título (opcional)" wire:model="editReadingNoteForm.title" />
-                <flux:input label="Localização (opcional)" wire:model="editReadingNoteForm.location" />
-                @if ($this->allTags->isNotEmpty())
-                    <div class="flex flex-wrap gap-2">
-                        @foreach ($this->allTags as $tag)
-                            <x-tag-toggle wire:key="edit-note-tag-{{ $tag->id }}"
-                                wire:click="toggleEditReadingNoteTag('{{ $tag->title }}')"
-                                :active="in_array($tag->title, $editReadingNoteForm->tags, true)">
-                                {{ $tag->title }}
-                            </x-tag-toggle>
-                        @endforeach
-                    </div>
-                @endif
-                <div class="flex">
-                    <flux:spacer />
-                    <flux:button type="submit" variant="primary">Salvar</flux:button>
-                </div>
-            </form>
-        </flux:modal>
 
         <flux:modal name="delete-reading-note" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">

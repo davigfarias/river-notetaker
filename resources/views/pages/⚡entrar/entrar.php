@@ -16,7 +16,7 @@ new #[Title('Entrar')] class extends Component
 
         if (RateLimiter::tooManyAttempts($key, 8)) {
             $this->code = '';
-            Flux::toast(text: 'Muitas tentativas. Aguarde alguns minutos.', variant: 'danger');
+            Flux::toast(duration: 2500, text: 'Muitas tentativas. Aguarde alguns minutos.', variant: 'danger');
 
             return;
         }
@@ -27,7 +27,7 @@ new #[Title('Entrar')] class extends Component
 
         if (! $outcome->success) {
             $this->code = '';
-            Flux::toast(text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 2500, text: $outcome->message, variant: 'danger');
 
             return;
         }

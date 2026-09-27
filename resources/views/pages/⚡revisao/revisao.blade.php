@@ -26,7 +26,7 @@
                 <div class="relative z-10">
                     <div class="flex items-center gap-3 mb-4" x-data="readAloud(@js($this->question->prompt))">
                         <div class="bg-secondary/10 text-secondary p-2 rounded-lg inline-flex">
-                            <flux:icon.light-bulb class="size-5" />
+                            <flux:icon.light-bulb class="text-on-surface size-5" />
                         </div>
                         <span class="font-mono text-sm tracking-wider uppercase text-secondary">Pergunta</span>
                         <flux:spacer />
@@ -41,7 +41,7 @@
 
                     <div class="flex items-center gap-3 mb-4" x-data="readAloud(@js($this->question->reference_answer))">
                         <div class="bg-primary/10 text-primary p-2 rounded-lg inline-flex">
-                            <flux:icon.check-circle class="size-5" />
+                            <flux:icon.check-circle class="text-on-surface size-5" />
                         </div>
                         <span class="font-mono text-sm tracking-wider uppercase text-primary">Resposta</span>
                         <flux:spacer />

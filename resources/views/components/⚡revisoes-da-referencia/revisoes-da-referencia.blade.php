@@ -44,7 +44,7 @@
         </div>
     @else
         <flux:card size="sm" class="mb-6 flex items-center gap-3">
-            <flux:icon.check-circle class="text-primary size-5 shrink-0" />
+            <flux:icon.check-circle class="text-on-surface size-5 shrink-0" />
             <flux:text>Nenhuma revisão pendente para hoje.</flux:text>
         </flux:card>
     @endif
@@ -114,7 +114,7 @@
                             </section>
                         @else
                             <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
-                                <flux:icon.exclamation-triangle class="text-on-surface-variant size-6" />
+                                <flux:icon.exclamation-triangle class="text-on-surface size-6" />
                                 <flux:text>Não foi possível gerar as perguntas desta revisão. Tente novamente mais tarde.</flux:text>
                             </div>
                         @endif

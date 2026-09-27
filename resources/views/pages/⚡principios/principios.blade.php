@@ -34,7 +34,7 @@
 
         @if ($this->topics->isEmpty())
             <div class="flex flex-col items-center justify-center py-24 px-6 text-center rounded-xl border border-surface-variant bg-surface-container-low border-dashed">
-                <flux:icon name="scale" class="size-10 text-surface-variant-content/50 mb-3" />
+                <flux:icon name="scale" class="size-10 text-on-surface mb-3" />
                 <flux:heading size="md">Nenhum tema cadastrado</flux:heading>
                 <flux:text class="mt-2 text-surface-variant-content">Cadastre um tema para começar a reunir princípios.</flux:text>
             </div>

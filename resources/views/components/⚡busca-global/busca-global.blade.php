@@ -41,7 +41,7 @@
                             wire:click="close"
                             class="flex items-start gap-3 rounded-lg p-3 hover:bg-surface-variant/40 transition-colors"
                         >
-                            <flux:icon name="{{ $result->type->icon() }}" class="mt-0.5 size-5 shrink-0 text-on-surface-variant" />
+                            <flux:icon name="{{ $result->type->icon() }}" class="mt-0.5 size-5 shrink-0 text-on-surface" />
                             <div class="min-w-0">
                                 <flux:text class="block truncate font-medium text-on-surface">{{ $result->title }}</flux:text>
                                 @if ($result->snippet)

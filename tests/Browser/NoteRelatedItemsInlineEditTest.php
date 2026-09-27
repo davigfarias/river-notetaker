@@ -33,7 +33,7 @@ function createNoteWithRelatedItems(): array
     return [$result['plainTextToken'], $discipline, $concept, $advice];
 }
 
-test('a concept inside a note can be edited inline via the pencil modal', function () {
+test('a concept inside a note can be edited in place via the pencil', function () {
     [$code, $discipline, $concept] = createNoteWithRelatedItems();
 
     $page = loginWithAccessToken($code)
@@ -50,7 +50,7 @@ test('a concept inside a note can be edited inline via the pencil modal', functi
     expect($concept->fresh()->term)->toBe('Graça comum');
 });
 
-test('a pastoral advice inside a note can be edited inline via the pencil modal', function () {
+test('a pastoral advice inside a note can be edited in place via the pencil', function () {
     [$code, $discipline, $concept, $advice] = createNoteWithRelatedItems();
 
     $page = loginWithAccessToken($code)

@@ -125,7 +125,7 @@
                     <div class="bg-surface-container group-hover:bg-primary-container/20 mb-3 flex h-12 w-12 items-center justify-center rounded-full transition-colors">
                         <flux:icon
                             name="plus"
-                            class="text-outline-variant group-hover:text-primary size-6 transition-colors"
+                            class="text-on-surface group-hover:text-primary size-6 transition-colors"
                         />
                     </div>
                     <flux:text class="text-on-surface-variant group-hover:text-on-surface transition-colors">Nova Disciplina</flux:text>

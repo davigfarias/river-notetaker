@@ -23,7 +23,7 @@ function createNoteForBrowserTest(array $overrides = []): array
     return [$result['plainTextToken'], $discipline, $note];
 }
 
-test('title can be edited inline via the pencil modal', function () {
+test('title can be edited in place via the pencil', function () {
     [$code, $discipline] = createNoteForBrowserTest();
 
     $page = loginWithAccessToken($code)
@@ -51,7 +51,7 @@ test('a tag pill can be toggled inline with autosave', function () {
     expect(Notes::first()->tags)->toBe(['Missões']);
 });
 
-test('impressions can be edited inline via the EasyMDE modal', function () {
+test('impressions can be edited in place via EasyMDE', function () {
     [$code, $discipline] = createNoteForBrowserTest();
 
     $page = loginWithAccessToken($code)
@@ -69,7 +69,7 @@ test('impressions can be edited inline via the EasyMDE modal', function () {
     expect(Notes::first()->impressions)->toBe('Impressão editada.');
 });
 
-test('life experiences can be edited inline via the EasyMDE modal', function () {
+test('life experiences can be edited in place via EasyMDE', function () {
     [$code, $discipline] = createNoteForBrowserTest();
 
     $page = loginWithAccessToken($code)

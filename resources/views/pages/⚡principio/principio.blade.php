@@ -36,7 +36,7 @@
                     type="button"
                     class="flex w-40 flex-col items-center justify-center gap-2 rounded-xl border border-surface-variant bg-surface-container-low p-6 text-center font-semibold hover:bg-surface-variant/40 transition-colors"
                 >
-                    <flux:icon name="light-bulb" class="size-6 text-primary" />
+                    <flux:icon name="light-bulb" class="size-6 text-on-surface" />
                     Conceito
                 </button>
             </flux:modal.trigger>
@@ -46,7 +46,7 @@
                 wire:click="startAddingText"
                 class="flex w-40 flex-col items-center justify-center gap-2 rounded-xl border border-surface-variant bg-surface-container-low p-6 text-center font-semibold hover:bg-surface-variant/40 transition-colors"
             >
-                <flux:icon name="scale" class="size-6 text-primary" />
+                <flux:icon name="scale" class="size-6 text-on-surface" />
                 Princípio
             </button>
         </div>
@@ -73,7 +73,7 @@
 
         @if ($this->topic->principles->isEmpty())
             <div class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
-                <flux:icon name="scale" class="size-9 text-surface-variant-content/50 mb-3" />
+                <flux:icon name="scale" class="size-9 text-on-surface mb-3" />
                 <flux:text class="text-surface-variant-content">Nenhum princípio adicionado a este tema ainda.</flux:text>
             </div>
         @else
@@ -198,7 +198,7 @@
                                 class="flex w-full items-center justify-between p-3 text-left text-sm text-on-surface hover:bg-surface-container-low"
                             >
                                 {{ $result->term }}
-                                <flux:icon name="chevron-right" class="size-4 text-on-surface-variant" />
+                                <flux:icon name="chevron-right" class="size-4 text-on-surface" />
                             </button>
                         @empty
                             <div class="p-3 text-sm text-on-surface-variant">Nenhum conceito encontrado.</div>

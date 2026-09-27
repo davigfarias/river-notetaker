@@ -136,7 +136,7 @@
                         <button
                             type="button"
                             wire:click="edit({{ $concept->id }})"
-                            class="text-on-surface-variant hover:text-primary absolute top-4 right-4 z-10 opacity-0 transition-opacity group-hover:opacity-100"
+                            class="text-on-surface hover:text-primary absolute top-4 right-4 z-10 opacity-0 transition-opacity group-hover:opacity-100"
                         >
                             <flux:icon name="pencil" class="size-4" />
                         </button>
@@ -343,7 +343,7 @@
                                             class="flex w-full items-center justify-between p-3 text-left text-sm text-on-surface hover:bg-surface-container-low"
                                         >
                                             {{ $result->term }}
-                                            <flux:icon name="plus" class="size-4 text-on-surface-variant" />
+                                            <flux:icon name="plus" class="size-4 text-on-surface" />
                                         </button>
                                     </x-slot:trigger>
                                     <p class="mb-2 font-semibold">{{ $result->term }}</p>

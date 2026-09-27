@@ -48,8 +48,8 @@ new #[Title('Conselhos Pastorais')] #[Lazy] class extends Component
         $check = $action->handle($this->formAdvice);
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         $this->modal('add-advice')->close();
@@ -96,8 +96,8 @@ new #[Title('Conselhos Pastorais')] #[Lazy] class extends Component
         $check = $action->handle($this->editingAdviceId, $this->editAdviceForm);
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {

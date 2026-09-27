@@ -58,13 +58,9 @@ new #[Title('Disciplinas')] class extends Component
 
     public ?int $editingConceptId = null;
 
-    public bool $editingConcept = false;
-
     public SoleAdviceDTO $editAdviceForm;
 
     public ?int $editingAdviceId = null;
-
-    public bool $editingAdvice = false;
 
     public SoleConceptDTO $addConceptForm;
 
@@ -124,6 +120,9 @@ new #[Title('Disciplinas')] class extends Component
 
     public function selectNote(int $id): void
     {
+        $this->reset('editing', 'draft', 'editingConceptId', 'editingAdviceId', 'addingConcept', 'addingAdvice');
+        $this->resetValidation();
+
         $this->selectedNoteId = $id;
         $this->mobileDetail = true;
     }
@@ -203,7 +202,7 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($this->disciplineDTO->id, $topicId);
 
         if (! $outcome->success) {
-            Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
         }
 
         unset($this->linkedTopicIds, $this->linkablePrinciples, $this->filteredLinkablePrinciples);
@@ -244,8 +243,8 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($principleId, $this->selectedNote->id, $this->pendingField, $this->pendingSnippet);
 
         match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {
@@ -260,8 +259,8 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($linkId);
 
         match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         unset($this->notePrincipleLinks);
@@ -279,6 +278,13 @@ new #[Title('Disciplinas')] class extends Component
         $this->editing[$field] = true;
     }
 
+    public function cancelEdit(string $field): void
+    {
+        $this->editing[$field] = false;
+        unset($this->draft[$field]);
+        $this->resetValidation();
+    }
+
     public function updateNote(UpdateNote $action, string $field): void
     {
         if ($field === 'title') {
@@ -288,8 +294,8 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($this->selectedNote->id, (int) session('access_token_id'), [$field => $this->draft[$field]]);
 
         match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {
@@ -316,7 +322,6 @@ new #[Title('Disciplinas')] class extends Component
         $this->editingConceptId = $id;
         $this->editConceptForm->term = $concept->term;
         $this->editConceptForm->definition = $concept->definition;
-        $this->editingConcept = true;
     }
 
     public function updateConcept(UpdateConcept $action): void
@@ -326,12 +331,12 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($this->editingConceptId, $this->editConceptForm);
 
         match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {
-            $this->editingConcept = false;
+            $this->editingConceptId = null;
             unset($this->notes, $this->selectedNote);
         }
     }
@@ -343,7 +348,6 @@ new #[Title('Disciplinas')] class extends Component
         $this->editingAdviceId = $id;
         $this->editAdviceForm->category = $advice->category;
         $this->editAdviceForm->advice = $advice->advice;
-        $this->editingAdvice = true;
     }
 
     public function updateAdvice(UpdateAdvice $action): void
@@ -353,12 +357,12 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($this->editingAdviceId, $this->editAdviceForm);
 
         match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {
-            $this->editingAdvice = false;
+            $this->editingAdviceId = null;
             unset($this->notes, $this->selectedNote);
         }
     }
@@ -368,7 +372,7 @@ new #[Title('Disciplinas')] class extends Component
         $check = $action->handle(trim($this->addConceptForm->term));
 
         if ($check->data) {
-            Flux::toast(text: 'O conceito já está registrado no sistema!', variant: 'alert');
+            Flux::toast(duration: 2500, text: 'O conceito já está registrado no sistema!', variant: 'alert');
         }
     }
 
@@ -379,8 +383,8 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($this->selectedNote->id, $this->addConceptForm);
 
         match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {
@@ -397,8 +401,8 @@ new #[Title('Disciplinas')] class extends Component
         $outcome = $action->handle($this->selectedNote->id, $this->addAdviceForm);
 
         match ($outcome->success) {
-            true => Flux::toast(text: $outcome->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {

@@ -78,7 +78,7 @@
                                     <button
                                         type="button"
                                         wire:click="edit({{ $advice->id }})"
-                                        class="opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-primary shrink-0 mt-1"
+                                        class="opacity-0 group-hover:opacity-100 transition-opacity text-on-surface hover:text-primary shrink-0 mt-1"
                                     >
                                         <flux:icon name="pencil" class="size-4" />
                                     </button>

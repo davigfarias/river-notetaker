@@ -49,7 +49,6 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public ?int $editingCitationId = null;
 
-    public bool $editingCitation = false;
 
     public ReferenceMaterialForm $editForm;
 
@@ -73,7 +72,6 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public bool $creatingChapter = false;
 
-    public bool $editingChapter = false;
 
     public ?int $deletingChapterId = null;
 
@@ -87,7 +85,6 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public ?int $editingQuestionId = null;
 
-    public bool $editingQuestion = false;
 
     public ?int $deletingQuestionId = null;
 
@@ -97,7 +94,6 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public ?int $editingReadingNoteId = null;
 
-    public bool $editingReadingNote = false;
 
     public ?int $deletingReadingNoteId = null;
 
@@ -134,8 +130,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->id, $this->citationForm, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -152,11 +148,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
             return;
         }
 
-        Flux::modals()->close();
-
         $this->editingCitationId = $citationId;
         $this->editCitationForm->fillFromModel($citation);
-        $this->editingCitation = true;
     }
 
     public function updateCitation(UpdateCitation $action): void
@@ -166,12 +159,12 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->editingCitationId, $this->editCitationForm, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
-            $this->editingCitation = false;
+            $this->editingCitationId = null;
             unset($this->material);
         }
     }
@@ -191,8 +184,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->deletingCitationId, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         $this->modal('delete-citation')->close();
@@ -239,11 +232,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
             return;
         }
 
-        Flux::modals()->close();
-
         $this->editingReadingNoteId = $readingNoteId;
         $this->editReadingNoteForm->fillFromModel($note);
-        $this->editingReadingNote = true;
     }
 
     public function updateReadingNote(UpdateReadingNote $action): void
@@ -255,7 +245,6 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $this->toast($check->success, $check->message);
 
         if ($check->success) {
-            $this->editingReadingNote = false;
             $this->editingReadingNoteId = null;
             unset($this->material);
         }
@@ -323,8 +312,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->id, $this->editForm, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -388,8 +377,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         );
 
         match ($check->success) {
-            true => Flux::toast(text: $check->message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -417,8 +406,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
     private function toast(bool $success, ?string $message): void
     {
         match ($success) {
-            true => Flux::toast(text: $message, variant: 'success'),
-            false => Flux::toast(heading: 'Ocorreu um erro', text: $message, variant: 'danger'),
+            true => Flux::toast(duration: 2500, text: $message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $message, variant: 'danger'),
         };
     }
 
@@ -459,7 +448,6 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $this->resetValidation();
         $this->editingChapterId = $chapterId;
         $this->editChapterForm->fillFromChapter($chapter);
-        $this->editingChapter = true;
     }
 
     public function updateChapter(UpdateChapter $action): void
@@ -477,7 +465,7 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $this->toast($check->success, $check->message);
 
         if ($check->success) {
-            $this->editingChapter = false;
+            $this->editingChapterId = null;
             unset($this->material);
         }
     }
@@ -547,7 +535,6 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $this->resetValidation();
         $this->editingQuestionId = $questionId;
         $this->editQuestionForm->fillFromQuestion($question);
-        $this->editingQuestion = true;
     }
 
     public function updateQuestion(UpdateQuestion $action, RefreshClozeBlanks $refreshClozeBlanks): void
@@ -566,7 +553,7 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
         if ($check->success) {
             $refreshClozeBlanks->handle($check->data);
-            $this->editingQuestion = false;
+            $this->editingQuestionId = null;
             unset($this->material);
         }
     }

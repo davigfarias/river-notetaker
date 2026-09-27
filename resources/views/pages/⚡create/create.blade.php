@@ -37,7 +37,7 @@
         <section class="space-y-4">
             <section class="space-y-4">
                 <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
-                    <flux:icon name="hashtag" class="text-primary size-5" />
+                    <flux:icon name="hashtag" class="text-on-surface size-5" />
                     <flux:heading size="sm">TAGS</flux:heading>
                 </div>
 
@@ -60,7 +60,7 @@
             </section>
 
             <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
-                <flux:icon name="light-bulb" class="text-primary size-5" />
+                <flux:icon name="light-bulb" class="text-on-surface size-5" />
                 <flux:heading size="sm">CONCEITOS</flux:heading>
             </div>
 
@@ -88,7 +88,7 @@
                                 <button
                                     type="button"
                                     wire:click="removeConcept({{ $index }})"
-                                    class="text-on-surface-variant hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
+                                    class="text-on-surface hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
                                     title="Remover"
                                 >
                                     <flux:icon name="x-mark" class="size-4" />
@@ -103,7 +103,7 @@
                     wire:click="addConcept"
                     class="bg-surface-container-low/30 text-primary-container hover:bg-surface-container-low flex w-full items-center justify-center gap-2 py-3 tracking-wider uppercase transition-colors"
                 >
-                    <flux:icon name="plus-circle" class="size-4" />
+                    <flux:icon name="plus-circle" class="text-on-surface size-4" />
                     <flux:text size="sm" class="font-bold">Adicionar Conceito</flux:text>
                 </button>
             </div>
@@ -111,7 +111,7 @@
 
         <section class="space-y-4">
             <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
-                <flux:icon name="hand-raised" class="text-secondary size-5" />
+                <flux:icon name="hand-raised" class="text-on-surface size-5" />
                 <flux:heading size="sm">CONSELHOS PASTORAIS</flux:heading>
             </div>
 
@@ -138,7 +138,7 @@
                                 <button
                                     type="button"
                                     wire:click="removePastoralAdvice({{ $index }})"
-                                    class="text-on-surface-variant hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
+                                    class="text-on-surface hover:text-error absolute top-2 right-2 opacity-0 transition-all group-hover:opacity-100"
                                     title="Remover"
                                 >
                                     <flux:icon name="x-mark" class="size-4" />
@@ -153,7 +153,7 @@
                     wire:click="addPastoralAdvice"
                     class="bg-surface-container-low/30 text-secondary hover:bg-surface-container-low flex w-full items-center justify-center gap-2 py-3 tracking-wider uppercase transition-colors"
                 >
-                    <flux:icon name="plus-circle" class="size-4" />
+                    <flux:icon name="plus-circle" class="text-on-surface size-4" />
                     <flux:text size="sm" class="font-bold">Adicionar Conselho</flux:text>
                 </button>
             </div>
@@ -162,7 +162,7 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
             <section class="border-surface-variant bg-surface-container-lowest flex flex-col overflow-hidden rounded-xl border shadow-sm transition-colors duration-300">
                 <div class="border-surface-variant bg-surface-container-low/80 flex items-center gap-2 border-b p-3">
-                    <flux:icon name="sparkles" class="text-tertiary size-4" />
+                    <flux:icon name="sparkles" class="text-on-surface size-4" />
                     <flux:heading size="sm">IMPRESSÕES</flux:heading>
                 </div>
                 <div wire:ignore class="flex-1">
@@ -185,7 +185,7 @@
 
             <section class="border-surface-variant bg-surface-container-lowest flex flex-col overflow-hidden rounded-xl border shadow-sm transition-colors duration-300">
                 <div class="border-surface-variant bg-surface-container-low/80 flex items-center gap-2 border-b p-3">
-                    <flux:icon name="book-open" class="text-tertiary size-4" />
+                    <flux:icon name="book-open" class="text-on-surface size-4" />
                     <flux:heading size="sm">EXPERIÊNCIAS DE VIDA</flux:heading>
                 </div>
                 <div wire:ignore class="flex-1">
@@ -209,7 +209,7 @@
 
         <section class="space-y-4">
             <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
-                <flux:icon name="book-open" class="text-on-surface-variant size-5" />
+                <flux:icon name="book-open" class="text-on-surface size-5" />
                 <flux:heading size="sm">REFERÊNCIAS</flux:heading>
             </div>
 
@@ -249,12 +249,12 @@
                                     wire:click="linkReference({{ $result->id }})"
                                     class="flex w-full items-center gap-3 bg-surface-container-lowest p-3 text-left hover:bg-surface-container-low"
                                 >
-                                    <flux:icon name="{{ $resultIcon->icon() }}" class="size-4 text-on-surface-variant shrink-0" />
+                                    <flux:icon name="{{ $resultIcon->icon() }}" class="size-4 text-on-surface shrink-0" />
                                     <span class="min-w-0 flex-1">
                                         <span class="block truncate text-sm font-medium">{{ $result->title }}</span>
                                         <span class="block truncate text-xs text-on-surface-variant">{{ $result->author }}{{ $result->year ? ', '.$result->year : '' }}</span>
                                     </span>
-                                    <flux:icon name="plus" class="size-4 text-on-surface-variant shrink-0" />
+                                    <flux:icon name="plus" class="size-4 text-on-surface shrink-0" />
                                 </button>
                             @empty
                                 <div class="bg-surface-container-lowest p-3 text-sm text-on-surface-variant">
