@@ -231,3 +231,10 @@
 [x-cloak] {
   display: none !important;
 }
+
+.mermaid {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    margin: 1rem 0;
+}

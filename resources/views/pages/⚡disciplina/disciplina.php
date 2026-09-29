@@ -212,18 +212,29 @@ new #[Title('Disciplinas')] class extends Component
     {
         $html = Str::markdownRich($markdown);
 
-        foreach ($links as $link) {
-            $escaped = e($link->snippet);
-            $principleLabel = $link->principle->title ?? $link->principle->concept->term;
+        // Blocos mermaid ficam de fora: um <mark> dentro do fonte quebraria o diagrama.
+        $parts = preg_split('#(<pre><code class="language-mermaid">.*?</code></pre>)#s', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
 
-            $html = str_replace(
-                $escaped,
-                '<mark class="rounded bg-primary/20 px-0.5" title="Princípio: '.e($principleLabel).'" data-link-id="'.$link->id.'">'.$escaped.'</mark>',
-                $html
-            );
+        foreach ($parts as $index => $part) {
+            if ($index % 2 === 1) {
+                continue;
+            }
+
+            foreach ($links as $link) {
+                $escaped = e($link->snippet);
+                $principleLabel = $link->principle->title ?? $link->principle->concept->term;
+
+                $part = str_replace(
+                    $escaped,
+                    '<mark class="rounded bg-primary/20 px-0.5" title="Princípio: '.e($principleLabel).'" data-link-id="'.$link->id.'">'.$escaped.'</mark>',
+                    $part
+                );
+            }
+
+            $parts[$index] = $part;
         }
 
-        return $html;
+        return implode('', $parts);
     }
 
     public function startLinkingPrinciple(string $field, string $snippet): void

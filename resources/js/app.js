@@ -3,6 +3,7 @@ import 'easymde/dist/easymde.min.css';
 import { Network } from 'vis-network/standalone';
 import { computePosition, autoUpdate, offset, flip, shift } from '@floating-ui/dom';
 import './session-modal';
+import './mermaid';
 
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest('a[href^="#edit-concept-"]');
@@ -115,6 +116,15 @@ function insertFootnote(editor) {
     cm.focus();
 }
 
+// Insere um bloco de diagrama ```mermaid no cursor (renderizado na exibição da nota).
+function insertMermaid(editor) {
+    const cm = editor.codemirror;
+    const startsMidLine = cm.getCursor().ch > 0;
+
+    cm.replaceSelection(`${startsMidLine ? '\n' : ''}\`\`\`mermaid\nflowchart TD\n  A[Início] --> B[Fim]\n\`\`\`\n`);
+    cm.focus();
+}
+
 document.addEventListener('alpine:init', () => {
     // Indica se a página de criar nota tem edições não salvas.
     // Alimentado por `resources/views/pages/⚡create/create.js` (100% client-side).
@@ -156,6 +166,12 @@ document.addEventListener('alpine:init', () => {
                         className: 'fa fa-superscript',
                         title: 'Nota de rodapé',
                     },
+                    {
+                        name: 'mermaid',
+                        action: insertMermaid,
+                        className: 'fa fa-sitemap',
+                        title: 'Diagrama Mermaid (Ctrl/Cmd+Alt+M)',
+                    },
                 ],
                 spellChecker: false,
                 status: false,
@@ -172,6 +188,12 @@ document.addEventListener('alpine:init', () => {
 
             const editor = new EasyMDE(options);
             this.editor = editor;
+
+            // Atalho pro bloco ```mermaid pronto (mesma ação do botão da toolbar).
+            editor.codemirror.addKeyMap({
+                'Ctrl-Alt-M': () => insertMermaid(editor),
+                'Cmd-Alt-M': () => insertMermaid(editor),
+            });
 
             // O EasyMDE carrega um rascunho salvo direto no CodeMirror durante a
             // construção. Detecta isso e empurra pro Livewire (sync adiada, sem request).

@@ -5,7 +5,7 @@
         </flux:button>
     </x-slot:headerActions>
 
-    <form id="form-nota" wire:submit="save" class="mx-auto max-w-[800px] space-y-8 pb-32">
+    <form id="form-nota" wire:submit="save" class="mx-auto max-w-6xl space-y-8 pb-32">
         <div class="mt-4 space-y-4">
             <div x-show="$store.noteDraft.dirty" class="flex flex-row-reverse space-x-1 space-x-reverse">
                 <flux:text size="lg">Nessa nota há edições não salvas</flux:text>
