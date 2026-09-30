@@ -61,16 +61,9 @@
                         @foreach ($group['disciplines'] as $discipline)
                             <div
                                 wire:key="discipline-{{ $discipline->id }}"
-                                class="group border-surface-variant bg-surface-container-lowest hover:bg-surface-variant/40 relative flex min-h-40 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm transition-colors hover:shadow-md"
+                                class="border-surface-variant bg-surface-container-lowest relative flex min-h-40 flex-col justify-between overflow-hidden rounded-xl border p-6 shadow-sm"
                             >
-                                <a
-                                    href="{{ route('disciplinas.show', $discipline->slug) }}"
-                                    wire:navigate
-                                    class="absolute inset-0 z-0"
-                                    aria-label="{{ $discipline->title }}"
-                                ></a>
-
-                                <div class="bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full transition-transform group-hover:scale-110"></div>
+                                <div class="bg-primary-container/10 absolute -top-4 -right-4 h-24 w-24 rounded-bl-full"></div>
 
                                 <div class="absolute top-2 right-2 z-10 flex gap-1">
                                     <flux:button
@@ -96,11 +89,11 @@
                                     />
                                 </div>
 
-                                <div class="pointer-events-none relative z-1">
+                                <div class="relative z-1">
                                     <div class="border-outline-variant/30 bg-surface-container primary mb-4 flex h-12 w-12 items-center justify-center rounded-lg border">
                                         <flux:icon :name="$discipline->icon" class="size-6" />
                                     </div>
-                                    <flux:heading size="lg" class="'group-hover:text-primary' mb-1 transition-colors">
+                                    <flux:heading size="lg" class="mb-1">
                                         {{ $discipline->title }}
                                     </flux:heading>
 
@@ -109,6 +102,11 @@
                                             {{ collect([$discipline->code, $discipline->professor])->filter()->implode(' · ') }}
                                         </flux:text>
                                     @endif
+                                </div>
+
+                                <div class="relative z-1 mt-4 flex gap-2">
+                                    <flux:button size="sm" icon="share" href="{{ route('disciplinas.mapa-mental', $discipline->slug) }}" wire:navigate>Mapa mental</flux:button>
+                                    <flux:button size="sm" icon="document-text" href="{{ route('disciplinas.show', $discipline->slug) }}" wire:navigate>Notas</flux:button>
                                 </div>
                             </div>
                         @endforeach

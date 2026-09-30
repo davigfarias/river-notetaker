@@ -238,3 +238,17 @@
     overflow-x: auto;
     margin: 1rem 0;
 }
+
+/* Mapa mental: o SVG ocupa a caixa de altura fixa e o svg-pan-zoom cuida do zoom/arrasto. */
+[data-pan-zoom] .mermaid {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+[data-pan-zoom] .mermaid svg {
+    max-width: none !important;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+}

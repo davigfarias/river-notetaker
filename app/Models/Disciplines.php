@@ -24,6 +24,7 @@ use Laravel\Scout\Searchable;
  * @property CarbonImmutable|null $completed_at
  * @property string $slug
  * @property string $icon
+ * @property string|null $mind_map
  */
 #[UseFactory(DisciplineFactory::class)]
 #[Fillable([
@@ -35,6 +36,7 @@ use Laravel\Scout\Searchable;
     'completed_at',
     'slug',
     'icon',
+    'mind_map',
 ])]
 #[Table(name: 'disciplines')]
 class Disciplines extends Model

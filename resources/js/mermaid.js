@@ -1,3 +1,5 @@
+import svgPanZoom from 'svg-pan-zoom';
+
 // Renderiza blocos ```mermaid do Markdown (que o servidor entrega como
 // <pre><code class="language-mermaid">) em diagramas SVG. O mermaid é pesado,
 // então só é baixado (chunk separado) quando a página tem um bloco.
@@ -12,6 +14,21 @@ async function draw(nodes) {
 
     mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: isDark() ? 'dark' : 'default' });
     await mermaid.run({ nodes, suppressErrors: true });
+
+    nodes.filter((node) => node.closest('[data-pan-zoom]')).forEach(enablePanZoom);
+}
+
+// Dentro de [data-pan-zoom] o SVG vira arrastável e com zoom (roda do mouse,
+// pinça e botões). A instância fica em node.panZoom pros botões da página.
+function enablePanZoom(node) {
+    const svg = node.querySelector('svg');
+
+    if (!svg) {
+        return;
+    }
+
+    node.panZoom?.destroy();
+    node.panZoom = svgPanZoom(svg, { controlIconsEnabled: false, minZoom: 0.2, maxZoom: 20, fit: true, center: true });
 }
 
 // Troca cada <pre><code class="language-mermaid"> ainda não processado por um <div class="mermaid">.
@@ -38,6 +55,8 @@ function redrawAll(root) {
     const nodes = [...root.querySelectorAll('.mermaid[data-source]')];
 
     nodes.forEach((node) => {
+        node.panZoom?.destroy();
+        node.panZoom = null;
         node.removeAttribute('data-processed');
         node.textContent = node.dataset.source;
     });
