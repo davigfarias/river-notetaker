@@ -438,7 +438,7 @@
                                             @endif
 
                                             @if (filled($pendingSnippet))
-                                                <flux:button size="xs" variant="primary" wire:click="linkPendingPrinciple({{ $principle->id }})">
+                                                <flux:button size="sm" variant="primary" class="w-full" wire:click="linkPendingPrinciple({{ $principle->id }})">
                                                     Linkar ao trecho
                                                 </flux:button>
                                             @endif
