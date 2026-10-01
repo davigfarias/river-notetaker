@@ -32,7 +32,9 @@
     <div class="mt-2 flex flex-wrap gap-2">
         @foreach ($links as $link)
             <flux:badge size="sm" color="zinc" wire:key="note-principle-link-{{ $link->id }}">
-                {{ $link->principle->title ?? $link->principle->concept->term }}
+                <button type="button" class="cursor-pointer" wire:click="viewPrinciple({{ $link->principle_id }})">
+                    {{ $link->principle->title ?? $link->principle->concept->term }}
+                </button>
                 <flux:badge.close wire:click="unlinkPrincipleFromNote({{ $link->id }})" />
             </flux:badge>
         @endforeach

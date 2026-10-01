@@ -78,6 +78,8 @@ new #[Title('Disciplinas')] class extends Component
 
     public ?int $topicToAdd = null;
 
+    public ?int $viewingPrincipleId = null;
+
     public function boot(
         DisciplineData $disciplineData,
         DisciplineNotes $disciplineNotes,
@@ -226,7 +228,7 @@ new #[Title('Disciplinas')] class extends Component
 
                 $part = str_replace(
                     $escaped,
-                    '<mark class="rounded bg-primary/20 px-0.5" title="Princípio: '.e($principleLabel).'" data-link-id="'.$link->id.'">'.$escaped.'</mark>',
+                    '<mark class="cursor-pointer rounded bg-primary/20 px-0.5" role="button" tabindex="0" aria-label="Ver princípio: '.e($principleLabel).'" wire:click="viewPrinciple('.$link->principle_id.')" data-link-id="'.$link->id.'">'.$escaped.'</mark>',
                     $part
                 );
             }
@@ -235,6 +237,21 @@ new #[Title('Disciplinas')] class extends Component
         }
 
         return implode('', $parts);
+    }
+
+    #[Computed]
+    public function viewingPrinciple(): ?\App\Models\Principle
+    {
+        return $this->viewingPrincipleId === null
+            ? null
+            : \App\Models\Principle::with(['principleTopic', 'concept'])->find($this->viewingPrincipleId);
+    }
+
+    public function viewPrinciple(int $principleId): void
+    {
+        $this->viewingPrincipleId = $principleId;
+        unset($this->viewingPrinciple);
+        $this->modal('view-principle')->show();
     }
 
     public function startLinkingPrinciple(string $field, string $snippet): void

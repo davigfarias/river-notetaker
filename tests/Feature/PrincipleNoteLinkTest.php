@@ -107,3 +107,14 @@ test('the principles flyout shows each principle content inside an accordion', f
         ->assertSee('Sola Gratia')
         ->assertSeeHtml('<strong>somente</strong>');
 });
+
+test('clicking a linked snippet opens the principle in a modal', function () {
+    $this->principle->update(['type' => \App\Enums\PrincipleType::Text, 'body' => 'Corpo do princípio.']);
+
+    linkSnippet($this->discipline->slug, 'summary', 'graça de Deus', $this->principle->id)
+        ->assertSeeHtml('wire:click="viewPrinciple('.$this->principle->id.')"')
+        ->assertDontSeeHtml('title="Princípio:')
+        ->call('viewPrinciple', $this->principle->id)
+        ->assertSet('viewingPrincipleId', $this->principle->id)
+        ->assertSee('Sola Gratia');
+});

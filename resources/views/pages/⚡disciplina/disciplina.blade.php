@@ -404,6 +404,23 @@
                         @endif
                     </div>
 
+                    <flux:modal name="view-principle" class="w-full max-w-2xl">
+                        @if ($this->viewingPrinciple)
+                            <div class="space-y-4">
+                                <flux:badge size="sm">{{ $this->viewingPrinciple->principleTopic->title }}</flux:badge>
+                                <flux:heading size="xl">{{ $this->viewingPrinciple->title ?? $this->viewingPrinciple->concept->term }}</flux:heading>
+
+                                @if ($this->viewingPrinciple->type === \App\Enums\PrincipleType::Concept)
+                                    <p class="leading-relaxed whitespace-pre-wrap">{{ $this->viewingPrinciple->concept->definition }}</p>
+                                @else
+                                    <div class="prose dark:prose-invert max-w-none">
+                                        {!! Str::markdownRich($this->viewingPrinciple->body) !!}
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </flux:modal>
+
                     <flux:modal name="link-principle" variant="flyout" position="right" class="w-full max-w-[calc(100vw-2rem)] md:max-w-lg">
                         <div class="space-y-4">
                             <flux:heading size="lg">Princípios</flux:heading>
