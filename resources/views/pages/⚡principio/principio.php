@@ -6,6 +6,8 @@ use App\Actions\CreatePrincipleCategory;
 use App\Actions\DeletePrinciple;
 use App\Actions\DeletePrincipleCategory;
 use App\Actions\GetPrincipleTopic;
+use App\Actions\GetPrincipleTopics;
+use App\Actions\MovePrincipleToTopic;
 use App\Actions\ReorderPrinciple;
 use App\Actions\SearchConcept;
 use App\Actions\UpdatePrincipleText;
@@ -40,6 +42,10 @@ new #[Title('Princípios')] #[Lazy] class extends Component
     public ?int $deletingPrincipleId = null;
 
     public ?int $deletingCategoryId = null;
+
+    public ?int $movingPrincipleId = null;
+
+    public ?int $targetTopicId = null;
 
     public function mount(string $slug): void
     {
@@ -230,6 +236,47 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $this->modal('delete-category')->close();
         $this->deletingCategoryId = null;
         unset($this->topic);
+    }
+
+    /**
+     * @return Collection<int, PrincipleTopic>
+     */
+    #[Computed]
+    public function otherTopics(): Collection
+    {
+        return app(GetPrincipleTopics::class)->handle()->data->where('id', '!=', $this->topic->id)->values();
+    }
+
+    public function confirmMovePrinciple(int $principleId): void
+    {
+        $this->movingPrincipleId = $principleId;
+        $this->targetTopicId = $this->otherTopics->first()?->id;
+        $this->modal('move-principle')->show();
+    }
+
+    public function movePrincipleToTopic(MovePrincipleToTopic $action): void
+    {
+        $principle = $this->topic->principles->firstWhere('id', $this->movingPrincipleId);
+        $target = $this->otherTopics->firstWhere('id', $this->targetTopicId);
+
+        if (! $principle || ! $target) {
+            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: 'Selecione o tema de destino.', variant: 'danger');
+
+            return;
+        }
+
+        $check = $action->handle($principle, $target);
+
+        match ($check->success) {
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+        };
+
+        if ($check->success) {
+            $this->modal('move-principle')->close();
+            $this->reset('movingPrincipleId', 'targetTopicId');
+            unset($this->topic);
+        }
     }
 
     public function confirmDeletePrinciple(int $principleId): void

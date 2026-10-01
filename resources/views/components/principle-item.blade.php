@@ -73,6 +73,8 @@
                         <flux:button size="xs" variant="ghost" square icon="pencil"
                             wire:click="startEditingText({{ $principle->id }})" aria-label="Editar" />
                     @endif
+                    <flux:button size="xs" variant="ghost" square icon="arrows-right-left"
+                        wire:click="confirmMovePrinciple({{ $principle->id }})" aria-label="Mover para outro tema" />
                     <flux:button size="xs" variant="ghost" square icon="trash"
                         wire:click="confirmDeletePrinciple({{ $principle->id }})" aria-label="Remover" />
                 </div>

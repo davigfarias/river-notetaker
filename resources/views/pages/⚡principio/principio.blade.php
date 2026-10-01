@@ -200,6 +200,24 @@
             </div>
         </flux:modal>
 
+        <flux:modal name="move-principle" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
+            <form wire:submit="movePrincipleToTopic" class="space-y-5">
+                <flux:heading size="lg">Mover para outro tema</flux:heading>
+                <flux:select wire:model="targetTopicId" label="Tema de destino">
+                    @foreach ($this->otherTopics as $otherTopic)
+                        <flux:select.option value="{{ $otherTopic->id }}">{{ $otherTopic->title }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancelar</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary">Mover</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
         <flux:modal name="delete-principle" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
             <div class="space-y-6">
                 <div>

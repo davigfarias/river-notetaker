@@ -188,3 +188,32 @@ test('categories and their principles are rendered', function () {
         ->assertSee('Ordo salutis')
         ->assertSee('Chamado eficaz');
 });
+
+test('a principle can be moved to another topic', function () {
+    $target = PrincipleTopic::factory()->create();
+    $category = PrincipleCategory::factory()->create(['principle_topic_id' => $this->topic->id]);
+    $principle = Principle::factory()->create(['principle_topic_id' => $this->topic->id, 'principle_category_id' => $category->id]);
+
+    Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->call('confirmMovePrinciple', $principle->id)
+        ->assertSet('targetTopicId', $target->id)
+        ->call('movePrincipleToTopic');
+
+    expect($principle->fresh())
+        ->principle_topic_id->toBe($target->id)
+        ->principle_category_id->toBeNull();
+});
+
+test('a concept already in the target topic cannot be moved there', function () {
+    $target = PrincipleTopic::factory()->create();
+    $concept = Concepts::create(['term' => 'Graça', 'definition' => 'Favor imerecido.']);
+    $principle = Principle::factory()->forConcept($concept->id)->create(['principle_topic_id' => $this->topic->id]);
+    Principle::factory()->forConcept($concept->id)->create(['principle_topic_id' => $target->id]);
+
+    Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->call('confirmMovePrinciple', $principle->id)
+        ->set('targetTopicId', $target->id)
+        ->call('movePrincipleToTopic');
+
+    expect($principle->fresh()->principle_topic_id)->toBe($this->topic->id);
+});
