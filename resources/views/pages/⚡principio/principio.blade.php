@@ -15,7 +15,12 @@
 
         <div class="mb-8">
             <flux:text class="uppercase tracking-wide text-on-surface-variant">Tema</flux:text>
-            <flux:heading size="xl" level="1">{{ $this->topic->title }}</flux:heading>
+            <div class="flex items-center gap-3">
+                <flux:heading size="xl" level="1">{{ $this->topic->title }}</flux:heading>
+                <flux:modal.trigger name="add-category">
+                    <flux:button size="sm" variant="ghost" icon="folder-plus" aria-label="Nova categoria" />
+                </flux:modal.trigger>
+            </div>
 
             @if ($this->topic->disciplines->isNotEmpty())
                 <div class="mt-3 flex flex-wrap gap-1">
@@ -71,100 +76,59 @@
             </form>
         @endif
 
-        @if ($this->topic->principles->isEmpty())
+        @php
+            $topic = $this->topic;
+            $uncategorized = $topic->principles->whereNull('principle_category_id');
+        @endphp
+
+        @if ($topic->principles->isEmpty() && $topic->categories->isEmpty())
             <div class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-surface-variant bg-surface-container-low">
                 <flux:icon name="scale" class="size-9 text-on-surface mb-3" />
                 <flux:text class="text-surface-variant-content">Nenhum princípio adicionado a este tema ainda.</flux:text>
             </div>
         @else
-            <x-timeline align="start">
-                @foreach ($this->topic->principles as $principle)
-                    <x-timeline.item wire:key="principle-{{ $principle->id }}">
-                        @if ($principle->type === \App\Enums\PrincipleType::Concept)
-                            <x-timeline.indicator color="blue">
-                                <flux:icon name="light-bulb" variant="micro" />
-                            </x-timeline.indicator>
-                        @else
-                            <x-timeline.indicator color="violet">
-                                <flux:icon name="scale" variant="micro" />
-                            </x-timeline.indicator>
-                        @endif
-
-                        @if ($editingPrincipleId === $principle->id)
-                            <x-timeline.content>
-                                <form wire:submit="updateText" class="space-y-4 rounded-xl border border-primary/40 bg-surface-container-lowest p-6">
-                                    <flux:input label="Título" wire:model="textForm.title" placeholder="Ex: Sola Gratia" />
-                                    <flux:error name="textForm.title" />
-
-                                    <div wire:ignore>
-                                        <div x-data="markdownEditor('textForm.body')">
-                                            <textarea x-ref="textarea" placeholder="Princípio + comentários..."></textarea>
-                                        </div>
-                                    </div>
-                                    <flux:error name="textForm.body" />
-
-                                    <div class="flex gap-2">
-                                        <flux:spacer />
-                                        <flux:button type="button" variant="ghost" wire:click="cancelEditingText">Cancelar</flux:button>
-                                        <flux:button type="submit" variant="primary">Salvar</flux:button>
-                                    </div>
-                                </form>
-                            </x-timeline.content>
-                        @else
-                            <x-timeline.content class="group">
-                                <div class="flex items-start gap-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-6">
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center gap-2">
-                                            @if ($principle->type === \App\Enums\PrincipleType::Concept)
-                                                <flux:badge size="sm">Conceito</flux:badge>
-                                            @endif
-
-                                            @if ($principle->noteLinks->isNotEmpty())
-                                                <x-info-popover>
-                                                    <p class="mb-2 font-semibold">Aplicado em:</p>
-                                                    <ul class="space-y-2">
-                                                        @foreach ($principle->noteLinks as $link)
-                                                            <li>
-                                                                <a href="{{ route('disciplinas.show', ['slug' => $link->note->discipline->slug, 'nota' => $link->note_id]) }}" wire:navigate class="block text-primary hover:underline">
-                                                                    {{ $link->note->title }}
-                                                                </a>
-                                                                <p class="text-xs text-on-surface-variant whitespace-pre-wrap">“{{ $link->snippet }}”</p>
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                </x-info-popover>
-                                            @endif
-                                        </div>
-
-                                        @if ($principle->type === \App\Enums\PrincipleType::Concept)
-                                            <flux:heading size="lg" class="mt-2">{{ $principle->concept->term }}</flux:heading>
-                                            <p class="mt-2 text-on-surface-variant leading-relaxed whitespace-pre-wrap">{{ $principle->concept->definition }}</p>
-                                        @else
-                                            <flux:heading size="lg" class="mt-2">{{ $principle->title }}</flux:heading>
-                                            <div class="prose dark:prose-invert max-w-none mt-2 leading-relaxed">
-                                                {!! Str::markdownRich($principle->body) !!}
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                    <div class="flex shrink-0 flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                        <flux:button size="xs" variant="ghost" square icon="chevron-up"
-                                            wire:click="movePrinciple({{ $principle->id }}, {{ $loop->index - 1 }})" :disabled="$loop->first" aria-label="Mover para cima" />
-                                        <flux:button size="xs" variant="ghost" square icon="chevron-down"
-                                            wire:click="movePrinciple({{ $principle->id }}, {{ $loop->index + 1 }})" :disabled="$loop->last" aria-label="Mover para baixo" />
-                                        @if ($principle->type === \App\Enums\PrincipleType::Text)
-                                            <flux:button size="xs" variant="ghost" square icon="pencil"
-                                                wire:click="startEditingText({{ $principle->id }})" aria-label="Editar" />
-                                        @endif
-                                        <flux:button size="xs" variant="ghost" square icon="trash"
-                                            wire:click="confirmDeletePrinciple({{ $principle->id }})" aria-label="Remover" />
-                                    </div>
-                                </div>
-                            </x-timeline.content>
-                        @endif
-                    </x-timeline.item>
+            <x-timeline align="start" wire:sort="movePrinciple" wire:sort:group="principles" wire:sort:group-id="" class="mb-8">
+                @if ($uncategorized->isEmpty())
+                    <p wire:sort:ignore class="col-span-full rounded-xl border border-dashed border-surface-variant p-3 text-center text-sm text-on-surface-variant">Solte aqui para tirar da categoria</p>
+                @endif
+                @foreach ($uncategorized as $principle)
+                    <x-principle-item
+                        :principle="$principle"
+                        :editing="$editingPrincipleId === $principle->id"
+                        wire:key="principle-{{ $principle->id }}"
+                        wire:sort:item="{{ $principle->id }}"
+                    />
                 @endforeach
             </x-timeline>
+
+            @foreach ($topic->categories as $category)
+                @php($categoryPrinciples = $topic->principles->where('principle_category_id', $category->id))
+                <details wire:key="category-{{ $category->id }}" wire:ignore.self open class="group mb-8">
+                    <summary class="flex cursor-pointer items-center gap-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
+                        <flux:icon name="chevron-right" class="size-4 shrink-0 transition-transform group-open:rotate-90" />
+                        <span class="font-medium">{{ $category->title }}</span>
+                        <flux:badge size="sm">{{ $categoryPrinciples->count() }}</flux:badge>
+                        <flux:spacer />
+                        <flux:button size="xs" variant="ghost" icon="trash" wire:click.stop="confirmDeleteCategory({{ $category->id }})" aria-label="Remover categoria" />
+                    </summary>
+
+                    <div class="ml-6 mt-6 pl-6">
+                        <x-timeline align="start" wire:sort="movePrinciple" wire:sort:group="principles" wire:sort:group-id="{{ $category->id }}">
+                            @if ($categoryPrinciples->isEmpty())
+                                <p wire:sort:ignore class="col-span-full rounded-xl border border-dashed border-surface-variant p-3 text-center text-sm text-on-surface-variant">Arraste princípios para cá</p>
+                            @endif
+                            @foreach ($categoryPrinciples as $principle)
+                                <x-principle-item
+                                    :principle="$principle"
+                                    :editing="$editingPrincipleId === $principle->id"
+                                    wire:key="principle-{{ $principle->id }}"
+                                    wire:sort:item="{{ $principle->id }}"
+                                />
+                            @endforeach
+                        </x-timeline>
+                    </div>
+                </details>
+            @endforeach
         @endif
 
         <flux:modal name="add-concept-principle" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
@@ -205,6 +169,34 @@
                         @endforelse
                     </div>
                 @endif
+            </div>
+        </flux:modal>
+
+        <flux:modal name="add-category" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
+            <form wire:submit="createCategory" class="space-y-5">
+                <flux:heading size="lg">Nova categoria</flux:heading>
+                <flux:input label="Título" wire:model="categoryForm.title" placeholder="Ex: Ordo salutis" />
+                <flux:error name="categoryForm.title" />
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Criar</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+
+        <flux:modal name="delete-category" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Remover categoria</flux:heading>
+                    <flux:text class="mt-2">Os princípios dentro dela voltam para a lista sem categoria.</flux:text>
+                </div>
+                <div class="flex gap-2">
+                    <flux:spacer />
+                    <flux:modal.close>
+                        <flux:button variant="ghost">Cancelar</flux:button>
+                    </flux:modal.close>
+                    <flux:button variant="danger" icon="trash" wire:click="deleteCategory">Remover</flux:button>
+                </div>
             </div>
         </flux:modal>
 

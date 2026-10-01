@@ -4,6 +4,7 @@ use App\Enums\PrincipleType;
 use App\Models\AccessToken;
 use App\Models\Concepts;
 use App\Models\Principle;
+use App\Models\PrincipleCategory;
 use App\Models\PrincipleTopic;
 use Livewire\Livewire;
 
@@ -119,4 +120,71 @@ test('a newly added principle goes to the end of the order', function () {
         ->call('addText');
 
     $this->assertDatabaseHas('principles', ['principle_topic_id' => $this->topic->id, 'title' => 'Novo', 'position' => 1]);
+});
+
+test('a category can be created in the topic', function () {
+    Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->set('categoryForm.title', 'Ordo salutis')
+        ->call('createCategory')
+        ->assertHasNoErrors();
+
+    $this->assertDatabaseHas('principle_categories', ['principle_topic_id' => $this->topic->id, 'title' => 'Ordo salutis']);
+});
+
+test('a principle can be moved into a category and back out', function () {
+    $category = PrincipleCategory::factory()->create(['principle_topic_id' => $this->topic->id]);
+    $principle = Principle::factory()->create(['principle_topic_id' => $this->topic->id]);
+
+    $component = Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->call('movePrinciple', $principle->id, 0, (string) $category->id);
+
+    expect($principle->fresh()->principle_category_id)->toBe($category->id);
+
+    $component->call('movePrinciple', $principle->id, 0, '');
+
+    expect($principle->fresh()->principle_category_id)->toBeNull();
+});
+
+test('reordering inside a category does not touch other lists', function () {
+    $category = PrincipleCategory::factory()->create(['principle_topic_id' => $this->topic->id]);
+    $loose = Principle::factory()->create(['principle_topic_id' => $this->topic->id, 'position' => 0]);
+    $a = Principle::factory()->create(['principle_topic_id' => $this->topic->id, 'principle_category_id' => $category->id, 'position' => 0, 'title' => 'A']);
+    $b = Principle::factory()->create(['principle_topic_id' => $this->topic->id, 'principle_category_id' => $category->id, 'position' => 1, 'title' => 'B']);
+
+    Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->call('movePrinciple', $b->id, 0, (string) $category->id);
+
+    expect($category->principles()->pluck('title')->all())->toBe(['B', 'A'])
+        ->and($loose->fresh()->principle_category_id)->toBeNull();
+});
+
+test('a category from another topic is rejected', function () {
+    $foreign = PrincipleCategory::factory()->create();
+    $principle = Principle::factory()->create(['principle_topic_id' => $this->topic->id]);
+
+    Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->call('movePrinciple', $principle->id, 0, (string) $foreign->id);
+
+    expect($principle->fresh()->principle_category_id)->toBeNull();
+});
+
+test('deleting a category keeps its principles', function () {
+    $category = PrincipleCategory::factory()->create(['principle_topic_id' => $this->topic->id]);
+    $principle = Principle::factory()->create(['principle_topic_id' => $this->topic->id, 'principle_category_id' => $category->id]);
+
+    Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->call('confirmDeleteCategory', $category->id)
+        ->call('deleteCategory');
+
+    $this->assertDatabaseMissing('principle_categories', ['id' => $category->id]);
+    expect($principle->fresh()->principle_category_id)->toBeNull();
+});
+
+test('categories and their principles are rendered', function () {
+    $category = PrincipleCategory::factory()->create(['principle_topic_id' => $this->topic->id, 'title' => 'Ordo salutis']);
+    Principle::factory()->create(['principle_topic_id' => $this->topic->id, 'principle_category_id' => $category->id, 'title' => 'Chamado eficaz']);
+
+    Livewire::test('pages::principio', ['slug' => $this->topic->slug])
+        ->assertSee('Ordo salutis')
+        ->assertSee('Chamado eficaz');
 });

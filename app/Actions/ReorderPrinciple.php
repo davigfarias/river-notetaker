@@ -12,17 +12,23 @@ use Illuminate\Support\Facades\Log;
 
 final readonly class ReorderPrinciple
 {
-    public function handle(PrincipleTopic $topic, Principle $principle, int $position): Outcome
+    /**
+     * Move o princípio para a posição dada dentro da categoria (null = sem categoria).
+     */
+    public function handle(PrincipleTopic $topic, Principle $principle, int $position, ?int $categoryId = null): Outcome
     {
         try {
-            DB::transaction(function () use ($topic, $principle, $position) {
-                $siblings = $topic->principles()->where('id', '!=', $principle->id)->get();
+            DB::transaction(function () use ($topic, $principle, $position, $categoryId) {
+                $siblings = $topic->principles()
+                    ->where('principle_category_id', $categoryId)
+                    ->where('id', '!=', $principle->id)
+                    ->get();
                 $siblings->splice($position, 0, [$principle]);
 
                 foreach ($siblings->values() as $index => $sibling) {
-                    if ($sibling->position !== $index) {
-                        $sibling->update(['position' => $index]);
-                    }
+                    $sibling->principle_category_id = $categoryId;
+                    $sibling->position = $index;
+                    $sibling->save();
                 }
             });
 

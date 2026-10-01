@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property int $principle_topic_id
+ * @property int|null $principle_category_id
  * @property int $position
  * @property PrincipleType $type
  * @property int|null $concept_id
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $body
  */
 #[UseFactory(PrincipleFactory::class)]
-#[Fillable(['principle_topic_id', 'position', 'type', 'concept_id', 'title', 'body'])]
+#[Fillable(['principle_topic_id', 'principle_category_id', 'position', 'type', 'concept_id', 'title', 'body'])]
 #[Table(name: 'principles')]
 class Principle extends Model
 {
@@ -46,6 +47,14 @@ class Principle extends Model
     public function principleTopic(): BelongsTo
     {
         return $this->belongsTo(PrincipleTopic::class);
+    }
+
+    /**
+     * @return BelongsTo<PrincipleCategory, $this>
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(PrincipleCategory::class, 'principle_category_id');
     }
 
     /**

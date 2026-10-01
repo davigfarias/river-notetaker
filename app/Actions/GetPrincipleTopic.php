@@ -14,7 +14,7 @@ final readonly class GetPrincipleTopic
     {
         try {
             $topic = PrincipleTopic::where('slug', $slug)
-                ->with('principles.concept', 'principles.noteLinks.note.discipline', 'disciplines')
+                ->with('principles.concept', 'principles.noteLinks.note.discipline', 'categories', 'disciplines')
                 ->first();
 
             return Outcome::noViewMessage(data: $topic);

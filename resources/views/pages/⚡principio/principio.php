@@ -2,12 +2,15 @@
 
 use App\Actions\AddConceptPrinciple;
 use App\Actions\AddTextPrinciple;
+use App\Actions\CreatePrincipleCategory;
 use App\Actions\DeletePrinciple;
+use App\Actions\DeletePrincipleCategory;
 use App\Actions\GetPrincipleTopic;
 use App\Actions\ReorderPrinciple;
 use App\Actions\SearchConcept;
 use App\Actions\UpdatePrincipleText;
 use App\DTO\PrincipleTextForm;
+use App\DTO\PrincipleTopicForm;
 use App\Enums\PrincipleType;
 use App\Models\Concepts;
 use App\Models\PrincipleTopic;
@@ -28,11 +31,15 @@ new #[Title('Princípios')] #[Lazy] class extends Component
 
     public PrincipleTextForm $textForm;
 
+    public PrincipleTopicForm $categoryForm;
+
     public bool $addingText = false;
 
     public ?int $editingPrincipleId = null;
 
     public ?int $deletingPrincipleId = null;
+
+    public ?int $deletingCategoryId = null;
 
     public function mount(string $slug): void
     {
@@ -165,20 +172,63 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         }
     }
 
-    public function movePrinciple(ReorderPrinciple $action, int $principleId, int $position): void
+    public function movePrinciple(ReorderPrinciple $action, int $principleId, int $position, int|string|null $categoryId = null): void
     {
         $principle = $this->topic->principles->firstWhere('id', $principleId);
+        $categoryId = filled($categoryId) ? (int) $categoryId : null;
 
-        if (! $principle || $position < 0) {
+        if (! $principle || $position < 0 || ($categoryId !== null && ! $this->topic->categories->contains('id', $categoryId))) {
             return;
         }
 
-        $check = $action->handle($this->topic, $principle, $position);
+        $check = $action->handle($this->topic, $principle, $position, $categoryId);
 
         if (! $check->success) {
             Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger');
         }
 
+        unset($this->topic);
+    }
+
+    public function createCategory(CreatePrincipleCategory $action): void
+    {
+        $this->categoryForm->validate();
+
+        $check = $action->handle($this->topic, $this->categoryForm);
+
+        match ($check->success) {
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+        };
+
+        if ($check->success) {
+            $this->categoryForm->reset();
+            $this->modal('add-category')->close();
+            unset($this->topic);
+        }
+    }
+
+    public function confirmDeleteCategory(int $categoryId): void
+    {
+        $this->deletingCategoryId = $categoryId;
+        $this->modal('delete-category')->show();
+    }
+
+    public function deleteCategory(DeletePrincipleCategory $action): void
+    {
+        if ($this->deletingCategoryId === null) {
+            return;
+        }
+
+        $check = $action->handle($this->deletingCategoryId);
+
+        match ($check->success) {
+            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+        };
+
+        $this->modal('delete-category')->close();
+        $this->deletingCategoryId = null;
         unset($this->topic);
     }
 

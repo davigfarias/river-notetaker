@@ -33,6 +33,14 @@ class PrincipleTopic extends Model
     }
 
     /**
+     * @return HasMany<PrincipleCategory, $this>
+     */
+    public function categories(): HasMany
+    {
+        return $this->hasMany(PrincipleCategory::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
      * Um tema pode alimentar princípios em várias disciplinas (ex.: um tema
      * de Hermenêutica pode ser usado tanto na disciplina de Hermenêutica
      * quanto na de Teologia Apocalíptica).
