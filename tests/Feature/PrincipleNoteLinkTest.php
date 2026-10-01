@@ -98,3 +98,12 @@ test('editing away the linked snippet stops it from being highlighted without er
 
     $this->assertDatabaseHas('principle_note_links', ['id' => $link->id]);
 });
+
+test('the principles flyout shows each principle content inside an accordion', function () {
+    $this->principle->update(['body' => 'A salvação é **somente** pela graça.']);
+
+    Livewire::test('pages::disciplina', ['slug' => $this->discipline->slug])
+        ->assertSeeHtml('<details')
+        ->assertSee('Sola Gratia')
+        ->assertSeeHtml('<strong>somente</strong>');
+});

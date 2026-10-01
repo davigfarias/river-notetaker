@@ -404,10 +404,13 @@
                         @endif
                     </div>
 
-                    <flux:modal name="link-principle" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-md">
+                    <flux:modal name="link-principle" variant="flyout" position="right" class="w-full max-w-[calc(100vw-2rem)] md:max-w-lg">
                         <div class="space-y-4">
-                            <flux:heading size="lg">Linkar princípio</flux:heading>
-                            <flux:text class="text-sm text-on-surface-variant italic">"{{ $pendingSnippet }}"</flux:text>
+                            <flux:heading size="lg">Princípios</flux:heading>
+
+                            @if (filled($pendingSnippet))
+                                <flux:text class="text-sm text-on-surface-variant italic">Linkar: "{{ $pendingSnippet }}"</flux:text>
+                            @endif
 
                             <flux:input
                                 wire:model.live.debounce.300ms="principleSearch"
@@ -416,17 +419,31 @@
                                 clearable
                             />
 
-                            <div class="max-h-72 divide-y divide-surface-variant overflow-y-auto rounded-lg border border-surface-variant">
+                            <div class="divide-y divide-surface-variant overflow-y-auto rounded-lg border border-surface-variant">
                                 @forelse ($this->filteredLinkablePrinciples as $principle)
-                                    <button
-                                        type="button"
-                                        wire:key="linkable-principle-{{ $principle->id }}"
-                                        wire:click="linkPendingPrinciple({{ $principle->id }})"
-                                        class="flex w-full items-center gap-2 p-3 text-left text-sm hover:bg-surface-container-low"
-                                    >
-                                        <flux:badge size="sm">{{ $principle->principleTopic->title }}</flux:badge>
-                                        {{ $principle->title ?? $principle->concept->term }}
-                                    </button>
+                                    <details wire:key="linkable-principle-{{ $principle->id }}" class="group">
+                                        <summary class="flex cursor-pointer list-none items-center gap-2 p-3 text-sm hover:bg-surface-container-low">
+                                            <flux:icon name="chevron-right" variant="micro" class="transition-transform group-open:rotate-90" />
+                                            <flux:badge size="sm">{{ $principle->principleTopic->title }}</flux:badge>
+                                            {{ $principle->title ?? $principle->concept->term }}
+                                        </summary>
+
+                                        <div class="space-y-3 px-3 pb-3">
+                                            @if ($principle->type === \App\Enums\PrincipleType::Concept)
+                                                <p class="text-sm leading-relaxed text-on-surface-variant whitespace-pre-wrap">{{ $principle->concept->definition }}</p>
+                                            @else
+                                                <div class="prose prose-sm dark:prose-invert max-w-none">
+                                                    {!! Str::markdownRich($principle->body) !!}
+                                                </div>
+                                            @endif
+
+                                            @if (filled($pendingSnippet))
+                                                <flux:button size="xs" variant="primary" wire:click="linkPendingPrinciple({{ $principle->id }})">
+                                                    Linkar ao trecho
+                                                </flux:button>
+                                            @endif
+                                        </div>
+                                    </details>
                                 @empty
                                     <div class="p-3 text-sm text-on-surface-variant">Nenhum princípio encontrado.</div>
                                 @endforelse
