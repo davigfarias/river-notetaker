@@ -100,7 +100,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
         if ($check->data) {
             Flux::toast(
-                duration: 2500,
+                duration: 1800,
                 text: 'O conceito já está registrado no sistema!',
                 variant: 'alert',
                 link: [
@@ -134,8 +134,8 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         $check = $action->handle($this->editingConceptId, $this->editConceptForm);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -213,8 +213,8 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         $check = $action->handle($this->refForm, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -275,11 +275,11 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         $outcome = $action->handle($this->notes);
 
         if ($outcome->success) {
-            Flux::toast(duration: 2500, text: 'Anotação salva com sucesso.', variant: 'success');
+            Flux::toast(duration: 1800, text: 'Anotação salva com sucesso.', variant: 'success');
             $this->dispatch('note-draft-saved');
             $this->redirectRoute('dashboard', navigate: true);
         } else {
-            Flux::toast(duration: 2500, text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 1800, text: $outcome->message, variant: 'danger');
         }
     }
 };

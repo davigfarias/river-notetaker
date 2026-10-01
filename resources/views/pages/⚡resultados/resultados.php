@@ -44,7 +44,7 @@ new #[Title('Resultados')] class extends Component
         );
 
         if (! $outcome->success) {
-            Flux::toast(duration: 2500, text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 1800, text: $outcome->message, variant: 'danger');
 
             return new ChapterResultsData(
                 chapterTitle: $this->chapter->title,

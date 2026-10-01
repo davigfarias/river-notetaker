@@ -98,8 +98,8 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($this->topic->id, $this->selectedConceptId);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -129,8 +129,8 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($this->topic->id, $this->textForm);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -167,8 +167,8 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle((int) $this->editingPrincipleId, $this->textForm);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -190,7 +190,7 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($this->topic, $principle, $position, $categoryId);
 
         if (! $check->success) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger');
         }
 
         unset($this->topic);
@@ -203,8 +203,8 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($this->topic, $this->categoryForm);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -229,8 +229,8 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($this->deletingCategoryId);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         $this->modal('delete-category')->close();
@@ -260,7 +260,7 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $target = $this->otherTopics->firstWhere('id', $this->targetTopicId);
 
         if (! $principle || ! $target) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: 'Selecione o tema de destino.', variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: 'Selecione o tema de destino.', variant: 'danger');
 
             return;
         }
@@ -268,8 +268,8 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($principle, $target);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -294,8 +294,8 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($this->deletingPrincipleId);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         $this->modal('delete-principle')->close();

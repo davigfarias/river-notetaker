@@ -32,7 +32,7 @@ new #[Title('Princípios')] #[Lazy] class extends Component
         $check = $action->handle($this->form);
 
         if (! $check->success) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger');
 
             return;
         }

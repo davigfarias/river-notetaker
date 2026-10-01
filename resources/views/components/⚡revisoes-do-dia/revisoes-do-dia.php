@@ -105,7 +105,7 @@ new class extends Component
     public function openReview(int $noteId): void
     {
         if (! $this->isInQueue($noteId)) {
-            Flux::toast(duration: 2500, text: 'Esta nota não está na fila de revisão de hoje.', variant: 'warning');
+            Flux::toast(duration: 1800, text: 'Esta nota não está na fila de revisão de hoje.', variant: 'warning');
 
             return;
         }
@@ -162,7 +162,7 @@ new class extends Component
         $outcome = app(GenerateNoteQuiz::class)->handle($this->noteIdUnderReview);
 
         if (! $outcome->success) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
 
             return;
         }
@@ -200,7 +200,7 @@ new class extends Component
             $this->stopAwaitingQuiz();
 
             Flux::toast(
-                duration: 2500,
+                duration: 1800,
                 heading: 'Tempo esgotado',
                 text: 'A geração das perguntas demorou mais que o esperado. Tente novamente.',
                 variant: 'danger',
@@ -229,7 +229,7 @@ new class extends Component
         );
 
         if (! $outcome->success) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
 
             return;
         }
@@ -241,7 +241,7 @@ new class extends Component
         unset($this->agenda);
 
         Flux::toast(
-            duration: 2500,
+            duration: 1800,
             text: $this->lastRecalled
                 ? 'Revisão registrada. Próxima cobrança agendada.'
                 : 'Sem problema: ela volta na próxima aula.',
@@ -283,7 +283,7 @@ new class extends Component
         );
 
         if (! $outcome->success) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
 
             return;
         }
@@ -294,7 +294,7 @@ new class extends Component
 
         unset($this->agenda);
 
-        Flux::toast(duration: 2500, text: 'Sem problema: ela volta na próxima aula.', variant: 'warning');
+        Flux::toast(duration: 1800, text: 'Sem problema: ela volta na próxima aula.', variant: 'warning');
     }
 
     /**
@@ -308,7 +308,7 @@ new class extends Component
 
         if ($next === null) {
             $this->closeReview();
-            Flux::toast(duration: 2500, heading: 'Revisões de hoje concluídas', text: 'A fila da aula de hoje está vazia.', variant: 'success');
+            Flux::toast(duration: 1800, heading: 'Revisões de hoje concluídas', text: 'A fila da aula de hoje está vazia.', variant: 'success');
 
             return;
         }
@@ -356,8 +356,8 @@ new class extends Component
         $outcome = $action->handle($noteId);
 
         match ($outcome->success) {
-            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {
@@ -388,7 +388,7 @@ new class extends Component
             $this->stopAwaitingSummary();
 
             Flux::toast(
-                duration: 2500,
+                duration: 1800,
                 heading: 'Tempo esgotado',
                 text: 'A geração do resumo demorou mais que o esperado. Tente novamente.',
                 variant: 'danger',
@@ -452,8 +452,8 @@ new class extends Component
         $outcome = $action->handle($noteId);
 
         match ($outcome->success) {
-            true => Flux::toast(duration: 2500, text: $outcome->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
         };
 
         if ($outcome->success) {
@@ -484,7 +484,7 @@ new class extends Component
             $this->stopAwaitingAudio();
 
             Flux::toast(
-                duration: 2500,
+                duration: 1800,
                 heading: 'A locução não ficou pronta',
                 text: $record->failure_reason ?? 'Não foi possível gerar a locução desta nota.',
                 variant: 'danger',
@@ -500,7 +500,7 @@ new class extends Component
             $this->stopAwaitingAudio();
 
             Flux::toast(
-                duration: 2500,
+                duration: 1800,
                 heading: 'A locução não ficou pronta',
                 text: 'A geração demorou mais que o esperado. Tente de novo mais tarde.',
                 variant: 'danger',

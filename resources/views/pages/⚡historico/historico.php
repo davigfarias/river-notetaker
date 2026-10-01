@@ -105,8 +105,8 @@ new #[Title('Histórico')] #[Lazy] class extends Component
     private function toast(bool $success, ?string $message): void
     {
         match ($success) {
-            true => Flux::toast(duration: 2500, text: $message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $message, variant: 'danger'),
         };
     }
 };

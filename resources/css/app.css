@@ -252,3 +252,57 @@
     height: 100%;
     cursor: grab;
 }
+
+/* Toast (resources/views/flux/toast): faixa que preenche da esquerda pra direita durante a duração do toast.
+   mix-blend-difference inverte o que está embaixo: no claro o fundo vira preto e o texto claro; no escuro, o oposto.
+   O grayscale tira o tom roxo do fundo escuro, senão a faixa sai bege.
+   Quem fecha o toast continua sendo o timer do Flux; o x-on do toast só marca data-timed + --toast-duration.
+   Se isso falhar (ou duration: 0), a faixa só não aparece. */
+[data-toast-fill] {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: white;
+    mix-blend-mode: difference;
+    backdrop-filter: grayscale(1);
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+/* Ícone fica acima da faixa (o difference deixaria o verde roxo) e troca de cor sozinho quando a faixa passa. */
+[data-toast-icon] {
+    position: relative;
+    z-index: 1;
+    --toast-icon-covered: white;
+}
+
+.dark [data-toast-icon] {
+    --toast-icon-covered: black;
+}
+
+[data-timed] [data-toast-fill] {
+    animation: toast-fill var(--toast-duration) linear forwards;
+}
+
+/* ponytail: a faixa cruza o ícone entre 5% e 10% da largura; se o toast mudar muito de largura, ajustar aqui. */
+[data-timed] [data-toast-icon] {
+    animation: toast-icon var(--toast-duration) linear forwards;
+}
+
+/* O Flux pausa o timer no mouseenter; as animações pausam junto. */
+[data-flux-toast-dialog]:hover * {
+    animation-play-state: paused;
+}
+
+@keyframes toast-fill {
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes toast-icon {
+    9%,
+    100% {
+        color: var(--toast-icon-covered);
+    }
+}

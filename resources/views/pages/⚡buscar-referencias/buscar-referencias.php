@@ -52,8 +52,8 @@ new #[Title('Buscar nas referências')] #[Lazy] class extends Component
         );
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {

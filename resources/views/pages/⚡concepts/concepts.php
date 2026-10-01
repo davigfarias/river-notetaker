@@ -135,7 +135,7 @@ new #[Title('Conceitos')] #[Lazy] class extends Component
         $check = $action->handle($this->editingConceptId, $relatedId);
 
         if (! $check->success) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger');
 
             return;
         }
@@ -174,8 +174,8 @@ new #[Title('Conceitos')] #[Lazy] class extends Component
         $check = $action->handle($this->formConcept);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         $this->modal('add-concept')->close();
@@ -194,7 +194,7 @@ new #[Title('Conceitos')] #[Lazy] class extends Component
 
         match ($check->success) {
             true => $this->aiDefinitions = $check->data,
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
     }
 
@@ -232,8 +232,8 @@ new #[Title('Conceitos')] #[Lazy] class extends Component
         $check = $action->handle($this->editingConceptId, $this->editConceptForm);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {

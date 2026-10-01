@@ -47,7 +47,7 @@ new #[Title('Mapa mental')] class extends Component
         $this->discipline->update(['mind_map' => trim($this->mindMap)]);
         $this->editing = false;
 
-        Flux::toast(duration: 2500, text: 'Mapa mental salvo!', variant: 'success');
+        Flux::toast(duration: 1800, text: 'Mapa mental salvo!', variant: 'success');
     }
 
     public function startEditing(): void

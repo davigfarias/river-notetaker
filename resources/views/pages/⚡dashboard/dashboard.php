@@ -190,7 +190,7 @@ new #[Title('Disciplinas')] #[Lazy] class extends Component
             ->firstWhere('id', $id);
 
         if (! $discipline instanceof DisciplinesDTO) {
-            Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: 'Disciplina não encontrada', variant: 'danger');
+            Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: 'Disciplina não encontrada', variant: 'danger');
 
             return;
         }
@@ -226,8 +226,8 @@ new #[Title('Disciplinas')] #[Lazy] class extends Component
         $this->refreshDisciplines($getDisciplines);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, heading: $heading, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, heading: $heading, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
     }
 
@@ -241,8 +241,8 @@ new #[Title('Disciplinas')] #[Lazy] class extends Component
         $this->refreshDisciplines($getDisciplines);
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
     }
 

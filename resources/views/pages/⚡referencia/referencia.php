@@ -130,8 +130,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->id, $this->citationForm, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -159,8 +159,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->editingCitationId, $this->editCitationForm, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -184,8 +184,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->deletingCitationId, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         $this->modal('delete-citation')->close();
@@ -312,8 +312,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         $check = $action->handle($this->id, $this->editForm, (int) session('access_token_id'));
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -377,8 +377,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
         );
 
         match ($check->success) {
-            true => Flux::toast(duration: 2500, text: $check->message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $check->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $check->message, variant: 'danger'),
         };
 
         if ($check->success) {
@@ -406,8 +406,8 @@ new #[Title('Obra')] #[Lazy] class extends Component
     private function toast(bool $success, ?string $message): void
     {
         match ($success) {
-            true => Flux::toast(duration: 2500, text: $message, variant: 'success'),
-            false => Flux::toast(duration: 2500, heading: 'Ocorreu um erro', text: $message, variant: 'danger'),
+            true => Flux::toast(duration: 1800, text: $message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $message, variant: 'danger'),
         };
     }
 
