@@ -147,17 +147,9 @@
     </div>
 </footer>
 
-@persist('toast')
-<flux:toast position="bottom center" />
-@endpersist
-
-{{-- livewire-autocomplete: carregado globalmente (antes de @livewireScripts) para
-     que <x-lwa::autocomplete> também funcione em páginas #[Lazy]. --}}
-<script src="{{ route('livewire-autocomplete.asset', 'autocomplete.js') }}"></script>
-
-@livewireScripts
-@fluxScripts
-
+{{-- Fica antes do @fluxScripts: depois dele, o <ui-close> monta assim que o
+     parser abre a tag, antes do <button> filho existir, e o Flux quebra com
+     "Cannot read properties of null (reading 'addEventListener')". --}}
 <flux:modal name="global-token-expiration" class="min-w-88">
     <div class="space-y-6">
         <div>
@@ -177,6 +169,17 @@
         </div>
     </div>
 </flux:modal>
+
+@persist('toast')
+<flux:toast position="bottom center" />
+@endpersist
+
+{{-- livewire-autocomplete: carregado globalmente (antes de @livewireScripts) para
+     que <x-lwa::autocomplete> também funcione em páginas #[Lazy]. --}}
+<script src="{{ route('livewire-autocomplete.asset', 'autocomplete.js') }}"></script>
+
+@livewireScripts
+@fluxScripts
 
 </body>
 </html>
