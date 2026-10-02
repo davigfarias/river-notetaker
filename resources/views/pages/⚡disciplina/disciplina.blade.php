@@ -156,7 +156,7 @@
                         @elseif (filled($this->selectedNote->summary))
                             @include('partials.note-field-links', [
                                 'field' => 'summary',
-                                'html' => $this->renderWithLinks($this->selectedNote->summary, $this->notePrincipleLinks->get('summary', collect())),
+                                'html' => $this->renderWithLinks($this->selectedNote->summary, $this->notePrincipleLinks->get('summary', collect()), $this->noteComments->get('summary', collect())),
                                 'links' => $this->notePrincipleLinks->get('summary', collect()),
                                 'linkablePrinciples' => $this->linkablePrinciples,
                             ])
@@ -326,7 +326,7 @@
                                         @else
                                             @include('partials.note-field-links', [
                                                 'field' => 'impressions',
-                                                'html' => $this->renderWithLinks($this->selectedNote->impressions, $this->notePrincipleLinks->get('impressions', collect())),
+                                                'html' => $this->renderWithLinks($this->selectedNote->impressions, $this->notePrincipleLinks->get('impressions', collect()), $this->noteComments->get('impressions', collect())),
                                                 'links' => $this->notePrincipleLinks->get('impressions', collect()),
                                                 'linkablePrinciples' => $this->linkablePrinciples,
                                             ])
@@ -353,7 +353,7 @@
                                         @else
                                             @include('partials.note-field-links', [
                                                 'field' => 'life_experiences',
-                                                'html' => $this->renderWithLinks($this->selectedNote->life_experiences, $this->notePrincipleLinks->get('life_experiences', collect())),
+                                                'html' => $this->renderWithLinks($this->selectedNote->life_experiences, $this->notePrincipleLinks->get('life_experiences', collect()), $this->noteComments->get('life_experiences', collect())),
                                                 'links' => $this->notePrincipleLinks->get('life_experiences', collect()),
                                                 'linkablePrinciples' => $this->linkablePrinciples,
                                             ])
@@ -419,6 +419,31 @@
                                 @endif
                             </div>
                         @endif
+                    </flux:modal>
+
+                    <flux:modal name="note-comment" class="w-full max-w-lg">
+                        <form wire:submit="saveComment" class="space-y-4">
+                            <flux:heading size="lg">{{ $editingCommentId ? 'Comentário' : 'Novo comentário' }}</flux:heading>
+
+                            @if (filled($pendingSnippet))
+                                <flux:text class="text-sm text-on-surface-variant italic">"{{ $pendingSnippet }}"</flux:text>
+                            @endif
+
+                            <flux:textarea wire:model="commentBody" rows="5" placeholder="Escreva seu comentário..." autofocus />
+
+                            <div class="flex items-center gap-2">
+                                @if ($editingCommentId)
+                                    <flux:button type="button" variant="danger" size="sm" icon="trash" wire:click="deleteComment" wire:confirm="Remover este comentário?">
+                                        Remover
+                                    </flux:button>
+                                @endif
+                                <flux:spacer />
+                                <flux:modal.close>
+                                    <flux:button type="button" variant="ghost" size="sm">Cancelar</flux:button>
+                                </flux:modal.close>
+                                <flux:button type="submit" variant="primary" size="sm">Salvar</flux:button>
+                            </div>
+                        </form>
                     </flux:modal>
 
                     <flux:modal name="link-principle" variant="flyout" position="right" class="w-full max-w-[calc(100vw-2rem)] md:max-w-lg">

@@ -481,6 +481,11 @@ document.addEventListener('alpine:init', () => {
             this.$wire.call('startLinkingPrinciple', field, this.pendingSnippet);
             window.getSelection()?.removeAllRanges();
         },
+        openComment() {
+            this.hideTrigger();
+            this.$wire.call('startCommenting', field, this.pendingSnippet);
+            window.getSelection()?.removeAllRanges();
+        },
         destroy() {
             this.cleanup?.();
             document.removeEventListener('selectionchange', this.onDocumentSelectionChange);

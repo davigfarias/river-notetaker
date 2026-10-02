@@ -122,6 +122,14 @@ class Notes extends Model
     }
 
     /**
+     * @return HasMany<NoteComment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(NoteComment::class, 'note_id');
+    }
+
+    /**
      * @return BelongsToMany<ReferenceMaterial, $this>
      */
     public function referenceMaterials(): BelongsToMany

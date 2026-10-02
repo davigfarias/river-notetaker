@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Actions\AddAdviceToNote;
 use App\Actions\AddConceptToNote;
+use App\Actions\DeleteNoteComment;
 use App\Actions\GetDisciplineNotes as DisciplineNotes;
 use App\Actions\GetLinkableDisciplinePrinciples;
 use App\Actions\GetNotePrincipleLinks;
@@ -12,6 +13,7 @@ use App\Actions\GetSingleDisciplineData as DisciplineData;
 use App\Actions\GetTags;
 use App\Actions\LinkPrincipleToNote;
 use App\Actions\ObserveTerm;
+use App\Actions\SaveNoteComment;
 use App\Actions\SubActions\UpdateNote;
 use App\Actions\ToggleDisciplineTopic;
 use App\Actions\UnlinkPrincipleFromNote;
@@ -23,9 +25,12 @@ use App\DTO\SoleAdviceDTO;
 use App\DTO\SoleConceptDTO;
 use App\Enums\NoteAnnotatableField;
 use App\Models\Disciplines;
+use App\Models\NoteComment;
+use Illuminate\Support\Facades\Blade;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\Attributes\Title;
@@ -79,6 +84,10 @@ new #[Title('Disciplinas')] class extends Component
     public ?int $topicToAdd = null;
 
     public ?int $viewingPrincipleId = null;
+
+    public ?int $editingCommentId = null;
+
+    public string $commentBody = '';
 
     public function boot(
         DisciplineData $disciplineData,
@@ -139,6 +148,17 @@ new #[Title('Disciplinas')] class extends Component
             ->handle($this->selectedNote->id)
             ->data
             ->groupBy(fn ($link) => $link->field->value);
+    }
+
+    /**
+     * @return Collection<string, Collection<int, NoteComment>>
+     */
+    #[Computed]
+    public function noteComments(): Collection
+    {
+        return NoteComment::where('note_id', $this->selectedNote->id)
+            ->get()
+            ->groupBy(fn ($comment) => $comment->field->value);
     }
 
     /**
@@ -210,9 +230,16 @@ new #[Title('Disciplinas')] class extends Component
         unset($this->linkedTopicIds, $this->linkablePrinciples, $this->filteredLinkablePrinciples);
     }
 
-    public function renderWithLinks(string $markdown, Collection $links): string
+    /**
+     * @param  Collection<int, \App\Models\PrincipleNoteLink>  $links
+     * @param  Collection<int, NoteComment>  $comments
+     */
+    public function renderWithLinks(string $markdown, Collection $links, ?Collection $comments = null): string
     {
         $html = Str::markdownRich($markdown);
+        $commentIcon = $comments?->isNotEmpty()
+            ? Blade::render('<flux:icon.chat-bubble-left-ellipsis variant="micro" class="ml-0.5 inline size-3.5 align-text-top" />')
+            : '';
 
         // Blocos mermaid ficam de fora: um <mark> dentro do fonte quebraria o diagrama.
         $parts = preg_split('#(<pre><code class="language-mermaid">.*?</code></pre>)#s', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
@@ -229,6 +256,16 @@ new #[Title('Disciplinas')] class extends Component
                 $part = str_replace(
                     $escaped,
                     '<mark class="cursor-pointer rounded bg-primary/20 px-0.5" role="button" tabindex="0" aria-label="Ver princípio: '.e($principleLabel).'" wire:click="viewPrinciple('.$link->principle_id.')" data-link-id="'.$link->id.'">'.$escaped.'</mark>',
+                    $part
+                );
+            }
+
+            foreach ($comments ?? [] as $comment) {
+                $escaped = e($comment->snippet);
+
+                $part = str_replace(
+                    $escaped,
+                    '<mark class="cursor-pointer rounded bg-amber-300/40 px-0.5 text-inherit hover:bg-amber-300/60 dark:bg-amber-400/25 dark:hover:bg-amber-400/40" role="button" tabindex="0" aria-label="Ver comentário" wire:click="viewComment('.$comment->id.')" data-comment-id="'.$comment->id.'">'.$escaped.$commentIcon.'</mark>',
                     $part
                 );
             }
@@ -279,6 +316,76 @@ new #[Title('Disciplinas')] class extends Component
             $this->modal('link-principle')->close();
             $this->reset('pendingField', 'pendingSnippet', 'principleSearch');
             unset($this->notePrincipleLinks);
+        }
+    }
+
+    public function startCommenting(string $field, string $snippet): void
+    {
+        if (! NoteAnnotatableField::tryFrom($field)) {
+            return;
+        }
+
+        $this->pendingField = $field;
+        $this->pendingSnippet = $snippet;
+        $this->editingCommentId = null;
+        $this->commentBody = '';
+        $this->resetValidation('commentBody');
+        $this->modal('note-comment')->show();
+    }
+
+    public function viewComment(int $commentId): void
+    {
+        $comment = $this->noteComments->flatten()->firstWhere('id', $commentId);
+
+        if ($comment === null) {
+            return;
+        }
+
+        $this->editingCommentId = $comment->id;
+        $this->pendingSnippet = $comment->snippet;
+        $this->commentBody = $comment->body;
+        $this->resetValidation('commentBody');
+        $this->modal('note-comment')->show();
+    }
+
+    public function saveComment(SaveNoteComment $action): void
+    {
+        $this->validate([
+            'commentBody' => 'required|string|max:5000',
+            'pendingField' => $this->editingCommentId === null ? ['required', Rule::enum(NoteAnnotatableField::class)] : 'nullable',
+        ]);
+
+        $outcome = $action->handle($this->editingCommentId, $this->selectedNote->id, $this->pendingField, $this->pendingSnippet, $this->commentBody);
+
+        match ($outcome->success) {
+            true => Flux::toast(duration: 1800, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+        };
+
+        if ($outcome->success) {
+            $this->modal('note-comment')->close();
+            $this->reset('pendingField', 'pendingSnippet', 'editingCommentId', 'commentBody');
+            unset($this->noteComments);
+        }
+    }
+
+    public function deleteComment(DeleteNoteComment $action): void
+    {
+        if ($this->editingCommentId === null) {
+            return;
+        }
+
+        $outcome = $action->handle($this->editingCommentId, $this->selectedNote->id);
+
+        match ($outcome->success) {
+            true => Flux::toast(duration: 1800, text: $outcome->message, variant: 'success'),
+            false => Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger'),
+        };
+
+        if ($outcome->success) {
+            $this->modal('note-comment')->close();
+            $this->reset('pendingField', 'pendingSnippet', 'editingCommentId', 'commentBody');
+            unset($this->noteComments);
         }
     }
 
