@@ -7,12 +7,10 @@ let mermaidPromise = null;
 
 const loadMermaid = () => (mermaidPromise ??= import('mermaid').then((module) => module.default));
 
-const isDark = () => document.documentElement.classList.contains('dark');
-
 async function draw(nodes) {
     const mermaid = await loadMermaid();
 
-    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: isDark() ? 'dark' : 'default' });
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral' });
     await mermaid.run({ nodes, suppressErrors: true });
 
     nodes.filter((node) => node.closest('[data-pan-zoom]')).forEach(enablePanZoom);
@@ -50,37 +48,18 @@ function renderPending(root) {
     }
 }
 
-// O mermaid grava o SVG dentro do nó; pra trocar o tema volta ao fonte e desenha de novo.
-function redrawAll(root) {
-    const nodes = [...root.querySelectorAll('.mermaid[data-source]')];
-
-    nodes.forEach((node) => {
-        node.panZoom?.destroy();
-        node.panZoom = null;
-        node.removeAttribute('data-processed');
-        node.textContent = node.dataset.source;
-    });
-
-    if (nodes.length) {
-        draw(nodes);
-    }
-}
-
 document.addEventListener('alpine:init', () => {
     // `x-mermaid` num ancestral (o <main> do layout) cobre tudo dentro dele. O
     // MutationObserver pega o que chega depois: morph do Livewire (salvar edição
     // in-place) e conteúdo novo do wire:navigate.
     Alpine.directive('mermaid', (el, _directive, { cleanup }) => {
         const contentObserver = new MutationObserver(() => renderPending(el));
-        const themeObserver = new MutationObserver(() => redrawAll(el));
 
         contentObserver.observe(el, { childList: true, subtree: true });
-        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
         renderPending(el);
 
         cleanup(() => {
             contentObserver.disconnect();
-            themeObserver.disconnect();
         });
     });
 });
