@@ -1,4 +1,5 @@
 import EasyMDE from 'easymde';
+import { enableNativeKeyboard } from './native-keyboard';
 
 // Canvas do mapa de conceitos. O estado vive no cliente (nós, setas, pan/zoom) e
 // o servidor só persiste cada gesto via $wire (placeNode/connect/disconnect/removeNode).
@@ -412,6 +413,7 @@ document.addEventListener('alpine:init', () => {
                     initialValue: '- ',
                     minHeight: '300px',
                 });
+                enableNativeKeyboard(editor);
             },
 
             // CodeMirror montado em <dialog> fechado mede 0px: refaz o layout ao abrir.

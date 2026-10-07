@@ -4,6 +4,7 @@ import { Network } from 'vis-network/standalone';
 import { computePosition, autoUpdate, offset, flip, shift } from '@floating-ui/dom';
 import './session-modal';
 import './mermaid';
+import { enableNativeKeyboard } from './native-keyboard';
 import './mapa-conceitos';
 
 document.addEventListener('click', (event) => {
@@ -210,6 +211,7 @@ document.addEventListener('alpine:init', () => {
 
             const editor = new EasyMDE(options);
             this.editor = editor;
+            enableNativeKeyboard(editor);
 
             // Atalho pro bloco ```mermaid pronto (mesma ação do botão da toolbar).
             editor.codemirror.addKeyMap({
