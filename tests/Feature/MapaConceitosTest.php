@@ -163,3 +163,9 @@ test('only custom nodes can be renamed', function () {
     expect($custom->refresh()->label)->toBe('Novo nome')
         ->and(MapNode::firstWhere('key', 'exegese')->label)->toBe('Exegese');
 });
+
+test('page renders the written-map training panel', function () {
+    Livewire::test('pages::mapa-conceitos', ['slug' => 'hermeneutica'])
+        ->assertSeeHtml('x-data="mapTraining"')
+        ->assertSee('Iniciar');
+});

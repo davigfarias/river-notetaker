@@ -360,3 +360,136 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 });
+
+// Treino do mapa escrito. Tudo no cliente: o texto e o resultado não são persistidos.
+// Aninhado no x-data do conceptMap, de onde lê `nodes` (os conceitos expostos no canvas).
+document.addEventListener('alpine:init', () => {
+    const Alpine = window.Alpine;
+
+    const fold = (text) =>
+        text
+            .normalize('NFD')
+            .replace(/\p{Mn}/gu, '')
+            .toLowerCase()
+            .replace(/[^\p{L}\p{N}\s]/gu, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+    // Distância de Levenshtein (nº mínimo de edições de letras entre duas strings).
+    const distance = (a, b) => {
+        let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+
+        for (let i = 1; i <= a.length; i++) {
+            const row = [i];
+
+            for (let j = 1; j <= b.length; j++) {
+                row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            }
+
+            prev = row;
+        }
+
+        return prev[b.length];
+    };
+
+    Alpine.data('mapTraining', () => ({
+        durations: [5, 10, 15], // minutos
+        minutes: 10,
+        remaining: 600,
+        timer: null,
+        text: '',
+        result: null, // { found: [rótulo], missing: [rótulo] } depois de enviar
+
+        get running() {
+            return this.timer !== null;
+        },
+
+        get words() {
+            return this.text.trim() ? this.text.trim().split(/\s+/).length : 0;
+        },
+
+        get mapped() {
+            const seen = new Set();
+
+            return this.nodes.filter(
+                (node) =>
+                    !seen.has(fold(node.label)) && seen.add(fold(node.label)),
+            );
+        },
+
+        // Conceito conta se uma sequência de palavras do texto é igual ao rótulo (sem acento/caixa),
+        // tolerando erro de digitação: 1 letra de diferença em rótulos de 5+, 2 em rótulos de 10+.
+        get foundLabels() {
+            const tokens = fold(this.text).split(' ').filter(Boolean);
+
+            return this.mapped
+                .filter((node) => {
+                    const target = fold(node.label);
+                    const size = target.split(' ').length;
+                    const tolerance = target.length >= 10 ? 2 : target.length >= 5 ? 1 : 0;
+
+                    for (let i = 0; i + size <= tokens.length; i++) {
+                        if (distance(tokens.slice(i, i + size).join(' '), target) <= tolerance) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })
+                .map((node) => node.label);
+        },
+
+        get clock() {
+            const pad = (n) => String(n).padStart(2, '0');
+
+            return `${pad(Math.floor(this.remaining / 60))}:${pad(this.remaining % 60)}`;
+        },
+
+        pick(minutes) {
+            if (this.running || this.result) {
+                return;
+            }
+
+            this.minutes = minutes;
+            this.remaining = minutes * 60;
+        },
+
+        start() {
+            this.reset(false);
+            this.timer = setInterval(() => {
+                if (--this.remaining <= 0) {
+                    this.submit();
+                }
+            }, 1000);
+            this.$nextTick(() => this.$refs.trainingText.focus());
+        },
+
+        submit() {
+            const found = this.foundLabels;
+
+            clearInterval(this.timer);
+            this.timer = null;
+            this.result = {
+                found,
+                missing: this.mapped
+                    .map((node) => node.label)
+                    .filter((label) => !found.includes(label)),
+            };
+        },
+
+        reset(clearText = true) {
+            clearInterval(this.timer);
+            this.timer = null;
+            this.result = null;
+            this.remaining = this.minutes * 60;
+
+            if (clearText) {
+                this.text = '';
+            }
+        },
+
+        destroy() {
+            clearInterval(this.timer);
+        },
+    }));
+});
