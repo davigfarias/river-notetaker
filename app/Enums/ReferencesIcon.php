@@ -28,7 +28,7 @@ enum ReferencesIcon: string
             self::Newspaper => 'Artigo',
             self::VideoCamera => 'Vídeo',
             self::Film => 'Filme',
-            self::Music => 'Música',
+            self::Music => 'Deep Dive',
             self::Series => 'Série',
         };
     }
@@ -55,7 +55,7 @@ enum ReferencesIcon: string
             'Artigo' => self::Newspaper,
             'Vídeo' => self::VideoCamera,
             'Filme' => self::Film,
-            'Música' => self::Music,
+            'Deep Dive' => self::Music,
             'Série' => self::Series,
         };
     }
