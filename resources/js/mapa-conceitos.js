@@ -1,3 +1,5 @@
+import EasyMDE from 'easymde';
+
 // Canvas do mapa de conceitos. O estado vive no cliente (nós, setas, pan/zoom) e
 // o servidor só persiste cada gesto via $wire (placeNode/connect/disconnect/removeNode).
 document.addEventListener('alpine:init', () => {
@@ -391,6 +393,44 @@ document.addEventListener('alpine:init', () => {
 
         return prev[b.length];
     };
+
+    // Bloco de notas do mapa: EasyMDE próprio (só bullets), sem $wire e sem
+    // autosave — nada é persistido. O flyout fica montado ao fechar, então o
+    // texto sobrevive; só descarta ao sair da página.
+    // O editor fica em closure, não em `this`: o proxy reativo do Alpine quebra
+    // os internos do CodeMirror (erro ao selecionar texto com o mouse).
+    Alpine.data('scratchpad', () => {
+        let editor = null;
+
+        return {
+            init() {
+                editor = new EasyMDE({
+                    element: this.$refs.textarea,
+                    toolbar: ['unordered-list'],
+                    spellChecker: false,
+                    status: false,
+                    initialValue: '- ',
+                    minHeight: '300px',
+                });
+            },
+
+            // CodeMirror montado em <dialog> fechado mede 0px: refaz o layout ao abrir.
+            open() {
+                this.$flux.modal('scratchpad').show();
+                this.$nextTick(() => {
+                    const cm = editor.codemirror;
+
+                    cm.refresh();
+                    cm.focus();
+                    cm.setCursor(cm.lastLine(), cm.getLine(cm.lastLine()).length);
+                });
+            },
+
+            destroy() {
+                editor?.toTextArea();
+            },
+        };
+    });
 
     Alpine.data('mapTraining', () => ({
         durations: [5, 10, 15], // minutos

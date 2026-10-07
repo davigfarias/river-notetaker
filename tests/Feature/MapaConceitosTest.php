@@ -182,3 +182,9 @@ test('pills list equivalent markers once and hide them after placing', function 
         ->assertCount('pills', 3)
         ->assertCount('nodes', 1);
 });
+
+test('page renders the in-memory scratchpad flyout', function () {
+    Livewire::test('pages::mapa-conceitos', ['slug' => 'hermeneutica'])
+        ->assertSeeHtml('x-data="scratchpad"')
+        ->assertSee('Só em memória');
+});
