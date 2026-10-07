@@ -4,6 +4,7 @@ import { Network } from 'vis-network/standalone';
 import { computePosition, autoUpdate, offset, flip, shift } from '@floating-ui/dom';
 import './session-modal';
 import './mermaid';
+import './mapa-conceitos';
 
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest('a[href^="#edit-concept-"]');
@@ -125,6 +126,21 @@ function insertMermaid(editor) {
     cm.focus();
 }
 
+// Marca o trecho selecionado como conceito do mapa ({{no: ...}}); sem seleção, deixa o cursor dentro do marcador.
+function insertConcept(editor) {
+    const cm = editor.codemirror;
+    const selected = cm.getSelection().trim();
+
+    if (selected) {
+        cm.replaceSelection(`{{no: ${selected}}}`);
+    } else {
+        cm.replaceSelection('{{no: }}');
+        cm.setCursor({ line: cm.getCursor().line, ch: cm.getCursor().ch - 2 });
+    }
+
+    cm.focus();
+}
+
 document.addEventListener('alpine:init', () => {
     // Indica se a página de criar nota tem edições não salvas.
     // Alimentado por `resources/views/pages/⚡create/create.js` (100% client-side).
@@ -172,6 +188,12 @@ document.addEventListener('alpine:init', () => {
                         className: 'fa fa-sitemap',
                         title: 'Diagrama Mermaid (Ctrl/Cmd+Alt+M)',
                     },
+                    {
+                        name: 'concept',
+                        action: insertConcept,
+                        className: 'fa fa-bullseye',
+                        title: 'Conceito do mapa (Ctrl/Cmd+Alt+N)',
+                    },
                 ],
                 spellChecker: false,
                 status: false,
@@ -193,6 +215,8 @@ document.addEventListener('alpine:init', () => {
             editor.codemirror.addKeyMap({
                 'Ctrl-Alt-M': () => insertMermaid(editor),
                 'Cmd-Alt-M': () => insertMermaid(editor),
+                'Ctrl-Alt-N': () => insertConcept(editor),
+                'Cmd-Alt-N': () => insertConcept(editor),
             });
 
             // O EasyMDE carrega um rascunho salvo direto no CodeMirror durante a

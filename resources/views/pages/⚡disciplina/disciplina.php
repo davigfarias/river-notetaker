@@ -25,6 +25,7 @@ use App\DTO\SoleAdviceDTO;
 use App\DTO\SoleConceptDTO;
 use App\Enums\NoteAnnotatableField;
 use App\Models\Disciplines;
+use App\Support\MapConcepts;
 use App\Models\NoteComment;
 use Illuminate\Support\Facades\Blade;
 use Flux\Flux;
@@ -248,6 +249,12 @@ new #[Title('Disciplinas')] class extends Component
             if ($index % 2 === 1) {
                 continue;
             }
+
+            $part = preg_replace(
+                MapConcepts::PATTERN,
+                '<span class="bg-primary/15 text-primary rounded-full px-2 py-0.5 text-sm">$1</span>',
+                $part
+            );
 
             foreach ($links as $link) {
                 $escaped = e($link->snippet);

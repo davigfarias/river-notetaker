@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', 'pages::dashboard')->name('dashboard')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/disciplinas/{slug}', 'pages::disciplina')->name('disciplinas.show')->middleware(EnsureAccessTokenIsValid::class);
-Route::livewire('/disciplinas/{slug}/mapa-mental', 'pages::mapa-mental')->name('disciplinas.mapa-mental')->middleware(EnsureAccessTokenIsValid::class);
+Route::livewire('/disciplinas/{slug}/mapa-conceitos', 'pages::mapa-conceitos')->name('disciplinas.mapa-conceitos')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/disciplinas/{slug}/notas/nova', 'pages::create')->name('notas.criar')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/conceitos/lista', 'pages::concepts')->name('concepts')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/principios', 'pages::principios')->name('principios')->middleware(EnsureAccessTokenIsValid::class);

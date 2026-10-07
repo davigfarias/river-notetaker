@@ -105,7 +105,7 @@
                                 </div>
 
                                 <div class="relative z-1 mt-4 flex gap-2">
-                                    <flux:button size="sm" icon="share" href="{{ route('disciplinas.mapa-mental', $discipline->slug) }}" wire:navigate>Mapa mental</flux:button>
+                                    <flux:button size="sm" icon="share" href="{{ route('disciplinas.mapa-conceitos', $discipline->slug) }}" wire:navigate>Mapa mental</flux:button>
                                     <flux:button size="sm" icon="document-text" href="{{ route('disciplinas.show', $discipline->slug) }}" wire:navigate>Notas</flux:button>
                                 </div>
                             </div>
