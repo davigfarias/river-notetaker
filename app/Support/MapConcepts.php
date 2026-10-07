@@ -13,7 +13,7 @@ final class MapConcepts
 
     /**
      * @param  iterable<int, string|null>  $texts
-     * @return array<string, string> chave (fold do rótulo) => rótulo, na ordem em que aparecem
+     * @return array<string, string> chave (fold do rótulo, sem espaços) => rótulo, na ordem em que aparecem
      */
     public static function extract(iterable $texts): array
     {
@@ -32,6 +32,6 @@ final class MapConcepts
 
     public static function key(string $label): string
     {
-        return mb_substr(TextNormalizer::fold($label), 0, 120);
+        return mb_substr(preg_replace('/\s+/u', '', TextNormalizer::fold($label)), 0, 120);
     }
 }

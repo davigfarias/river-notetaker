@@ -23,8 +23,8 @@ beforeEach(function () {
 });
 
 test('extract deduplicates by folded key and ignores empty markers', function () {
-    expect(MapConcepts::extract(['{{no: Exegese}} {{no: exegese}} {{no:   }} {{no: Ação}}', null]))
-        ->toBe(['exegese' => 'Exegese', 'acao' => 'Ação']);
+    expect(MapConcepts::extract(['{{no: Exegese}} {{no: exegese}} {{no:   }} {{no: Ação}} {{no: Dois  Termos}} {{no: doisTérmos}}', null]))
+        ->toBe(['exegese' => 'Exegese', 'acao' => 'Ação', 'doistermos' => 'Dois  Termos']);
 });
 
 test('page lists note markers as pills until placed', function () {
@@ -168,4 +168,17 @@ test('page renders the written-map training panel', function () {
     Livewire::test('pages::mapa-conceitos', ['slug' => 'hermeneutica'])
         ->assertSeeHtml('x-data="mapTraining"')
         ->assertSee('Iniciar');
+});
+
+test('pills list equivalent markers once and hide them after placing', function () {
+    Notes::factory()->create([
+        'discipline_id' => $this->discipline->id,
+        'summary' => '{{no: Dois Termos}} {{no: dois  térmos}} {{no: DOISTERMOS}}',
+    ]);
+
+    Livewire::test('pages::mapa-conceitos', ['slug' => 'hermeneutica'])
+        ->assertCount('pills', 4)
+        ->call('placeNode', 'doistermos', 10, 20)
+        ->assertCount('pills', 3)
+        ->assertCount('nodes', 1);
 });
