@@ -1,6 +1,6 @@
 @placeholder
 
- <div class="mx-auto w-full max-w-7xl py-8">
+ <div class="w-full py-8">
         <div class="mb-8">
             <flux:heading size="xl" level="1">Disciplinas</flux:heading>
             <flux:text class="mt-2">Visão geral do progresso acadêmico.</flux:text>
@@ -25,7 +25,7 @@
 @endplaceholder
 
 <div>
-    <div class="mx-auto w-full max-w-7xl py-8">
+    <div class="w-full py-8">
         <div class="mb-8">
             <flux:heading size="xl" level="1">Disciplinas</flux:heading>
             <flux:text class="mt-2">Visão geral do progresso acadêmico.</flux:text>

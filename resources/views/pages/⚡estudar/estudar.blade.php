@@ -4,7 +4,7 @@
     </flux:button>
 </x-slot:headerActions>
 
-<main class="max-w-[1024px] mx-auto px-6 py-8 pb-32">
+<main class="w-full py-8 pb-32">
     @if ($this->question)
         <div class="flex items-center justify-between gap-2 mb-6">
             <span class="font-mono text-sm text-primary">Pergunta {{ $index + 1 }} de {{ $totalQuestions }}</span>

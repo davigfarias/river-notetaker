@@ -1,4 +1,4 @@
-<div class="mx-auto w-full max-w-6xl py-8">
+<div class="w-full py-8">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
             <flux:heading size="xl" level="1">{{ $discipline->title }}</flux:heading>

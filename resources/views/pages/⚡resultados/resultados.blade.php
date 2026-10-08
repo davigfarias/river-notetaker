@@ -4,7 +4,7 @@
     </flux:button>
 </x-slot:headerActions>
 
-<main class="max-w-[1280px] mx-auto px-6 py-8">
+<main class="w-full py-8">
     <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
             <flux:heading size="xl" level="1">Resultados da sessão</flux:heading>

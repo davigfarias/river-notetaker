@@ -1,5 +1,5 @@
 @placeholder
-    <div class="mx-auto w-full max-w-4xl py-8 space-y-6">
+    <div class="w-full py-8 space-y-6">
         <flux:skeleton class="h-8 w-64" />
         <div class="flex justify-center gap-4">
             <flux:skeleton class="h-24 w-40" />
@@ -11,7 +11,7 @@
 @endplaceholder
 
 <div>
-    <div class="mx-auto w-full max-w-4xl py-8">
+    <div class="w-full py-8">
 
         <div class="mb-8">
             <flux:text class="uppercase tracking-wide text-on-surface-variant">Tema</flux:text>

@@ -11,7 +11,7 @@
         </flux:button>
     </x-slot:headerActions>
 
-    <div class="mx-auto w-full max-w-4xl py-8">
+    <div class="w-full py-8">
         <flux:heading size="xl" level="1">Buscar nas referências</flux:heading>
         <flux:text class="mt-2">Pesquise pelas obras da biblioteca ou dentro do texto das citações.</flux:text>
 
@@ -26,7 +26,7 @@
     </div>
 @endplaceholder
 
-<div class="mx-auto w-full max-w-4xl py-8">
+<div class="w-full py-8">
 
     <flux:heading size="xl" level="1">Buscar nas referências</flux:heading>
     <flux:text class="mt-2">Pesquise pelas obras da biblioteca ou dentro do texto das citações.</flux:text>

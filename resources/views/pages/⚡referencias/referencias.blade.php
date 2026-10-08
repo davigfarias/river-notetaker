@@ -11,7 +11,7 @@
         </flux:button>
     </x-slot:headerActions>
 
-    <div class="mx-auto w-full max-w-7xl py-8">
+    <div class="w-full py-8">
         <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
                 <flux:heading size="xl" level="1">Materiais de Referência</flux:heading>
@@ -33,7 +33,7 @@
     </div>
 @endplaceholder
 
-<div class="mx-auto w-full max-w-7xl py-8">
+<div class="w-full py-8">
 
     <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>

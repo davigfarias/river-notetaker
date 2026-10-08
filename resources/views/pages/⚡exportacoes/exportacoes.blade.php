@@ -11,7 +11,7 @@
         </flux:button>
     </x-slot:headerActions>
 
-    <div class="mx-auto w-full max-w-4xl py-8">
+    <div class="w-full py-8">
         <flux:heading size="xl" level="1">Exportações</flux:heading>
         <flux:text class="mt-2">Arquivos gerados a partir das suas citações. Ficam disponíveis por {{ config('exports.retention_days') }} dias.</flux:text>
 
@@ -30,7 +30,7 @@
     </div>
 @endplaceholder
 
-<div class="mx-auto w-full max-w-4xl py-8" @if ($this->hasInProgress) wire:poll.5s @endif>
+<div class="w-full py-8" @if ($this->hasInProgress) wire:poll.5s @endif>
 
     <flux:heading size="xl" level="1">Exportações</flux:heading>
     <flux:text class="mt-2">Arquivos gerados a partir das suas citações. Ficam disponíveis por {{ config('exports.retention_days') }} dias.</flux:text>

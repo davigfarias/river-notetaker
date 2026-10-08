@@ -90,7 +90,7 @@
 
         <div class="bg-surface min-h-0 flex-1 flex-col overflow-y-auto p-6 md:flex lg:p-8 {{ $this->mobileDetail ? 'flex' : 'hidden' }}">
             @if ($this->selectedNote)
-                <div class="mx-auto w-full max-w-6xl pb-16">
+                <div class="w-full pb-16">
                     <div class="mb-4 md:hidden">
                         <flux:button variant="ghost" icon="arrow-left" wire:click="$set('mobileDetail', false)">Voltar</flux:button>
                     </div>

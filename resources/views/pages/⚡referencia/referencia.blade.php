@@ -11,7 +11,7 @@
         </flux:button>
     </x-slot:headerActions>
 
-    <div class="mx-auto w-full max-w-4xl py-8">
+    <div class="w-full py-8">
         <div class="space-y-4">
             <flux:skeleton class="h-5 w-24" />
             <flux:skeleton class="h-9 w-2/3" />
@@ -28,7 +28,7 @@
 
 @php($icon = \App\Enums\ReferencesIcon::tryFrom($this->material->type) ?? \App\Enums\ReferencesIcon::BookOpen)
 
-<div class="mx-auto w-full max-w-4xl py-8">
+<div class="w-full py-8">
 
         <div>
             @if ($editingMaterial)

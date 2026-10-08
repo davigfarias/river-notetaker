@@ -96,7 +96,7 @@
 </flux:header>
 
 <main x-data x-mermaid class="flex-1 min-h-0 overflow-y-auto">
-    <flux:main class="min-h-full">
+    <flux:main container class="min-h-full">
         {{ $slot }}
     </flux:main>
 </main>

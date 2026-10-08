@@ -1,6 +1,6 @@
 @placeholder
     <div>
-        <div class="mx-auto w-full max-w-7xl py-8">
+        <div class="w-full py-8">
             <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                 <div>
                     <flux:heading size="xl" level="1">Histórico</flux:heading>
@@ -24,7 +24,7 @@
 @endplaceholder
 
 <div>
-    <div class="mx-auto w-full max-w-7xl py-8">
+    <div class="w-full py-8">
 
         <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>

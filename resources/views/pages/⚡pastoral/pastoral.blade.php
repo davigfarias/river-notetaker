@@ -1,6 +1,6 @@
 @placeholder
     <div>
-        <div class="mx-auto w-full max-w-7xl py-8">
+        <div class="w-full py-8">
             <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                     <flux:heading size="xl" level="1">Conselhos Pastorais</flux:heading>
@@ -23,7 +23,7 @@
 @endplaceholder
 
 <div>
-    <div class="mx-auto w-full max-w-7xl py-8">
+    <div class="w-full py-8">
 
         <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>

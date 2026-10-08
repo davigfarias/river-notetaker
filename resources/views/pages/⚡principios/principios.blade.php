@@ -1,5 +1,5 @@
 @placeholder
-    <div class="mx-auto w-full max-w-7xl py-8">
+    <div class="w-full py-8">
         <div class="mb-8">
             <flux:heading size="xl" level="1">Princípios</flux:heading>
             <flux:text class="mt-2">Temas e os princípios reunidos em cada um.</flux:text>
@@ -17,7 +17,7 @@
 @endplaceholder
 
 <div>
-    <div class="mx-auto w-full max-w-7xl py-8">
+    <div class="w-full py-8">
 
         <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
