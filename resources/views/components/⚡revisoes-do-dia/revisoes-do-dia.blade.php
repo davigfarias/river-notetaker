@@ -116,7 +116,9 @@
                     </flux:text>
                 </div>
 
-                <div class="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
+                <div data-scroll-hint-host class="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
+                    <x-scroll-hint />
+
                     @if ($note->tags)
                         <div class="flex flex-wrap gap-2">
                             @foreach ($note->tags as $tag)
@@ -338,7 +340,7 @@
                     @endif
                 </div>
 
-                <div class="border-outline-variant/50 bg-surface-container-low shrink-0 border-t px-6 py-4">
+                <div class="border-outline-variant/50 shrink-0 border-t bg-transparent px-6 py-4">
                     <div class="flex flex-wrap items-center gap-2">
                         <flux:button type="button" variant="ghost" wire:click="closeReview">
                             Parar por aqui

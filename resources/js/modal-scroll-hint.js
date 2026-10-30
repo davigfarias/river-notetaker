@@ -1,9 +1,10 @@
-// Liga/desliga o indicador "role para baixo" de cada <dialog> do Flux conforme sobra conteúdo
-// escondido embaixo. O próprio <dialog> é o container que rola (ver flux/modal/index.blade.php).
+// Liga/desliga o indicador "role para baixo" conforme sobra conteúdo escondido embaixo. Vale para o
+// <dialog> do Flux quando ele rola (flux/modal/index.blade.php) e para qualquer container marcado com
+// data-scroll-hint-host que contenha <x-scroll-hint />.
 const THRESHOLD = 8;
 
 const update = (dialog) => {
-    const hint = dialog.querySelector('[data-modal-scroll-hint]');
+    const hint = [...dialog.querySelectorAll('[data-modal-scroll-hint]')].find((el) => el.closest('dialog, [data-scroll-hint-host]') === dialog);
 
     if (!hint) {
         return;
@@ -11,7 +12,7 @@ const update = (dialog) => {
 
     const hiddenBelow = dialog.scrollHeight - dialog.scrollTop - dialog.clientHeight;
 
-    hint.hidden = !(dialog.open && hiddenBelow > THRESHOLD);
+    hint.hidden = !((dialog.open ?? dialog.checkVisibility()) && hiddenBelow > THRESHOLD);
 };
 
 const watched = new WeakSet();
@@ -31,8 +32,21 @@ const watch = (dialog) => {
     refresh();
 };
 
-const scan = () => document.querySelectorAll('dialog[data-modal]').forEach(watch);
+const scan = () => document.querySelectorAll('dialog[data-modal], [data-scroll-hint-host]').forEach(watch);
 
 document.addEventListener('DOMContentLoaded', scan);
 document.addEventListener('livewire:navigated', scan);
 document.addEventListener('modal-show', () => requestAnimationFrame(scan));
+
+// O conteúdo de algumas modais só chega depois (Livewire renderiza ao abrir): reescaneia quando o DOM muda.
+let scanQueued = false;
+
+new MutationObserver(() => {
+    if (!scanQueued) {
+        scanQueued = true;
+        requestAnimationFrame(() => {
+            scanQueued = false;
+            scan();
+        });
+    }
+}).observe(document.documentElement, { childList: true, subtree: true });
