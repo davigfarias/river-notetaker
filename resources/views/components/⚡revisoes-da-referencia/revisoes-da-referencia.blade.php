@@ -59,8 +59,7 @@
                             icon="x-mark"
                             aria-label="Tirar da fila: {{ $review->title }}"
                             title="Tirar da fila"
-                            wire:click="dismiss({{ $review->id }})"
-                            wire:confirm="Tirar esta anotação da fila de revisão? Ela não será apagada e dá para desfazer depois, em &quot;Tiradas da fila&quot;."
+                            wire:click="confirmDismiss({{ $review->id }})"
                         />
                     </div>
                 </div>
@@ -113,6 +112,25 @@
             @endif
         </div>
     @endif
+
+    <flux:modal wire:model="showDismissConfirm" name="tirar-da-fila-{{ $referenceMaterialId ?? 'todas' }}" class="min-w-88">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Tirar da fila de revisão?</flux:heading>
+                <flux:text class="mt-2">
+                    @if ($this->noteAwaitingDismissConfirm)
+                        “{{ $this->noteAwaitingDismissConfirm->title }}” não vai mais aparecer nas revisões.
+                    @endif
+                    A anotação não é apagada. Para desfazer, abra “Tiradas da fila” e toque em “Voltar para a fila”.
+                </flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:button variant="ghost" wire:click="cancelDismiss">Manter na fila</flux:button>
+                <flux:button variant="danger" wire:click="dismiss">Tirar da fila</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <flux:modal
         wire:model="showReviewModal"

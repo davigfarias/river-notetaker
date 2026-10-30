@@ -111,7 +111,10 @@ test('o painel principal mostra a fila de recursos e deixa tirar e devolver', fu
     Livewire::test('revisoes-da-referencia')
         ->assertSee('Revisões de recursos')
         ->assertSee('Anotação para revisar')
-        ->call('dismiss', $note->id)
+        ->call('confirmDismiss', $note->id)
+        ->assertSet('showDismissConfirm', true)
+        ->assertSee('Tirar da fila de revisão?')
+        ->call('dismiss')
         ->assertDontSee('Anotação para revisar')
         ->assertSee('Tiradas da fila (1)')
         ->set('showDismissed', true)
@@ -119,6 +122,19 @@ test('o painel principal mostra a fila de recursos e deixa tirar e devolver', fu
         ->call('restore', $note->id)
         ->assertSee('Anotação para revisar')
         ->assertDontSee('Tiradas da fila (');
+});
+
+test('cancelar a confirmação mantém a anotação na fila', function () {
+    $note = reviewNoteFor($this->token, '2026-09-17', ['title' => 'Continua aqui']);
+
+    Livewire::test('revisoes-da-referencia')
+        ->call('confirmDismiss', $note->id)
+        ->call('cancelDismiss')
+        ->assertSet('showDismissConfirm', false)
+        ->call('dismiss')
+        ->assertSee('Continua aqui');
+
+    expect($note->refresh()->dismissed_at)->toBeNull();
 });
 
 test('o painel principal explica cada estado vazio', function () {

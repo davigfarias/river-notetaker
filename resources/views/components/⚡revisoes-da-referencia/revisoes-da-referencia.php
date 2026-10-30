@@ -32,6 +32,11 @@ new class extends Component
 
     public bool $showDismissed = false;
 
+    public bool $showDismissConfirm = false;
+
+    #[Locked]
+    public ?int $confirmingDismissId = null;
+
     #[Locked]
     public ?int $readingNoteIdUnderReview = null;
 
@@ -100,10 +105,25 @@ new class extends Component
             ->data ?? collect();
     }
 
-    public function dismiss(int $readingNoteId): void
+    public function confirmDismiss(int $readingNoteId): void
     {
-        $outcome = app(DismissReadingNoteReview::class)->handle($readingNoteId, (int) session('access_token_id'));
+        if (! $this->isInQueue($readingNoteId)) {
+            return;
+        }
 
+        $this->confirmingDismissId = $readingNoteId;
+        $this->showDismissConfirm = true;
+    }
+
+    public function dismiss(): void
+    {
+        if ($this->confirmingDismissId === null) {
+            return;
+        }
+
+        $outcome = app(DismissReadingNoteReview::class)->handle($this->confirmingDismissId, (int) session('access_token_id'));
+
+        $this->cancelDismiss();
         $this->refreshQueue();
 
         Flux::toast(
@@ -111,6 +131,25 @@ new class extends Component
             text: (string) $outcome->message,
             variant: $outcome->success ? 'success' : 'danger',
         );
+    }
+
+    public function cancelDismiss(): void
+    {
+        $this->showDismissConfirm = false;
+        $this->confirmingDismissId = null;
+    }
+
+    public function updatedShowDismissConfirm(): void
+    {
+        if (! $this->showDismissConfirm) {
+            $this->confirmingDismissId = null;
+        }
+    }
+
+    #[Computed]
+    public function noteAwaitingDismissConfirm(): ?DueReadingNoteReviewDTO
+    {
+        return $this->agenda->due->first(fn ($review): bool => $review->id === $this->confirmingDismissId);
     }
 
     public function restore(int $readingNoteId): void
