@@ -154,3 +154,25 @@ test('o dashboard exibe as duas filas lado a lado', function () {
         ->assertSee('Revisões de hoje')
         ->assertSee('Revisões de recursos');
 });
+
+test('com muitas anotações vencidas só 8 aparecem e o resto espera, mais atrasadas primeiro', function () {
+    $material = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+
+    foreach (range(1, 12) as $day) {
+        reviewNoteFor($this->token, CarbonImmutable::now()->subDays($day)->toDateString(), ['title' => "Nota {$day}"], $material);
+    }
+
+    $component = Livewire::test('revisoes-da-referencia')
+        ->assertSee('12 pendentes hoje')
+        ->assertSee('Mostrando 8, mais 4 aguardando.')
+        ->assertSee('Nota 12')
+        ->assertSee('Nota 5')
+        ->assertDontSee('Nota 4');
+
+    $oldest = ReadingNote::where('title', 'Nota 12')->sole();
+
+    $component->call('confirmDismiss', $oldest->id)->call('dismiss')
+        ->assertSee('11 pendentes hoje')
+        ->assertSee('Mostrando 8, mais 3 aguardando.')
+        ->assertSee('Nota 4');
+});
