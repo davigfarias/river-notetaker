@@ -223,21 +223,7 @@
                                 </flux:text>
                             </div>
 
-                            <div class="space-y-3">
-                                @foreach ($quizResults as $result)
-                                    <div wire:key="quiz-result-{{ $loop->index }}" class="space-y-1">
-                                        <flux:text class="font-medium">{{ $result['question'] }}</flux:text>
-                                        <flux:text size="sm" class="{{ $result['correct'] ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400' }}">
-                                            @if ($result['correct'])
-                                                {{ $result['chosen'] }}
-                                            @else
-                                                <span class="line-through">{{ $result['chosen'] !== '' ? $result['chosen'] : '—' }}</span>
-                                                <span class="font-medium text-on-surface">{{ $result['correct_answer'] }}</span>
-                                            @endif
-                                        </flux:text>
-                                    </div>
-                                @endforeach
-                            </div>
+                            <x-quiz-results :results="$quizResults" />
                         </section>
                     @endif
                     <x-scroll-hint />
