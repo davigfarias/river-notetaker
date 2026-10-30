@@ -1,15 +1,20 @@
 <?php
 
+use App\Actions\DismissReadingNoteReview;
 use App\Actions\GenerateReadingNoteQuiz;
+use App\Actions\GetDismissedReadingNoteReviews;
 use App\Actions\GetReadingNote;
 use App\Actions\GetReferenceReviewAgenda;
 use App\Actions\Orchestrators\SubmitReadingNoteQuizOrchestrator;
 use App\Actions\RecordReadingNoteReview;
+use App\Actions\RestoreReadingNoteReview;
 use App\Actions\ResolveReadingNoteQuizPool;
 use App\Actions\SelectReadingNoteQuizQuestionsForSession;
+use App\DTO\DueReadingNoteReviewDTO;
 use App\DTO\ReferenceReviewAgendaDTO;
 use App\Models\ReadingNote;
 use Flux\Flux;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Session;
@@ -17,9 +22,15 @@ use Livewire\Component;
 
 new class extends Component
 {
-    public int $referenceMaterialId;
+    /**
+     * Null = fila de todas as referências (painel principal).
+     */
+    #[Locked]
+    public ?int $referenceMaterialId = null;
 
     public bool $showReviewModal = false;
+
+    public bool $showDismissed = false;
 
     #[Locked]
     public ?int $readingNoteIdUnderReview = null;
@@ -65,7 +76,7 @@ new class extends Component
     #[Session]
     public ?int $awaitingQuizSince = null;
 
-    public function mount(int $referenceMaterialId): void
+    public function mount(?int $referenceMaterialId = null): void
     {
         $this->referenceMaterialId = $referenceMaterialId;
     }
@@ -76,6 +87,48 @@ new class extends Component
         return app(GetReferenceReviewAgenda::class)
             ->handle($this->referenceMaterialId, (int) session('access_token_id'))
             ->data;
+    }
+
+    /**
+     * @return Collection<int, DueReadingNoteReviewDTO>
+     */
+    #[Computed]
+    public function dismissed(): Collection
+    {
+        return app(GetDismissedReadingNoteReviews::class)
+            ->handle($this->referenceMaterialId, (int) session('access_token_id'))
+            ->data ?? collect();
+    }
+
+    public function dismiss(int $readingNoteId): void
+    {
+        $outcome = app(DismissReadingNoteReview::class)->handle($readingNoteId, (int) session('access_token_id'));
+
+        $this->refreshQueue();
+
+        Flux::toast(
+            duration: 2500,
+            text: (string) $outcome->message,
+            variant: $outcome->success ? 'success' : 'danger',
+        );
+    }
+
+    public function restore(int $readingNoteId): void
+    {
+        $outcome = app(RestoreReadingNoteReview::class)->handle($readingNoteId, (int) session('access_token_id'));
+
+        $this->refreshQueue();
+
+        Flux::toast(
+            duration: 2500,
+            text: (string) $outcome->message,
+            variant: $outcome->success ? 'success' : 'danger',
+        );
+    }
+
+    private function refreshQueue(): void
+    {
+        unset($this->agenda, $this->dismissed);
     }
 
     #[Computed]
@@ -306,7 +359,7 @@ new class extends Component
 
         if ($next === null) {
             $this->closeReview();
-            Flux::toast(duration: 1800, heading: 'Revisões concluídas', text: 'A fila de revisão desta referência está vazia.', variant: 'success');
+            Flux::toast(duration: 1800, heading: 'Revisões concluídas', text: 'A fila de revisão das anotações está vazia.', variant: 'success');
 
             return;
         }

@@ -22,6 +22,7 @@ use Livewire\Wireable;
  *     due_at: string|null,
  *     days_overdue: int,
  *     tags: array<int, string>,
+ *     reference_title: string|null,
  * }
  */
 class DueReadingNoteReviewDTO implements Wireable
@@ -37,6 +38,7 @@ class DueReadingNoteReviewDTO implements Wireable
         public ?string $due_at = null,
         public int $days_overdue = 0,
         public array $tags = [],
+        public ?string $reference_title = null,
     ) {}
 
     public function isOverdue(): bool
@@ -68,6 +70,7 @@ class DueReadingNoteReviewDTO implements Wireable
                 ? (int) $dueAt->diffInDays($today->startOfDay())
                 : 0,
             tags: array_values($note->tags ?? []),
+            reference_title: $note->relationLoaded('referenceMaterial') ? $note->referenceMaterial?->title : null,
         );
     }
 
@@ -84,6 +87,7 @@ class DueReadingNoteReviewDTO implements Wireable
             'due_at' => $this->due_at,
             'days_overdue' => $this->days_overdue,
             'tags' => $this->tags,
+            'reference_title' => $this->reference_title,
         ];
     }
 
@@ -108,6 +112,7 @@ class DueReadingNoteReviewDTO implements Wireable
             due_at: $value['due_at'],
             days_overdue: (int) $value['days_overdue'],
             tags: $value['tags'],
+            reference_title: $value['reference_title'] ?? null,
         );
     }
 }

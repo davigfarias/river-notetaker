@@ -1,8 +1,13 @@
-<div>
+<div @class(['mb-10' => $referenceMaterialId === null])>
     @php($agenda = $this->agenda)
+    @php($isGlobal = $referenceMaterialId === null)
 
     <div class="mb-4 flex flex-wrap items-center gap-3">
-        <flux:heading size="sm" class="text-on-surface-variant uppercase">Revisão espaçada</flux:heading>
+        @if ($isGlobal)
+            <flux:heading size="lg">Revisões de recursos</flux:heading>
+        @else
+            <flux:heading size="sm" class="text-on-surface-variant uppercase">Revisão espaçada</flux:heading>
+        @endif
         <flux:badge size="sm" variant="pill" :color="$agenda->isEmpty() ? 'zinc' : 'amber'">
             {{ $agenda->totalDue }} pendente{{ $agenda->totalDue === 1 ? '' : 's' }} hoje
         </flux:badge>
@@ -17,41 +22,101 @@
 
         <div class="mb-6 grid gap-3 sm:grid-cols-2">
             @foreach ($agenda->due as $review)
-                <button
-                    type="button"
-                    wire:key="due-reading-note-{{ $review->id }}"
-                    wire:click="openReview({{ $review->id }})"
-                    class="text-left"
-                    aria-label="Revisar {{ $review->title }}"
-                >
-                    <flux:card size="sm" class="hover:border-primary/50 flex h-full flex-col justify-between transition-colors">
-                        <flux:heading size="sm" class="line-clamp-2">{{ $review->title }}</flux:heading>
+                <div wire:key="due-reading-note-{{ $review->id }}" class="relative">
+                    <button
+                        type="button"
+                        wire:click="openReview({{ $review->id }})"
+                        class="block h-full w-full text-left"
+                        aria-label="Revisar {{ $review->title }}"
+                    >
+                        <flux:card size="sm" class="hover:border-primary/50 flex h-full flex-col justify-between pe-12 transition-colors">
+                            <div>
+                                @if ($isGlobal && $review->reference_title)
+                                    <flux:text size="sm" class="text-on-surface-variant mb-1 truncate">{{ $review->reference_title }}</flux:text>
+                                @endif
+                                <flux:heading size="sm" class="line-clamp-2">{{ $review->title }}</flux:heading>
+                            </div>
 
-                        <div class="mt-3 flex flex-wrap items-center gap-2">
-                            <flux:badge size="sm" variant="pill">{{ $review->stage_label }}</flux:badge>
+                            <div class="mt-3 flex flex-wrap items-center gap-2">
+                                <flux:badge size="sm" variant="pill">{{ $review->stage_label }}</flux:badge>
 
-                            <flux:badge
-                                size="sm"
-                                variant="pill"
-                                :color="$review->isOverdue() ? 'red' : 'zinc'"
-                            >
-                                {{ $review->overdueLabel() }}
-                            </flux:badge>
-                        </div>
-                    </flux:card>
-                </button>
+                                <flux:badge
+                                    size="sm"
+                                    variant="pill"
+                                    :color="$review->isOverdue() ? 'red' : 'zinc'"
+                                >
+                                    {{ $review->overdueLabel() }}
+                                </flux:badge>
+                            </div>
+                        </flux:card>
+                    </button>
+
+                    <div class="absolute top-2 right-2">
+                        <flux:button
+                            type="button"
+                            size="xs"
+                            variant="ghost"
+                            icon="x-mark"
+                            aria-label="Tirar da fila: {{ $review->title }}"
+                            title="Tirar da fila"
+                            wire:click="dismiss({{ $review->id }})"
+                            wire:confirm="Tirar esta anotação da fila de revisão? Ela não será apagada e dá para desfazer depois, em &quot;Tiradas da fila&quot;."
+                        />
+                    </div>
+                </div>
             @endforeach
         </div>
+    @elseif ($agenda->totalNotes === 0)
+        <flux:card size="sm" class="mb-6 flex items-center gap-3">
+            <flux:icon.pencil-square class="text-on-surface size-5 shrink-0" />
+            <flux:text>
+                {{ $isGlobal ? 'Você ainda não tem anotações de recursos.' : 'Esta obra ainda não tem anotações.' }}
+                Quando você escrever uma, ela aparece aqui para revisar.
+            </flux:text>
+        </flux:card>
     @else
         <flux:card size="sm" class="mb-6 flex items-center gap-3">
             <flux:icon.check-circle class="text-on-surface size-5 shrink-0" />
-            <flux:text>Nenhuma revisão pendente para hoje.</flux:text>
+            <flux:text>
+                Nenhuma revisão pendente para hoje.
+                @if ($agenda->nextDueAt)
+                    A próxima vence em {{ \Carbon\CarbonImmutable::parse($agenda->nextDueAt)->format('d/m') }}.
+                @else
+                    Não há outras agendadas: o resto já foi consolidado ou tirado da fila.
+                @endif
+            </flux:text>
         </flux:card>
+    @endif
+
+    @if ($agenda->dismissedCount > 0)
+        <div class="mb-6">
+            <flux:button type="button" size="sm" variant="subtle" :icon="$showDismissed ? 'chevron-up' : 'chevron-down'" wire:click="$toggle('showDismissed')">
+                Tiradas da fila ({{ $agenda->dismissedCount }})
+            </flux:button>
+
+            @if ($showDismissed)
+                <div class="mt-3 space-y-2">
+                    @foreach ($this->dismissed as $item)
+                        <flux:card size="sm" wire:key="dismissed-reading-note-{{ $item->id }}" class="flex items-center gap-3">
+                            <div class="min-w-0 flex-1">
+                                @if ($isGlobal && $item->reference_title)
+                                    <flux:text size="sm" class="text-on-surface-variant truncate">{{ $item->reference_title }}</flux:text>
+                                @endif
+                                <flux:text class="truncate font-medium">{{ $item->title }}</flux:text>
+                            </div>
+                            <flux:button type="button" size="sm" icon="arrow-uturn-left" wire:click="restore({{ $item->id }})">
+                                Voltar para a fila
+                            </flux:button>
+                        </flux:card>
+                    @endforeach
+                </div>
+            @endif
+        </div>
     @endif
 
     <flux:modal
         wire:model="showReviewModal"
-        name="revisao-anotacao-{{ $referenceMaterialId }}"
+        name="revisao-anotacao-{{ $referenceMaterialId ?? 'todas' }}"
         class="w-full max-w-[calc(100vw-2rem)] p-0 sm:max-w-2xl"
     >
         @if ($this->readingNoteUnderReview)

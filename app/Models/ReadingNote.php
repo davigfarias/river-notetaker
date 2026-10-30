@@ -29,6 +29,7 @@ use Laravel\Scout\Searchable;
  * @property int $review_stage
  * @property CarbonImmutable|null $next_review_at
  * @property CarbonImmutable|null $consolidated_at
+ * @property CarbonImmutable|null $dismissed_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
@@ -56,6 +57,7 @@ class ReadingNote extends Model
             'review_stage' => 'integer',
             'next_review_at' => 'immutable_date',
             'consolidated_at' => 'immutable_datetime',
+            'dismissed_at' => 'immutable_datetime',
         ];
     }
 
@@ -89,6 +91,7 @@ class ReadingNote extends Model
     public function isDueForReview(CarbonImmutable $on): bool
     {
         return ! $this->isConsolidated()
+            && $this->dismissed_at === null
             && $this->next_review_at instanceof CarbonImmutable
             && $this->next_review_at->lessThanOrEqualTo($on->startOfDay());
     }

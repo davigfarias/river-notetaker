@@ -18,6 +18,9 @@ final readonly class ReferenceReviewAgendaDTO
     public function __construct(
         public Collection $due,
         public int $totalDue = 0,
+        public int $totalNotes = 0,
+        public int $dismissedCount = 0,
+        public ?string $nextDueAt = null,
     ) {}
 
     public function hiddenCount(): int

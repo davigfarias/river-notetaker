@@ -31,7 +31,10 @@
             <flux:text class="mt-2">Visão geral do progresso acadêmico.</flux:text>
         </div>
 
-        <livewire:revisoes-do-dia />
+        <div class="grid gap-x-8 lg:grid-cols-2">
+            <div class="min-w-0"><livewire:revisoes-do-dia /></div>
+            <div class="min-w-0"><livewire:revisoes-da-referencia /></div>
+        </div>
 
         @if ($this->availablePeriods->isNotEmpty())
             <div class="mb-8 overflow-x-auto pb-1">
