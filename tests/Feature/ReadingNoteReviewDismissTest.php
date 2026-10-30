@@ -175,4 +175,12 @@ test('com muitas anotações vencidas só 8 aparecem e o resto espera, mais atra
         ->assertSee('11 pendentes hoje')
         ->assertSee('Mostrando 8, mais 3 aguardando.')
         ->assertSee('Nota 4');
+
+    $component->call('toggleShowAllDue')
+        ->assertSee('Mostrando todas as 11.')
+        ->assertSee('Nota 1')
+        ->assertSee('Mostrar só as primeiras')
+        ->call('toggleShowAllDue')
+        ->assertSee('Ver todas (11)')
+        ->assertDontSee('Nota 1"');
 });

@@ -32,6 +32,11 @@ new class extends Component
 
     public bool $showDismissed = false;
 
+    /**
+     * Mostra todas as vencidas, em vez de só as primeiras (o teto da fila).
+     */
+    public bool $showAllDue = false;
+
     public bool $showDismissConfirm = false;
 
     #[Locked]
@@ -90,8 +95,15 @@ new class extends Component
     public function agenda(): ReferenceReviewAgendaDTO
     {
         return app(GetReferenceReviewAgenda::class)
-            ->handle($this->referenceMaterialId, (int) session('access_token_id'))
+            ->handle($this->referenceMaterialId, (int) session('access_token_id'), limit: $this->showAllDue ? PHP_INT_MAX : GetReferenceReviewAgenda::DEFAULT_LIMIT)
             ->data;
+    }
+
+    public function toggleShowAllDue(): void
+    {
+        $this->showAllDue = ! $this->showAllDue;
+
+        unset($this->agenda);
     }
 
     /**

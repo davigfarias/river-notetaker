@@ -14,10 +14,19 @@
     </div>
 
     @if (! $agenda->isEmpty())
-        @if ($agenda->hiddenCount() > 0)
-            <flux:text size="sm" class="text-on-surface-variant mb-3 block">
-                Mostrando {{ $agenda->due->count() }}, mais {{ $agenda->hiddenCount() }} aguardando.
-            </flux:text>
+        @if ($agenda->hiddenCount() > 0 || $showAllDue)
+            <div class="mb-3 flex flex-wrap items-center gap-x-3">
+                <flux:text size="sm" class="text-on-surface-variant">
+                    @if ($showAllDue)
+                        Mostrando todas as {{ $agenda->due->count() }}.
+                    @else
+                        Mostrando {{ $agenda->due->count() }}, mais {{ $agenda->hiddenCount() }} aguardando.
+                    @endif
+                </flux:text>
+                <flux:button type="button" size="xs" variant="subtle" wire:click="toggleShowAllDue">
+                    {{ $showAllDue ? 'Mostrar só as primeiras' : 'Ver todas ('.$agenda->totalDue.')' }}
+                </flux:button>
+            </div>
         @endif
 
         <div class="mb-6 grid gap-3 sm:grid-cols-2">
