@@ -161,8 +161,6 @@
                 </div>
 
                 <div data-scroll-hint-host class="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
-                    <x-scroll-hint />
-
                     @if ($note->tags)
                         <div class="flex flex-wrap gap-2">
                             @foreach ($note->tags as $tag)
@@ -242,6 +240,7 @@
                             </div>
                         </section>
                     @endif
+                    <x-scroll-hint />
                 </div>
 
                 <div class="border-outline-variant/50 shrink-0 border-t bg-transparent px-6 py-4">
