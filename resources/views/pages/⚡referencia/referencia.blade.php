@@ -61,7 +61,7 @@
                         {{ $this->material->author }}{{ $this->material->year ? ' · '.$this->material->year : '' }}{{ $this->material->publisher ? ' · '.$this->material->publisher : '' }}
                     </flux:text>
                     @if ($this->material->url)
-                        <flux:link href="{{ $this->material->url }}" target="_blank" class="mt-1 block text-sm">{{ $this->material->url }}</flux:link>
+                        <flux:link href="{{ $this->material->url }}" target="_blank" class="mt-1 block text-sm break-all">{{ $this->material->url }}</flux:link>
                     @endif
                 </div>
 
@@ -74,7 +74,7 @@
             </div>
 
             <div class="mt-4 rounded-lg border border-surface-variant bg-surface-container-low/50 p-3">
-                <flux:text size="sm" class="text-on-surface-variant">
+                <flux:text size="sm" class="text-on-surface-variant break-words">
                     {{ app(\App\Support\Export\AbntFormatter::class)->reference($this->material) }}
                 </flux:text>
             </div>
@@ -134,13 +134,13 @@
                 </div>
             @endif
 
-            <flux:radio.group wire:model.live="activeTab" variant="segmented" class="mt-8">
+            <flux:radio.group wire:model.live="activeTab" variant="segmented" class="mt-8 max-w-full overflow-x-auto max-sm:**:data-flux-icon:hidden max-sm:[&>ui-radio]:gap-1 max-sm:[&>ui-radio]:px-1.5">
                 <flux:radio value="citacoes" icon="chat-bubble-bottom-center-text">
                     Citações
                     <flux:badge size="sm">{{ $this->material->citations_count }}</flux:badge>
                 </flux:radio>
                 <flux:radio value="perguntas" icon="academic-cap">
-                    Capítulos e Perguntas
+                    <span class="max-sm:hidden">Capítulos e</span> Perguntas
                     <flux:badge size="sm">{{ $this->material->chapters->count() }}</flux:badge>
                 </flux:radio>
                 <flux:radio value="anotacoes" icon="pencil-square">
@@ -200,11 +200,11 @@
                         </div>
                     </form>
                     @else
-                    <div wire:key="citation-{{ $citation->id }}" class="group rounded-xl border border-surface-variant bg-surface-container-lowest p-4" x-data="readAloud(@js($citation->quote_text))">
-                        <div class="prose dark:prose-invert prose-p:italic prose-p:text-on-surface-variant max-w-none leading-relaxed">
+                    <div wire:key="citation-{{ $citation->id }}" class="group min-w-0 rounded-xl border border-surface-variant bg-surface-container-lowest p-4" x-data="readAloud(@js($citation->quote_text))">
+                        <div class="prose dark:prose-invert prose-p:italic prose-p:text-on-surface-variant max-w-none break-words prose-pre:overflow-x-auto leading-relaxed">
                             {!! Str::markdownRich($citation->quote_text) !!}
                         </div>
-                        <div class="mt-2 flex items-center gap-3">
+                        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
                             @if ($citation->location)
                                 <flux:text size="sm" class="text-on-surface-variant/80">{{ $citation->location }}</flux:text>
                             @endif
@@ -212,7 +212,7 @@
                                 <flux:text size="sm" class="text-on-surface-variant/80">— {{ $citation->personal_note }}</flux:text>
                             @endif
                             <flux:spacer />
-                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Ler em português" x-on:click="read('pt-BR')">🇧🇷</flux:button>
                                 <flux:button size="xs" variant="ghost" icon="speaker-wave" aria-label="Read in English" x-on:click="read('en-US')">🇺🇸</flux:button>
                                 <flux:button size="xs" variant="ghost" icon="pencil" wire:click="editCitation({{ $citation->id }})" />
@@ -348,7 +348,7 @@
                                     wire:click="confirmDeleteReadingNote({{ $note->id }})" />
                             </div>
                         </div>
-                        <div class="prose dark:prose-invert mt-2 max-w-none leading-relaxed text-on-surface">
+                        <div class="prose dark:prose-invert mt-2 max-w-none break-words prose-pre:overflow-x-auto leading-relaxed text-on-surface">
                             {!! Str::markdownRich($note->body) !!}
                         </div>
                         <div class="mt-3 flex flex-wrap items-center gap-2">

@@ -4,15 +4,19 @@ use App\Models\AccessToken;
 use App\Models\Notes;
 use Livewire\Livewire;
 
-test('dashboard renders the mobile bottom navigation links', function () {
+test('dashboard renders the mobile hamburger menu with the navigation links', function () {
     $token = AccessToken::factory()->create();
 
     $this->withSession(['access_token_id' => $token->id])
         ->get('/')
         ->assertOk()
+        ->assertSee('data-flux-sidebar-toggle', false)
+        ->assertSee('data-flux-sidebar-nav', false)
+        ->assertSee('Abrir menu')
         ->assertSee(route('concepts'))
         ->assertSee(route('pastoral'))
-        ->assertSee(route('referencias'));
+        ->assertSee(route('referencias'))
+        ->assertDontSee('text-[11px]', false);
 });
 
 test('the desktop navbar and footer are hidden on mobile', function () {

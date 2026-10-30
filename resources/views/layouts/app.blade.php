@@ -32,7 +32,7 @@
     @livewireStyles
 </head>
 
-<body class="h-screen overflow-hidden flex flex-col bg-background text-on-background antialiased">
+<body class="h-dvh overflow-hidden flex flex-col bg-background text-on-background antialiased">
 
 <div class="pointer-events-none fixed inset-0 -z-10 hidden bg-[radial-gradient(ellipse_at_top_right,var(--color-primary-container),transparent_60%)] opacity-20 dark:block"></div>
 
@@ -41,6 +41,8 @@
     sticky
     class="z-40 border-b border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-md"
 >
+    <flux:sidebar.toggle class="md:hidden" icon="bars-2" inset="left" aria-label="Abrir menu" />
+
     <flux:brand href="{{ route('dashboard') }}" logo="/img/river.png" name="Notetaker" />
 
     <flux:navbar class="max-md:hidden">
@@ -95,24 +97,28 @@
 
 </flux:header>
 
+{{-- Menu do celular: abre pelo sanduíche do header. Só existe abaixo de md. --}}
+<flux:sidebar collapsible="mobile" class="md:hidden border-e border-outline-variant/20 bg-surface-container-lowest">
+    {{-- O header da página (z-40) cobre o topo do painel: o sanduíche dele abre e fecha. --}}
+    <flux:sidebar.nav class="pt-14">
+        @foreach ($navItems as $item)
+            <flux:sidebar.item
+                :href="route($item['route'])"
+                :icon="$item['icon']"
+                :current="request()->routeIs(...$item['active'])"
+                wire:navigate
+            >
+                {{ $item['label'] }}
+            </flux:sidebar.item>
+        @endforeach
+    </flux:sidebar.nav>
+</flux:sidebar>
+
 <main x-data x-mermaid class="flex-1 min-h-0 overflow-y-auto">
     <flux:main container class="min-h-full">
         {{ $slot }}
     </flux:main>
 </main>
-
-<nav class="shrink-0 border-t border-outline-variant bg-surface-container-lowest/95 backdrop-blur-md md:hidden">
-    <div class="mx-auto flex max-w-md items-stretch justify-around">
-        @foreach ($navItems as $item)
-            <a wire:navigate href="{{ route($item['route']) }}"
-               @if (request()->routeIs(...$item['active'])) data-current @endif
-               class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] text-on-surface-variant data-current:text-primary data-current:font-semibold">
-                <flux:icon :name="$item['icon']" class="size-6" />
-                <span>{{ $item['mobileLabel'] ?? $item['label'] }}</span>
-            </a>
-        @endforeach
-    </div>
-</nav>
 
 <footer class="h-14 shrink-0 hidden md:flex">
     <div class="mx-auto flex h-full items-center justify-center gap-2 px-6 text-sm text-on-surface-variant">
