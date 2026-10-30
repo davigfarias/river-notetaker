@@ -1,10 +1,12 @@
 {{-- Campo de nota (markdown) linkável a princípios e comentável por seleção de texto.
-     Espera $field (nome do campo), $html (markdown já renderizado com os
+     Espera $field (nome do campo), $markdown (o texto cru, para o índice), $html (markdown já renderizado com os
      <mark> dos links e comentários existentes), $links (Collection<PrincipleNoteLink>
      desse campo) e $linkablePrinciples (só pra saber se há algo linkável —
      a lista de fato, com busca, mora no modal compartilhado
      'link-principle'). Não usa $this — tudo já vem resolvido do componente
      pai. --}}
+<x-toc :headings="\App\Support\MarkdownToc::headings($markdown ?? null, $field)" class="mb-2" />
+
 <div
     x-data="linkable(@js($field))"
     x-on:mouseup="onSelectionChange($event)"

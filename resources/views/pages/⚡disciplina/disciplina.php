@@ -235,9 +235,9 @@ new #[Title('Disciplinas')] class extends Component
      * @param  Collection<int, \App\Models\PrincipleNoteLink>  $links
      * @param  Collection<int, NoteComment>  $comments
      */
-    public function renderWithLinks(string $markdown, Collection $links, ?Collection $comments = null): string
+    public function renderWithLinks(string $markdown, Collection $links, ?Collection $comments = null, ?string $headingIdPrefix = null): string
     {
-        $html = Str::markdownRich($markdown);
+        $html = Str::markdownRich($markdown, [], $headingIdPrefix);
         $commentIcon = $comments?->isNotEmpty()
             ? Blade::render('<flux:icon.chat-bubble-left-ellipsis variant="micro" class="ml-0.5 inline size-3.5 align-text-top" />')
             : '';

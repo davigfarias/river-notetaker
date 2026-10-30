@@ -348,8 +348,9 @@
                                     wire:click="confirmDeleteReadingNote({{ $note->id }})" />
                             </div>
                         </div>
+                        <x-toc :headings="\App\Support\MarkdownToc::headings($note->body, 'anotacao-'.$note->id)" class="mt-2" />
                         <div class="prose dark:prose-invert mt-2 max-w-none break-words prose-pre:overflow-x-auto leading-relaxed text-on-surface">
-                            {!! Str::markdownRich($note->body) !!}
+                            {!! Str::markdownRich($note->body, [], 'anotacao-'.$note->id) !!}
                         </div>
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             @if ($note->location)

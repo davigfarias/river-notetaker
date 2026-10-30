@@ -306,3 +306,12 @@
         color: var(--toast-icon-covered);
     }
 }
+
+/* Âncoras do índice (TOC): rolagem suave no container que rola e folga no topo. */
+main {
+    scroll-behavior: smooth;
+}
+
+.prose :where(h1, h2, h3)[id] {
+    scroll-margin-top: 1rem;
+}

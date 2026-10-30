@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Middleware\EnsureAccessTokenIsValid;
+use App\Support\Markdown\HeadingIdsExtension;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -34,9 +35,10 @@ class AppServiceProvider extends ServiceProvider
             EnsureAccessTokenIsValid::class,
         ]);
 
-        Str::macro('markdownRich', fn (string $string, array $options = []): string => Str::markdown($string, $options, [
+        Str::macro('markdownRich', fn (string $string, array $options = [], ?string $headingIdPrefix = null): string => Str::markdown($string, $options, [
             new FootnoteExtension,
             new HighlightExtension,
+            ...($headingIdPrefix !== null ? [new HeadingIdsExtension($headingIdPrefix)] : []),
         ]));
     }
 

@@ -156,7 +156,8 @@
                         @elseif (filled($this->selectedNote->summary))
                             @include('partials.note-field-links', [
                                 'field' => 'summary',
-                                'html' => $this->renderWithLinks($this->selectedNote->summary, $this->notePrincipleLinks->get('summary', collect()), $this->noteComments->get('summary', collect())),
+                                'markdown' => $this->selectedNote->summary,
+                                'html' => $this->renderWithLinks($this->selectedNote->summary, $this->notePrincipleLinks->get('summary', collect()), $this->noteComments->get('summary', collect()), 'summary'),
                                 'links' => $this->notePrincipleLinks->get('summary', collect()),
                                 'linkablePrinciples' => $this->linkablePrinciples,
                             ])
@@ -326,7 +327,8 @@
                                         @else
                                             @include('partials.note-field-links', [
                                                 'field' => 'impressions',
-                                                'html' => $this->renderWithLinks($this->selectedNote->impressions, $this->notePrincipleLinks->get('impressions', collect()), $this->noteComments->get('impressions', collect())),
+                                'markdown' => $this->selectedNote->impressions,
+                                                'html' => $this->renderWithLinks($this->selectedNote->impressions, $this->notePrincipleLinks->get('impressions', collect()), $this->noteComments->get('impressions', collect()), 'impressions'),
                                                 'links' => $this->notePrincipleLinks->get('impressions', collect()),
                                                 'linkablePrinciples' => $this->linkablePrinciples,
                                             ])
@@ -353,7 +355,8 @@
                                         @else
                                             @include('partials.note-field-links', [
                                                 'field' => 'life_experiences',
-                                                'html' => $this->renderWithLinks($this->selectedNote->life_experiences, $this->notePrincipleLinks->get('life_experiences', collect()), $this->noteComments->get('life_experiences', collect())),
+                                'markdown' => $this->selectedNote->life_experiences,
+                                                'html' => $this->renderWithLinks($this->selectedNote->life_experiences, $this->notePrincipleLinks->get('life_experiences', collect()), $this->noteComments->get('life_experiences', collect()), 'life_experiences'),
                                                 'links' => $this->notePrincipleLinks->get('life_experiences', collect()),
                                                 'linkablePrinciples' => $this->linkablePrinciples,
                                             ])
