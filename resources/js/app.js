@@ -6,6 +6,7 @@ import './session-modal';
 import './mermaid';
 import { enableNativeKeyboard } from './native-keyboard';
 import './mapa-conceitos';
+import './modal-scroll-hint';
 
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest('a[href^="#edit-concept-"]');
