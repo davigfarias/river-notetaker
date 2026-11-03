@@ -55,7 +55,7 @@ final readonly class SaveNote
 
             DB::commit();
 
-            return Outcome::success(message: 'Anotação salva com sucesso');
+            return Outcome::success(message: 'Anotação salva com sucesso', data: $note);
         } catch (\Exception $e) {
             DB::rollBack();
 

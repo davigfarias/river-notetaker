@@ -2,6 +2,7 @@
 
 use App\Models\AccessToken;
 use App\Models\Disciplines;
+use App\Models\Notes;
 use Livewire\Livewire;
 
 test('a successful save dispatches note-draft-saved so the client clears the draft', function () {
@@ -16,7 +17,7 @@ test('a successful save dispatches note-draft-saved so the client clears the dra
         ->call('save')
         ->assertHasNoErrors()
         ->assertDispatched('note-draft-saved')
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('disciplinas.show', ['slug' => $discipline->slug, 'nota' => Notes::firstWhere('title', 'Nota de teste')->id]));
 });
 
 test('a failed save keeps the draft by not dispatching note-draft-saved', function () {

@@ -15,11 +15,10 @@ test('saving a new note does not fail validation because of the untouched concep
         ->set('notes.title', 'Nota de teste')
         ->call('save')
         ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard'));
-
-    expect(Notes::where('title', 'Nota de teste')
-        ->where('discipline_id', $discipline->id)
-        ->exists())->toBeTrue();
+        ->assertRedirect(route('disciplinas.show', [
+            'slug' => $discipline->slug,
+            'nota' => Notes::where('title', 'Nota de teste')->where('discipline_id', $discipline->id)->sole()->id,
+        ]));
 });
 
 test('the discipline is taken from the route slug, not a select', function () {
@@ -41,4 +40,28 @@ test('an unknown discipline slug aborts with 404', function () {
 
     Livewire::test('pages::create', ['slug' => 'disciplina-inexistente'])
         ->assertStatus(404);
+});
+
+test('the discipline page opens the note from the url, also on mobile', function () {
+    $token = AccessToken::factory()->create();
+    $discipline = Disciplines::factory()->create();
+    $first = Notes::factory()->create(['discipline_id' => $discipline->id, 'access_token_id' => $token->id]);
+    $second = Notes::factory()->create(['discipline_id' => $discipline->id, 'access_token_id' => $token->id]);
+
+    $this->withSession(['access_token_id' => $token->id]);
+    Livewire::withoutLazyLoading();
+
+    Livewire::withQueryParams(['nota' => $second->id])
+        ->test('pages::disciplina', ['slug' => $discipline->slug])
+        ->assertSet('selectedNoteId', $second->id)
+        ->assertSet('mobileDetail', true);
+
+    Livewire::withQueryParams(['nota' => 999999])
+        ->test('pages::disciplina', ['slug' => $discipline->slug])
+        ->assertSet('mobileDetail', false);
+
+    Livewire::test('pages::disciplina', ['slug' => $discipline->slug])
+        ->assertSet('mobileDetail', false);
+
+    expect($first->id)->not->toBe($second->id);
 });

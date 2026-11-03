@@ -277,7 +277,7 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         if ($outcome->success) {
             Flux::toast(duration: 1800, text: 'Anotação salva com sucesso.', variant: 'success');
             $this->dispatch('note-draft-saved');
-            $this->redirectRoute('dashboard', navigate: true);
+            $this->redirectRoute('disciplinas.show', ['slug' => $this->disciplineSlug, 'nota' => $outcome->data->id], navigate: true);
         } else {
             Flux::toast(duration: 1800, text: $outcome->message, variant: 'danger');
         }
