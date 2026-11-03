@@ -2,6 +2,8 @@
 
 use App\Models\AccessToken;
 use App\Models\Notes;
+use App\Models\ReadingNote;
+use App\Models\ReferenceMaterial;
 use Livewire\Livewire;
 
 test('dashboard renders the mobile hamburger menu with the navigation links', function () {
@@ -25,7 +27,7 @@ test('the desktop navbar and footer are hidden on mobile', function () {
     $this->withSession(['access_token_id' => $token->id])
         ->get('/')
         ->assertOk()
-        ->assertSee('max-md:hidden', false)
+        ->assertSee('max-lg:hidden', false)
         ->assertSee('hidden md:flex', false);
 });
 
@@ -66,4 +68,21 @@ test('an invalid note id in the url falls back to the first note of the discipli
         ->get(route('disciplinas.show', ['slug' => $discipline->slug, 'nota' => 999999]))
         ->assertOk()
         ->assertSeeText('Única nota');
+});
+
+test('review cards are held to the screen width by an explicit column on mobile', function () {
+    $token = AccessToken::factory()->create();
+    $this->withSession(['access_token_id' => $token->id]);
+    Livewire::withoutLazyLoading();
+
+    $material = ReferenceMaterial::factory()->create(['access_token_id' => $token->id]);
+    ReadingNote::factory()->create([
+        'reference_material_id' => $material->id,
+        'access_token_id' => $token->id,
+        'next_review_at' => now()->subDay(),
+    ]);
+
+    Livewire::test('revisoes-da-referencia')
+        ->assertSeeHtml('grid grid-cols-1 gap-3 sm:grid-cols-2')
+        ->assertSeeHtml('line-clamp-2 break-words');
 });

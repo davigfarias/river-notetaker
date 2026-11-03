@@ -41,11 +41,11 @@
     sticky
     class="z-40 border-b border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-md"
 >
-    <flux:sidebar.toggle class="md:hidden" icon="bars-2" inset="left" aria-label="Abrir menu" />
+    <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" aria-label="Abrir menu" />
 
     <flux:brand href="{{ route('dashboard') }}" logo="/img/river.png" name="Notetaker" />
 
-    <flux:navbar class="max-md:hidden">
+    <flux:navbar class="max-lg:hidden max-xl:**:data-flux-icon:hidden">
 
         @foreach ($navItems as $item)
             <a href="{{ route($item['route']) }}" wire:navigate class="contents">
@@ -97,8 +97,8 @@
 
 </flux:header>
 
-{{-- Menu do celular: abre pelo sanduíche do header. Só existe abaixo de md. --}}
-<flux:sidebar collapsible="mobile" class="md:hidden border-e border-outline-variant/20 bg-surface-container-lowest">
+{{-- Menu do celular e tablet: abre pelo sanduíche do header. Só existe abaixo de lg. --}}
+<flux:sidebar collapsible="mobile" class="lg:hidden border-e border-outline-variant/20 bg-surface-container-lowest">
     {{-- O header da página (z-40) cobre o topo do painel: o sanduíche dele abre e fecha. --}}
     <flux:sidebar.nav class="pt-14">
         @foreach ($navItems as $item)
@@ -156,7 +156,7 @@
 {{-- Fica antes do @fluxScripts: depois dele, o <ui-close> monta assim que o
      parser abre a tag, antes do <button> filho existir, e o Flux quebra com
      "Cannot read properties of null (reading 'addEventListener')". --}}
-<flux:modal name="global-token-expiration" class="min-w-88">
+<flux:modal name="global-token-expiration" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
     <div class="space-y-6">
         <div>
             <flux:heading size="lg">Sessão finalizada</flux:heading>

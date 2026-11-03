@@ -47,7 +47,7 @@
                                 </flux:text>
                             </div>
 
-                            <flux:heading size="sm" class="line-clamp-3">{{ $review->title }}</flux:heading>
+                            <flux:heading size="sm" class="line-clamp-3 break-words">{{ $review->title }}</flux:heading>
                         </div>
 
                         <div class="mt-4 flex flex-wrap items-center gap-2">

@@ -29,7 +29,7 @@
             </div>
         @endif
 
-        <div class="mb-6 grid gap-3 sm:grid-cols-2">
+        <div class="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             @foreach ($agenda->due as $review)
                 <div wire:key="due-reading-note-{{ $review->id }}" class="relative">
                     <button
@@ -43,7 +43,7 @@
                                 @if ($isGlobal && $review->reference_title)
                                     <flux:text size="sm" class="text-on-surface-variant mb-1 truncate">{{ $review->reference_title }}</flux:text>
                                 @endif
-                                <flux:heading size="sm" class="line-clamp-2">{{ $review->title }}</flux:heading>
+                                <flux:heading size="sm" class="line-clamp-2 break-words">{{ $review->title }}</flux:heading>
                             </div>
 
                             <div class="mt-3 flex flex-wrap items-center gap-2">
@@ -122,7 +122,7 @@
         </div>
     @endif
 
-    <flux:modal wire:model="showDismissConfirm" name="tirar-da-fila-{{ $referenceMaterialId ?? 'todas' }}" class="min-w-88">
+    <flux:modal wire:model="showDismissConfirm" name="tirar-da-fila-{{ $referenceMaterialId ?? 'todas' }}" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Tirar da fila de revisão?</flux:heading>
