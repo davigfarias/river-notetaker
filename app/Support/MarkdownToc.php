@@ -39,7 +39,7 @@ final class MarkdownToc
             if ($node instanceof Heading && $node->data->has('attributes/id')) {
                 $headings[] = [
                     'level' => $node->getLevel(),
-                    'text' => StringContainerHelper::getChildText($node),
+                    'text' => MapConcepts::strip(StringContainerHelper::getChildText($node)),
                     'id' => (string) $node->data->get('attributes/id'),
                 ];
             }

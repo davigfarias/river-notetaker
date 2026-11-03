@@ -110,6 +110,9 @@ new #[Title('Disciplinas')] class extends Component
 
         if ($this->selectedNoteId === null || ! $this->notes->contains('id', $this->selectedNoteId)) {
             $this->selectedNoteId = $this->notes->first()?->id;
+        } else {
+            // A URL pediu esta nota: no celular abre nela, não na lista.
+            $this->mobileDetail = true;
         }
     }
 
@@ -250,11 +253,7 @@ new #[Title('Disciplinas')] class extends Component
                 continue;
             }
 
-            $part = preg_replace(
-                MapConcepts::PATTERN,
-                '<span class="bg-primary/15 text-primary rounded-full px-2 py-0.5 text-sm">$1</span>',
-                $part
-            );
+            $part = MapConcepts::chips($part);
 
             foreach ($links as $link) {
                 $escaped = e($link->snippet);

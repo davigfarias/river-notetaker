@@ -53,3 +53,11 @@ test('the route forbids a note belonging to another access token', function () {
 
     $this->get(route('notas.exportar', $this->note->id))->assertForbidden();
 });
+
+test('the export has no concept markers', function () {
+    $this->note->update(['impressions' => 'Sobre {{no: Graça}} aqui.']);
+
+    expect($this->get(route('notas.exportar', $this->note->id))->streamedContent())
+        ->toContain('Sobre Graça aqui.')
+        ->not->toContain('{{no:');
+});

@@ -11,6 +11,7 @@ use App\Models\Notes;
 use App\Models\PastoralAdvices;
 use App\Models\ReadingNote;
 use App\Models\ReferenceMaterial;
+use App\Support\MapConcepts;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Str;
 use Livewire\Wireable;
@@ -76,7 +77,7 @@ class SearchResultDTO implements Arrayable, Wireable
             type: SearchResultType::Nota,
             id: $note->id,
             title: $note->title,
-            snippet: $note->impressions ? Str::limit($note->impressions, 140) : null,
+            snippet: $note->impressions ? Str::limit(MapConcepts::strip($note->impressions), 140) : null,
             url: route('disciplinas.show', ['slug' => $note->discipline->slug, 'nota' => $note->id]),
         );
     }
@@ -131,7 +132,7 @@ class SearchResultDTO implements Arrayable, Wireable
             type: SearchResultType::AnotacaoLeitura,
             id: $note->id,
             title: $note->displayTitle(),
-            snippet: Str::limit($note->body, 140),
+            snippet: Str::limit(MapConcepts::strip($note->body), 140),
             url: route('referencias.show', $note->reference_material_id),
         );
     }

@@ -8,6 +8,7 @@ use App\Actions\PersistReadingNoteQuizQuestions;
 use App\Actions\ValidateGeneratedQuestions;
 use App\Ai\Agents\QuizQuestionGenerator;
 use App\Models\ReadingNote;
+use App\Support\MapConcepts;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +35,7 @@ class GenerateReadingNoteQuizJob implements ShouldQueue
             return;
         }
 
-        $response = (new QuizQuestionGenerator)->prompt($content);
+        $response = (new QuizQuestionGenerator)->prompt(MapConcepts::strip($content));
 
         $validated = $validate->handle($response['questions']);
 

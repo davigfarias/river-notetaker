@@ -187,6 +187,30 @@ class ReferenceMaterial extends Model
         return $this->hasMany(Chapter::class)->orderBy('position');
     }
 
+    /**
+     * @return BelongsToMany<ReferenceGroup, $this>
+     */
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(ReferenceGroup::class, 'reference_group_material');
+    }
+
+    /**
+     * @return HasMany<ReferenceMapNode, $this>
+     */
+    public function mapNodes(): HasMany
+    {
+        return $this->hasMany(ReferenceMapNode::class);
+    }
+
+    /**
+     * @return HasMany<ReferenceMapEdge, $this>
+     */
+    public function mapEdges(): HasMany
+    {
+        return $this->hasMany(ReferenceMapEdge::class);
+    }
+
     public function coverUrl(): ?string
     {
         if ($this->cover_path === null) {

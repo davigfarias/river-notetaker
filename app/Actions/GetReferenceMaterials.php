@@ -18,10 +18,12 @@ final readonly class GetReferenceMaterials
         ?string $filter = null,
         ?string $type = null,
         int $perPage = 12,
+        ?int $groupId = null,
     ): Outcome {
         try {
             $materials = ReferenceMaterial::query()
                 ->where('access_token_id', $accessTokenId)
+                ->with('groups')
                 ->withCount('citations')
                 ->when(filled($filter), fn (Builder $query) => $query->where(
                     fn (Builder $query) => $query
@@ -29,6 +31,7 @@ final readonly class GetReferenceMaterials
                         ->orWhereRaw('LOWER(author) LIKE ?', ['%'.Str::lower((string) $filter).'%'])
                 ))
                 ->when(filled($type), fn (Builder $query) => $query->where('type', $type))
+                ->when($groupId !== null, fn (Builder $query) => $query->whereHas('groups', fn (Builder $query) => $query->whereKey($groupId)))
                 ->orderBy('title')
                 ->paginate($perPage);
 

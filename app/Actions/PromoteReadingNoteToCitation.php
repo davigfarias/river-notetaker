@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\ReadingNote;
+use App\Support\MapConcepts;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
@@ -21,7 +22,7 @@ final readonly class PromoteReadingNoteToCitation
                 ->findOrFail($readingNoteId);
 
             $citation = $note->referenceMaterial->citations()->create([
-                'quote_text' => $note->body,
+                'quote_text' => MapConcepts::strip($note->body),
                 'location' => $note->location,
                 'personal_note' => $note->title,
                 'access_token_id' => $accessTokenId,

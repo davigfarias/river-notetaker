@@ -88,6 +88,22 @@ class Disciplines extends Model
     }
 
     /**
+     * @return HasMany<MapNode, $this>
+     */
+    public function mapNodes(): HasMany
+    {
+        return $this->hasMany(MapNode::class, 'discipline_id');
+    }
+
+    /**
+     * @return HasMany<MapEdge, $this>
+     */
+    public function mapEdges(): HasMany
+    {
+        return $this->hasMany(MapEdge::class, 'discipline_id');
+    }
+
+    /**
      * @return HasMany<Notes, $this>
      */
     public function note(): HasMany

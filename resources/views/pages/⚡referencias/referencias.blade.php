@@ -62,9 +62,32 @@
         </div>
 
         @include('partials.reference-type-pills', ['model' => 'type', 'live' => true, 'includeAll' => true])
+
+        <div class="flex flex-wrap items-center gap-2">
+            @if ($this->groups->isNotEmpty())
+                <flux:radio.group wire:model.live="group" variant="pills" class="flex flex-wrap gap-2">
+                    <flux:radio value="">Todos os grupos</flux:radio>
+                    @foreach ($this->groups as $referenceGroup)
+                        <flux:radio wire:key="group-filter-{{ $referenceGroup->id }}" value="{{ $referenceGroup->id }}">{{ $referenceGroup->name }}</flux:radio>
+                    @endforeach
+                </flux:radio.group>
+            @else
+                <flux:text size="sm">Nenhum grupo ainda. Crie um para juntar várias obras num espaço só.</flux:text>
+            @endif
+
+            <flux:modal.trigger name="add-group">
+                <flux:button size="sm" variant="ghost" icon="folder-plus">Novo grupo</flux:button>
+            </flux:modal.trigger>
+
+            @if ($this->activeGroup)
+                <flux:modal.trigger name="delete-group">
+                    <flux:button size="sm" variant="ghost" icon="trash">Apagar grupo</flux:button>
+                </flux:modal.trigger>
+            @endif
+        </div>
     </div>
 
-    <div wire:loading.delay.flex wire:target="filter,type,previousPage,nextPage,gotoPage" class="hidden flex-wrap gap-4">
+    <div wire:loading.delay.flex wire:target="filter,type,group,previousPage,nextPage,gotoPage" class="hidden flex-wrap gap-4">
         @for ($i = 0; $i < 6; $i++)
             <div class="w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.75rem)] rounded-xl border border-surface-variant bg-surface-container-lowest p-4 space-y-3">
                 <flux:skeleton class="h-4 w-20" />
@@ -74,16 +97,16 @@
         @endfor
     </div>
 
-    <div wire:loading.delay.remove wire:target="filter,type,previousPage,nextPage,gotoPage">
+    <div wire:loading.delay.remove wire:target="filter,type,group,previousPage,nextPage,gotoPage">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @forelse ($this->materials as $material)
                 @php($icon = \App\Enums\ReferencesIcon::tryFrom($material->type) ?? \App\Enums\ReferencesIcon::BookOpen)
-                <a
-                    href="{{ route('referencias.show', $material->id) }}"
-                    wire:navigate
+                <div
                     wire:key="material-{{ $material->id }}"
-                    class="group flex flex-col justify-between rounded-xl border border-surface-variant bg-surface-container-lowest p-4 shadow-sm transition-shadow hover:shadow-md"
+                    class="group relative flex flex-col justify-between rounded-xl border border-surface-variant bg-surface-container-lowest p-4 shadow-sm transition-shadow hover:shadow-md"
                 >
+                    {{-- Link esticado: o cartão inteiro abre a obra, e o seletor de grupos fica fora do <a>. --}}
+                    <a href="{{ route('referencias.show', $material->id) }}" wire:navigate class="absolute inset-0 rounded-xl" aria-label="Abrir {{ $material->title }}"></a>
                     <div>
                         <flux:badge size="sm" icon="{{ $icon->icon() }}" color="zinc">{{ $icon->label() }}</flux:badge>
                         <flux:heading class="mt-3 leading-snug group-hover:text-primary">{{ $material->title }}</flux:heading>
@@ -105,16 +128,46 @@
                                 </flux:text>
                             </div>
                         @endif
-                        <flux:text size="sm" class="text-on-surface-variant">
-                            {{ $material->citations_count }} {{ $material->citations_count === 1 ? 'citação' : 'citações' }}
-                        </flux:text>
+                        <div class="flex items-center justify-between gap-2">
+                            <flux:text size="sm" class="text-on-surface-variant">
+                                {{ $material->citations_count }} {{ $material->citations_count === 1 ? 'citação' : 'citações' }}
+                            </flux:text>
+
+                            <flux:dropdown position="bottom" align="end" class="relative z-1">
+                                <flux:button size="xs" variant="ghost" icon="folder" aria-label="Escolher grupos de {{ $material->title }}">
+                                    Grupos
+                                    @if ($material->groups->isNotEmpty())
+                                        <flux:badge size="sm">{{ $material->groups->count() }}</flux:badge>
+                                    @endif
+                                </flux:button>
+
+                                <flux:menu>
+                                    @forelse ($this->groups as $referenceGroup)
+                                        <flux:menu.checkbox
+                                            keep-open
+                                            wire:key="material-{{ $material->id }}-group-{{ $referenceGroup->id }}"
+                                            :checked="$material->groups->contains('id', $referenceGroup->id)"
+                                            wire:click="toggleGroup({{ $referenceGroup->id }}, {{ $material->id }})"
+                                        >{{ $referenceGroup->name }}</flux:menu.checkbox>
+                                    @empty
+                                        <flux:menu.item disabled>Nenhum grupo ainda</flux:menu.item>
+                                    @endforelse
+                                    <flux:menu.separator />
+                                    <flux:menu.item icon="folder-plus" x-on:click="$flux.modal('add-group').show()">Novo grupo</flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+                        </div>
                     </div>
-                </a>
+                </div>
             @empty
                 <x-empty-state
                     icon="book-open"
-                    heading="Nenhuma obra encontrada"
-                    :description="(filled($filter) || filled($type)) ? 'Nenhuma obra corresponde aos filtros.' : 'Adicione sua primeira obra à biblioteca.'"
+                    :heading="$this->activeGroup && blank($filter) && blank($type) ? 'Este grupo ainda não tem obras' : 'Nenhuma obra encontrada'"
+                    :description="match (true) {
+                        filled($filter) || filled($type) => 'Nenhuma obra corresponde aos filtros.',
+                        $this->activeGroup !== null => 'Clique em Todos os grupos e use o botão Grupos no cartão de uma obra para colocá-la aqui.',
+                        default => 'Adicione sua primeira obra à biblioteca.',
+                    }"
                     class="col-span-full"
                 />
             @endforelse
@@ -124,6 +177,38 @@
             <flux:pagination :paginator="$this->materials" class="mt-10" />
         @endif
     </div>
+
+    <flux:modal name="add-group" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
+        <form wire:submit="addGroup" class="space-y-5">
+            <div>
+                <flux:heading size="lg">Novo grupo</flux:heading>
+                <flux:text class="mt-2">Um espaço para juntar várias obras. A mesma obra pode estar em mais de um grupo.</flux:text>
+            </div>
+
+            <flux:input label="Nome do grupo" wire:model="groupForm.name" maxlength="60" placeholder="Ex: Teologia Sistemática" />
+
+            <div class="flex">
+                <flux:spacer />
+                <flux:button type="submit" variant="primary">Criar grupo</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal name="delete-group" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Apagar o grupo {{ $this->activeGroup?->name }}?</flux:heading>
+                <flux:text class="mt-2">Só o grupo será apagado. As obras continuam na sua biblioteca, nenhuma obra é apagada.</flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancelar</flux:button>
+                </flux:modal.close>
+                <flux:button variant="danger" icon="trash" wire:click="deleteActiveGroup">Apagar grupo</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <flux:modal name="add-material" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg">
         <form wire:submit="addMaterial" class="space-y-5">

@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Ai\Agents\Summarizer;
 use App\Models\Notes;
+use App\Support\MapConcepts;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +31,7 @@ class GenerateNoteSummaryJob implements ShouldQueue
 
         $summarizer = new Summarizer;
 
-        $summary = trim($summarizer->prompt($this->buildContentForAgent())->text);
+        $summary = trim($summarizer->prompt(MapConcepts::strip($this->buildContentForAgent()))->text);
 
         $this->note->update(['ai_summary' => $this->withinLimit($summarizer, $summary)]);
     }

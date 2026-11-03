@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Notes;
+use App\Support\MapConcepts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -81,6 +82,6 @@ final class ExportNoteMarkdownController extends Controller
             $lines[] = '';
         }
 
-        return implode("\n", $lines);
+        return MapConcepts::strip(implode("\n", $lines));
     }
 }

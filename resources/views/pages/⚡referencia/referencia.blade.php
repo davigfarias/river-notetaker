@@ -134,7 +134,19 @@
                 </div>
             @endif
 
-            <flux:radio.group wire:model.live="activeTab" variant="segmented" class="mt-8 max-w-full overflow-x-auto max-sm:**:data-flux-icon:hidden max-sm:[&>ui-radio]:gap-1 max-sm:[&>ui-radio]:px-1.5">
+            @php($conceptsCount = count(\App\Support\MapConcepts::extract($this->material->readingNotes->pluck('body'))))
+
+            {{-- As 4 abas precisam de ~730px: abaixo de lg viram select. --}}
+            <div class="mt-8 lg:hidden">
+                <flux:select wire:model.live="activeTab" aria-label="Escolher seção da obra">
+                    <flux:select.option value="citacoes">Citações ({{ $this->material->citations_count }})</flux:select.option>
+                    <flux:select.option value="perguntas">Capítulos e Perguntas ({{ $this->material->chapters->count() }})</flux:select.option>
+                    <flux:select.option value="anotacoes">Anotações ({{ $this->material->reading_notes_count }})</flux:select.option>
+                    <flux:select.option value="mapa">Mapa mental ({{ $conceptsCount }})</flux:select.option>
+                </flux:select>
+            </div>
+
+            <flux:radio.group wire:model.live="activeTab" variant="segmented" class="mt-8 max-lg:hidden">
                 <flux:radio value="citacoes" icon="chat-bubble-bottom-center-text">
                     Citações
                     <flux:badge size="sm">{{ $this->material->citations_count }}</flux:badge>
@@ -147,7 +159,18 @@
                     Anotações
                     <flux:badge size="sm">{{ $this->material->reading_notes_count }}</flux:badge>
                 </flux:radio>
+                <flux:radio value="mapa" icon="share">
+                    Mapa mental
+                    <flux:badge size="sm">{{ $conceptsCount }}</flux:badge>
+                </flux:radio>
             </flux:radio.group>
+
+            {{-- Só monta com a aba aberta: o canvas mede os nós (em aba oculta mediriam 0) e os conceitos das anotações vêm frescos. --}}
+            <div class="mt-6" @if ($activeTab !== 'mapa') hidden @endif>
+                @if ($activeTab === 'mapa')
+                    <livewire:mapa-da-referencia :reference-material-id="$this->id" wire:key="mapa-referencia-{{ $this->id }}" />
+                @endif
+            </div>
 
             <div class="mt-6" @if ($activeTab !== 'citacoes') hidden @endif>
 
@@ -350,7 +373,7 @@
                         </div>
                         <x-toc :headings="\App\Support\MarkdownToc::headings($note->body, 'anotacao-'.$note->id)" class="mt-2" />
                         <div class="prose dark:prose-invert mt-2 max-w-none break-words prose-pre:overflow-x-auto leading-relaxed text-on-surface">
-                            {!! Str::markdownRich($note->body, [], 'anotacao-'.$note->id) !!}
+                            {!! \App\Support\MapConcepts::chips(Str::markdownRich($note->body, [], 'anotacao-'.$note->id)) !!}
                         </div>
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             @if ($note->location)

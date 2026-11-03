@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\MapConcepts;
 use App\Support\ReviewSchedule;
 use Carbon\CarbonImmutable;
 use Database\Factories\ReadingNoteFactory;
@@ -109,7 +110,7 @@ class ReadingNote extends Model
     {
         return filled($this->title)
             ? (string) $this->title
-            : Str::limit(Str::squish($this->body), 60);
+            : Str::limit(Str::squish(MapConcepts::strip($this->body)), 60);
     }
 
     /**
