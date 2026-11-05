@@ -1,7 +1,7 @@
 @php
     $navItems = [
         ['route' => 'dashboard', 'icon' => 'squares-2x2', 'label' => 'Disciplinas', 'active' => ['dashboard']],
-        ['route' => 'concepts', 'icon' => 'light-bulb', 'label' => 'Conceitos', 'active' => ['concepts']],
+        ['route' => 'concepts', 'icon' => 'light-bulb', 'label' => 'Conceitos', 'active' => ['concepts*']],
         ['route' => 'principios', 'icon' => 'scale', 'label' => 'Princípios', 'active' => ['principios*']],
         ['route' => 'pastoral', 'icon' => 'users', 'label' => 'Conselhos Pastorais', 'mobileLabel' => 'Conselhos', 'active' => ['pastoral']],
         ['route' => 'referencias', 'icon' => 'book-open', 'label' => 'Referências', 'active' => ['referencias*', 'referencias.show']],

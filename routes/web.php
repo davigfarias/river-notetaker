@@ -10,7 +10,7 @@ Route::livewire('/', 'pages::dashboard')->name('dashboard')->middleware(EnsureAc
 Route::livewire('/disciplinas/{slug}', 'pages::disciplina')->name('disciplinas.show')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/disciplinas/{slug}/mapa-conceitos', 'pages::mapa-conceitos')->name('disciplinas.mapa-conceitos')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/disciplinas/{slug}/notas/nova', 'pages::create')->name('notas.criar')->middleware(EnsureAccessTokenIsValid::class);
-Route::livewire('/conceitos/lista', 'pages::concepts')->name('concepts')->middleware(EnsureAccessTokenIsValid::class);
+Route::livewire('/conceitos/lista', 'pages::conceitos')->name('concepts')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/principios', 'pages::principios')->name('principios')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/principios/{slug}', 'pages::principio')->name('principios.show')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/conselhos/lista', 'pages::pastoral')->name('pastoral')->middleware(EnsureAccessTokenIsValid::class);
@@ -26,6 +26,14 @@ Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
         ->name('notas.exportar');
 
     Route::livewire('/historico', 'pages::historico')->name('historico');
+
+    Route::livewire('/conceitos/decks/{deck}/estudo', 'pages::estudar-conceitos')
+        ->whereNumber('deck')
+        ->name('concepts.decks.study');
+
+    Route::livewire('/conceitos/decks/{deck}', 'pages::deck-de-conceitos')
+        ->whereNumber('deck')
+        ->name('concepts.decks.show');
 
     Route::livewire('/referencias/lista', 'pages::referencias')->name('referencias');
     Route::livewire('/referencias/busca', 'pages::buscar-referencias')->name('referencias.busca');
