@@ -28,7 +28,7 @@
 
 @php($icon = \App\Enums\ReferencesIcon::tryFrom($this->material->type) ?? \App\Enums\ReferencesIcon::BookOpen)
 
-<div class="w-full py-8">
+<div class="w-full py-8" data-mermaid-viewer>
 
         <div>
             @if ($editingMaterial)

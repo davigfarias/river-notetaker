@@ -29,6 +29,33 @@ function enablePanZoom(node) {
     node.panZoom = svgPanZoom(svg, { controlIconsEnabled: false, minZoom: 0.2, maxZoom: 20, fit: true, center: true });
 }
 
+// Em [data-mermaid-viewer] o diagrama ganha uma caixa de altura fixa (redimensionável)
+// com pan/zoom e botões +, − e ajustar, em vez de esticar a página.
+function wrapViewer(diagram) {
+    if (!diagram.closest('[data-mermaid-viewer]')) {
+        return;
+    }
+
+    const box = document.createElement('div');
+    const bar = document.createElement('div');
+
+    box.dataset.panZoom = '';
+    box.className = 'relative my-4 h-[28rem] resize-y overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700';
+    bar.className = 'absolute right-2 top-2 z-10 flex gap-1';
+    [['+', 'Aproximar', 'zoomIn'], ['−', 'Afastar', 'zoomOut'], ['⟲', 'Ajustar ao quadro', 'reset']].forEach(([label, title, action]) => {
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.title = title;
+        button.textContent = label;
+        button.className = 'size-7 rounded border border-zinc-300 bg-white text-sm text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100';
+        button.addEventListener('click', () => diagram.panZoom?.[action]());
+        bar.append(button);
+    });
+    diagram.replaceWith(box);
+    box.append(diagram, bar);
+}
+
 // Troca cada <pre><code class="language-mermaid"> ainda não processado por um <div class="mermaid">.
 // Idempotente: depois de trocado o bloco não casa mais no seletor, então rodar de novo não faz nada.
 function renderPending(root) {
@@ -39,6 +66,7 @@ function renderPending(root) {
         diagram.dataset.source = code.textContent;
         diagram.textContent = code.textContent;
         code.parentElement.replaceWith(diagram);
+        wrapViewer(diagram);
 
         return diagram;
     });
