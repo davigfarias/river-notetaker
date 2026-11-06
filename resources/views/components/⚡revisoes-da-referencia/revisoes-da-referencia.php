@@ -12,7 +12,8 @@ use App\Actions\ResolveReadingNoteQuizPool;
 use App\Actions\SelectReadingNoteQuizQuestionsForSession;
 use App\DTO\DueReadingNoteReviewDTO;
 use App\DTO\ReferenceReviewAgendaDTO;
-use App\Models\ReadingNote;
+use App\Support\ReviewSubject;
+use Illuminate\Database\Eloquent\Model;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -43,7 +44,23 @@ new class extends Component
     public ?int $confirmingDismissId = null;
 
     #[Locked]
+    public string $confirmingDismissKind = ReviewSubject::NOTE;
+
+    #[Locked]
     public ?int $readingNoteIdUnderReview = null;
+
+    /**
+     * 'chapter' (livro) ou 'note' (artigo): o que está sendo revisado.
+     */
+    #[Locked]
+    public string $kindUnderReview = ReviewSubject::NOTE;
+
+    /**
+     * Verdadeiro quando o item aberto não tem texto: sem texto não há MCQ,
+     * e a modal explica isso em vez de ficar em branco.
+     */
+    #[Locked]
+    public bool $noContent = false;
 
     /**
      * As perguntas sorteadas para esta sessão: id, texto e alternativas já
@@ -84,6 +101,9 @@ new class extends Component
     public ?int $awaitingQuizReadingNoteId = null;
 
     #[Session]
+    public ?string $awaitingQuizKind = null;
+
+    #[Session]
     public ?int $awaitingQuizSince = null;
 
     public function mount(?int $referenceMaterialId = null): void
@@ -117,13 +137,14 @@ new class extends Component
             ->data ?? collect();
     }
 
-    public function confirmDismiss(int $readingNoteId): void
+    public function confirmDismiss(int $readingNoteId, string $kind = ReviewSubject::NOTE): void
     {
-        if (! $this->isInQueue($readingNoteId)) {
+        if (! $this->isInQueue($readingNoteId, $kind)) {
             return;
         }
 
         $this->confirmingDismissId = $readingNoteId;
+        $this->confirmingDismissKind = $kind;
         $this->showDismissConfirm = true;
     }
 
@@ -133,7 +154,7 @@ new class extends Component
             return;
         }
 
-        $outcome = app(DismissReadingNoteReview::class)->handle($this->confirmingDismissId, (int) session('access_token_id'));
+        $outcome = app(DismissReadingNoteReview::class)->handle($this->confirmingDismissId, (int) session('access_token_id'), $this->confirmingDismissKind);
 
         $this->cancelDismiss();
         $this->refreshQueue();
@@ -161,12 +182,12 @@ new class extends Component
     #[Computed]
     public function noteAwaitingDismissConfirm(): ?DueReadingNoteReviewDTO
     {
-        return $this->agenda->due->first(fn ($review): bool => $review->id === $this->confirmingDismissId);
+        return $this->agenda->due->first(fn ($review): bool => $review->id === $this->confirmingDismissId && $review->kind === $this->confirmingDismissKind);
     }
 
-    public function restore(int $readingNoteId): void
+    public function restore(int $readingNoteId, string $kind = ReviewSubject::NOTE): void
     {
-        $outcome = app(RestoreReadingNoteReview::class)->handle($readingNoteId, (int) session('access_token_id'));
+        $outcome = app(RestoreReadingNoteReview::class)->handle($readingNoteId, (int) session('access_token_id'), kind: $kind);
 
         $this->refreshQueue();
 
@@ -183,26 +204,27 @@ new class extends Component
     }
 
     #[Computed]
-    public function readingNoteUnderReview(): ?ReadingNote
+    public function readingNoteUnderReview(): ?Model
     {
         if ($this->readingNoteIdUnderReview === null) {
             return null;
         }
 
         return app(GetReadingNote::class)
-            ->handle($this->readingNoteIdUnderReview, (int) session('access_token_id'))
+            ->handle($this->readingNoteIdUnderReview, (int) session('access_token_id'), $this->kindUnderReview)
             ->data;
     }
 
-    public function openReview(int $readingNoteId): void
+    public function openReview(int $readingNoteId, string $kind = ReviewSubject::NOTE): void
     {
-        if (! $this->isInQueue($readingNoteId)) {
-            Flux::toast(duration: 1800, text: 'Esta anotação não está na fila de revisão de hoje.', variant: 'warning');
+        if (! $this->isInQueue($readingNoteId, $kind)) {
+            Flux::toast(duration: 1800, text: 'Este item não está na fila de revisão de hoje.', variant: 'warning');
 
             return;
         }
 
         $this->readingNoteIdUnderReview = $readingNoteId;
+        $this->kindUnderReview = $kind;
         $this->showReviewModal = true;
 
         unset($this->readingNoteUnderReview);
@@ -219,17 +241,19 @@ new class extends Component
      */
     private function startQuiz(): void
     {
-        $this->reset('quizQuestions', 'quizAnswers', 'quizResults', 'quizScore', 'lastRecalled');
+        $this->reset('quizQuestions', 'quizAnswers', 'quizResults', 'quizScore', 'lastRecalled', 'noContent');
         $this->stopAwaitingQuiz();
 
-        $content = $this->contentFor($this->readingNoteUnderReview);
+        $content = ReviewSubject::contentFor($this->readingNoteUnderReview);
 
         if ($content === '') {
+            $this->noContent = true;
+
             return;
         }
 
         $pool = app(ResolveReadingNoteQuizPool::class)
-            ->handle($this->readingNoteIdUnderReview, $this->contentHashFor($content))
+            ->handle($this->readingNoteIdUnderReview, $this->contentHashFor($content), $this->kindUnderReview)
             ->data;
 
         if ($pool === null || $pool->isEmpty()) {
@@ -239,15 +263,6 @@ new class extends Component
         }
 
         $this->quizQuestions = app(SelectReadingNoteQuizQuestionsForSession::class)->handle($pool)->data ?? [];
-    }
-
-    private function contentFor(?ReadingNote $note): string
-    {
-        if ($note === null) {
-            return '';
-        }
-
-        return trim(($note->title !== null ? "{$note->title}\n\n" : '').$note->body);
     }
 
     private function contentHashFor(string $content): string
@@ -261,7 +276,7 @@ new class extends Component
             return;
         }
 
-        $outcome = app(GenerateReadingNoteQuiz::class)->handle($this->readingNoteIdUnderReview);
+        $outcome = app(GenerateReadingNoteQuiz::class)->handle($this->readingNoteIdUnderReview, $this->kindUnderReview);
 
         if (! $outcome->success) {
             Flux::toast(duration: 1800, heading: 'Ocorreu um erro', text: $outcome->message, variant: 'danger');
@@ -270,6 +285,7 @@ new class extends Component
         }
 
         $this->awaitingQuizReadingNoteId = $this->readingNoteIdUnderReview;
+        $this->awaitingQuizKind = $this->kindUnderReview;
         $this->awaitingQuizSince = now()->timestamp;
     }
 
@@ -277,15 +293,16 @@ new class extends Component
     public function awaitingQuiz(): bool
     {
         return $this->awaitingQuizReadingNoteId !== null
-            && $this->awaitingQuizReadingNoteId === $this->readingNoteIdUnderReview;
+            && $this->awaitingQuizReadingNoteId === $this->readingNoteIdUnderReview
+            && $this->awaitingQuizKind === $this->kindUnderReview;
     }
 
     public function pollCheckQuiz(): void
     {
-        $content = $this->contentFor($this->readingNoteUnderReview);
+        $content = ReviewSubject::contentFor($this->readingNoteUnderReview);
 
         $pool = app(ResolveReadingNoteQuizPool::class)
-            ->handle($this->readingNoteIdUnderReview, $this->contentHashFor($content))
+            ->handle($this->readingNoteIdUnderReview, $this->contentHashFor($content), $this->kindUnderReview)
             ->data;
 
         if ($pool !== null && $pool->isNotEmpty()) {
@@ -313,6 +330,7 @@ new class extends Component
     protected function stopAwaitingQuiz(): void
     {
         $this->awaitingQuizReadingNoteId = null;
+        $this->awaitingQuizKind = null;
         $this->awaitingQuizSince = null;
         unset($this->awaitingQuiz);
     }
@@ -328,6 +346,7 @@ new class extends Component
             (int) session('access_token_id'),
             array_column($this->quizQuestions, 'id'),
             $this->quizAnswers,
+            $this->kindUnderReview,
         );
 
         if (! $outcome->success) {
@@ -382,6 +401,7 @@ new class extends Component
             $this->readingNoteIdUnderReview,
             (int) session('access_token_id'),
             false,
+            kind: $this->kindUnderReview,
         );
 
         if (! $outcome->success) {
@@ -416,6 +436,7 @@ new class extends Component
         }
 
         $this->readingNoteIdUnderReview = $next->id;
+        $this->kindUnderReview = $next->kind;
 
         unset($this->readingNoteUnderReview);
 
@@ -427,7 +448,7 @@ new class extends Component
         $this->showReviewModal = false;
         $this->readingNoteIdUnderReview = null;
 
-        $this->reset('quizQuestions', 'quizAnswers', 'quizResults', 'quizScore', 'lastRecalled');
+        $this->reset('quizQuestions', 'quizAnswers', 'quizResults', 'quizScore', 'lastRecalled', 'noContent');
         $this->stopAwaitingQuiz();
 
         unset($this->readingNoteUnderReview);
@@ -440,8 +461,8 @@ new class extends Component
         }
     }
 
-    private function isInQueue(int $readingNoteId): bool
+    private function isInQueue(int $readingNoteId, string $kind): bool
     {
-        return $this->agenda->due->contains(fn ($review): bool => $review->id === $readingNoteId);
+        return $this->agenda->due->contains(fn ($review): bool => $review->id === $readingNoteId && $review->kind === $kind);
     }
 };

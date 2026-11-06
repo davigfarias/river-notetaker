@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Actions\Orchestrators;
 
 use App\Actions\RecordReadingNoteReview;
-use App\Models\ReadingNoteQuizQuestion;
 use App\Support\Outcome;
+use App\Support\ReviewSubject;
 use Illuminate\Container\Attributes\Config;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -31,11 +32,11 @@ final readonly class SubmitReadingNoteQuizOrchestrator
      *                 results: array<int, array{question: string, chosen: string, correct_answer: string, correct: bool}>
      *                 }
      */
-    public function handle(int $readingNoteId, int $accessTokenId, array $quizQuestionIds, array $answers): Outcome
+    public function handle(int $readingNoteId, int $accessTokenId, array $quizQuestionIds, array $answers, string $kind = ReviewSubject::NOTE): Outcome
     {
         try {
-            $questions = ReadingNoteQuizQuestion::query()
-                ->where('reading_note_id', $readingNoteId)
+            $questions = ReviewSubject::quizClass($kind)::query()
+                ->where(ReviewSubject::quizKey($kind), $readingNoteId)
                 ->whereIn('id', $quizQuestionIds)
                 ->get();
 
@@ -43,7 +44,7 @@ final readonly class SubmitReadingNoteQuizOrchestrator
                 return Outcome::failure(message: 'Não há perguntas para conferir.');
             }
 
-            $results = $questions->map(function (ReadingNoteQuizQuestion $question) use ($answers): array {
+            $results = $questions->map(function (Model $question) use ($answers): array {
                 $chosen = (string) ($answers[$question->id] ?? '');
 
                 return [
@@ -59,7 +60,7 @@ final readonly class SubmitReadingNoteQuizOrchestrator
             );
             $recalled = $score >= $this->passScore;
 
-            $reviewOutcome = $this->recordReadingNoteReview->handle($readingNoteId, $accessTokenId, $recalled);
+            $reviewOutcome = $this->recordReadingNoteReview->handle($readingNoteId, $accessTokenId, $recalled, kind: $kind);
 
             if (! $reviewOutcome->success) {
                 return $reviewOutcome;

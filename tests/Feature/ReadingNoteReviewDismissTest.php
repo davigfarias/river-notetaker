@@ -27,7 +27,7 @@ afterEach(function () {
 
 function reviewNoteFor(AccessToken $token, string $dueAt, array $attributes = [], ?ReferenceMaterial $material = null, int $stage = 2): ReadingNote
 {
-    $material ??= ReferenceMaterial::factory()->create(['access_token_id' => $token->id]);
+    $material ??= ReferenceMaterial::factory()->article()->create(['access_token_id' => $token->id]);
 
     return ReadingNote::factory()->dueOn($dueAt, $stage)->create([
         'reference_material_id' => $material->id,
@@ -96,7 +96,7 @@ test('devolver à fila faz a anotação cobrar hoje no mesmo degrau', function (
 });
 
 test('a fila de uma referência também ignora as dispensadas', function () {
-    $material = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+    $material = ReferenceMaterial::factory()->article()->create(['access_token_id' => $this->token->id]);
     reviewNoteFor($this->token, '2026-09-17', ['title' => 'Fica'], $material);
     reviewNoteFor($this->token, '2026-09-17', ['title' => 'Sai', 'dismissed_at' => now()], $material);
 
@@ -156,7 +156,7 @@ test('o dashboard exibe as duas filas lado a lado', function () {
 });
 
 test('com muitas anotações vencidas só 8 aparecem e o resto espera, mais atrasadas primeiro', function () {
-    $material = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+    $material = ReferenceMaterial::factory()->article()->create(['access_token_id' => $this->token->id]);
 
     foreach (range(1, 12) as $day) {
         reviewNoteFor($this->token, CarbonImmutable::now()->subDays($day)->toDateString(), ['title' => "Nota {$day}"], $material);

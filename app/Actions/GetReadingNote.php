@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Models\ReadingNote;
 use App\Support\Outcome;
+use App\Support\ReviewSubject;
 use Illuminate\Support\Facades\Log;
 
 final readonly class GetReadingNote
 {
-    public function handle(int $id, int $accessTokenId): Outcome
+    public function handle(int $id, int $accessTokenId, string $kind = ReviewSubject::NOTE): Outcome
     {
         try {
-            $note = ReadingNote::query()
-                ->whereHas('referenceMaterial', fn ($query) => $query->where('access_token_id', $accessTokenId))
-                ->find($id);
+            $note = ReviewSubject::owned($kind, $accessTokenId)->find($id);
 
             return Outcome::noViewMessage(data: $note);
         } catch (\Exception $e) {

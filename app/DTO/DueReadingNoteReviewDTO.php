@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
-use App\Models\ReadingNote;
 use App\Support\ReviewSchedule;
+use App\Support\ReviewSubject;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Wireable;
 
 /**
@@ -23,6 +24,7 @@ use Livewire\Wireable;
  *     days_overdue: int,
  *     tags: array<int, string>,
  *     reference_title: string|null,
+ *     kind: string,
  * }
  */
 class DueReadingNoteReviewDTO implements Wireable
@@ -39,6 +41,7 @@ class DueReadingNoteReviewDTO implements Wireable
         public int $days_overdue = 0,
         public array $tags = [],
         public ?string $reference_title = null,
+        public string $kind = ReviewSubject::NOTE,
     ) {}
 
     public function isOverdue(): bool
@@ -55,7 +58,7 @@ class DueReadingNoteReviewDTO implements Wireable
         };
     }
 
-    public static function fromModel(ReadingNote $note, CarbonImmutable $today): self
+    public static function fromModel(Model $note, CarbonImmutable $today, string $kind = ReviewSubject::NOTE): self
     {
         $stage = ReviewSchedule::normalizeStage($note->review_stage ?? 0);
         $dueAt = $note->next_review_at;
@@ -71,6 +74,7 @@ class DueReadingNoteReviewDTO implements Wireable
                 : 0,
             tags: array_values($note->tags ?? []),
             reference_title: $note->relationLoaded('referenceMaterial') ? $note->referenceMaterial?->title : null,
+            kind: $kind,
         );
     }
 
@@ -88,6 +92,7 @@ class DueReadingNoteReviewDTO implements Wireable
             'days_overdue' => $this->days_overdue,
             'tags' => $this->tags,
             'reference_title' => $this->reference_title,
+            'kind' => $this->kind,
         ];
     }
 
@@ -113,6 +118,7 @@ class DueReadingNoteReviewDTO implements Wireable
             days_overdue: (int) $value['days_overdue'],
             tags: $value['tags'],
             reference_title: $value['reference_title'] ?? null,
+            kind: $value['kind'] ?? ReviewSubject::NOTE,
         );
     }
 }

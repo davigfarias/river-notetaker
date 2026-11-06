@@ -15,6 +15,7 @@ use App\Actions\RefreshClozeBlanks;
 use App\Actions\ReorderQuestion;
 use App\Actions\RequestExport;
 use App\Actions\UpdateChapter;
+use App\Actions\UpdateChapterNote;
 use App\Actions\UpdateCitation;
 use App\Actions\UpdateQuestion;
 use App\Actions\UpdateReadingNote;
@@ -22,6 +23,7 @@ use App\Actions\UpdateReadingProgress;
 use App\Actions\UpdateReferenceMaterial;
 use App\Actions\UpdateReferenceTakeaway;
 use App\DTO\ChapterForm;
+use App\DTO\ChapterNoteForm;
 use App\DTO\CitationForm;
 use App\DTO\QuestionForm;
 use App\DTO\ReadingNoteForm;
@@ -32,6 +34,7 @@ use App\Enums\ReadingStatus;
 use App\Models\Chapter;
 use App\Models\Question;
 use App\Models\ReferenceMaterial;
+use App\Support\ReviewSubject;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -94,6 +97,10 @@ new #[Title('Obra')] #[Lazy] class extends Component
 
     public ?int $editingReadingNoteId = null;
 
+
+    public ChapterNoteForm $editChapterNoteForm;
+
+    public ?int $editingChapterNoteId = null;
 
     public ?int $deletingReadingNoteId = null;
 
@@ -208,6 +215,53 @@ new #[Title('Obra')] #[Lazy] class extends Component
     public function toggleEditReadingNoteTag(string $title): void
     {
         $this->editReadingNoteForm->toggleTag($title);
+    }
+
+    public function toggleEditChapterNoteTag(string $title): void
+    {
+        $this->editChapterNoteForm->toggleTag($title);
+    }
+
+    public function editChapterNote(int $chapterId): void
+    {
+        $chapter = $this->ownedChapter($chapterId);
+
+        if (! $chapter) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->editingChapterNoteId = $chapterId;
+        $this->editChapterNoteForm->fillFromChapter($chapter);
+    }
+
+    public function updateChapterNote(UpdateChapterNote $action): void
+    {
+        $this->editChapterNoteForm->validate();
+
+        if ($this->editingChapterNoteId === null) {
+            return;
+        }
+
+        $check = $action->handle($this->editingChapterNoteId, $this->editChapterNoteForm, (int) session('access_token_id'));
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            $this->editingChapterNoteId = null;
+            unset($this->material);
+        }
+    }
+
+    public function promoteChapterNote(PromoteReadingNoteToCitation $action, int $chapterId): void
+    {
+        $check = $action->handle($chapterId, (int) session('access_token_id'), ReviewSubject::CHAPTER);
+
+        $this->toast($check->success, $check->message);
+
+        if ($check->success) {
+            unset($this->material);
+        }
     }
 
     public function addReadingNote(AddReadingNote $action): void

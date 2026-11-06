@@ -6,17 +6,19 @@ namespace App\Actions;
 
 use App\DTO\DueReadingNoteReviewDTO;
 use App\DTO\ReferenceReviewAgendaDTO;
-use App\Models\ReadingNote;
 use App\Support\Outcome;
+use App\Support\ReviewSubject;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Monta a fila de revisão do dia das anotações de leitura, de uma referência
- * ou (com null) de todas as referências do usuário. Sem "dia de aula" para
- * esperar: qualquer anotação vencida hoje entra, respeitando um teto para a
- * fila continuar terminável. Anotações dispensadas ficam de fora.
+ * Monta a fila de revisão do dia de uma referência ou (com null) de todas as
+ * referências do usuário. Livros revisam capítulos (só os que têm anotação);
+ * artigos revisam anotações. Sem "dia de aula" para esperar: qualquer item
+ * vencido hoje entra, respeitando um teto para a fila continuar terminável.
+ * Itens dispensados ficam de fora.
  */
 final readonly class GetReferenceReviewAgenda
 {
@@ -26,38 +28,54 @@ final readonly class GetReferenceReviewAgenda
     {
         try {
             $today = ($today ?? CarbonImmutable::now())->startOfDay();
+            $kinds = [ReviewSubject::NOTE, ReviewSubject::CHAPTER];
 
-            $ownedQuery = fn (): Builder => ReadingNote::query()
+            $owned = fn (string $kind): Builder => ReviewSubject::owned($kind, $accessTokenId)
                 ->when($referenceMaterialId !== null, fn (Builder $query) => $query->where('reference_material_id', $referenceMaterialId))
-                ->whereHas('referenceMaterial', fn ($query) => $query->where('access_token_id', $accessTokenId));
+                ->when($kind === ReviewSubject::CHAPTER, fn (Builder $query) => $query->whereNotNull('body')->where('body', '!=', ''));
 
-            $dueQuery = $ownedQuery()
+            $dueQuery = fn (string $kind): Builder => $owned($kind)
                 ->whereNull('consolidated_at')
                 ->whereNull('dismissed_at')
                 ->whereNotNull('next_review_at')
                 ->whereDate('next_review_at', '<=', $today->toDateString());
 
-            $totalDue = (clone $dueQuery)->count();
+            $totalDue = 0;
+            $due = collect();
 
-            $due = $dueQuery
-                ->with('referenceMaterial:id,title')
-                ->orderBy('next_review_at')
-                ->orderBy('id')
-                ->limit($limit)
-                ->get()
-                ->map(fn (ReadingNote $note): DueReadingNoteReviewDTO => DueReadingNoteReviewDTO::fromModel($note, $today));
+            foreach ($kinds as $kind) {
+                $totalDue += $dueQuery($kind)->count();
 
-            $nextDueAt = $ownedQuery()
-                ->whereNull('consolidated_at')
-                ->whereNull('dismissed_at')
-                ->whereDate('next_review_at', '>', $today->toDateString())
-                ->min('next_review_at');
+                $due = $due->concat(
+                    $dueQuery($kind)
+                        ->with('referenceMaterial:id,title')
+                        ->orderBy('next_review_at')
+                        ->orderBy('id')
+                        ->limit($limit)
+                        ->get()
+                        ->map(fn (Model $item): DueReadingNoteReviewDTO => DueReadingNoteReviewDTO::fromModel($item, $today, $kind))
+                );
+            }
+
+            $due = $due
+                ->sortBy([['due_at', 'asc'], ['id', 'asc']])
+                ->take($limit)
+                ->values();
+
+            $nextDueAt = collect($kinds)
+                ->map(fn (string $kind) => $owned($kind)
+                    ->whereNull('consolidated_at')
+                    ->whereNull('dismissed_at')
+                    ->whereDate('next_review_at', '>', $today->toDateString())
+                    ->min('next_review_at'))
+                ->filter()
+                ->min();
 
             return Outcome::noViewMessage(new ReferenceReviewAgendaDTO(
                 due: $due,
                 totalDue: $totalDue,
-                totalNotes: $ownedQuery()->count(),
-                dismissedCount: $ownedQuery()->whereNotNull('dismissed_at')->count(),
+                totalNotes: collect($kinds)->sum(fn (string $kind): int => $owned($kind)->count()),
+                dismissedCount: collect($kinds)->sum(fn (string $kind): int => $owned($kind)->whereNotNull('dismissed_at')->count()),
                 nextDueAt: $nextDueAt !== null ? CarbonImmutable::parse($nextDueAt)->toDateString() : null,
             ));
         } catch (\Exception $e) {

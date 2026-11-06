@@ -52,7 +52,7 @@ test('markdownRich sem prefixo continua sem ids nos headings', function () {
 
 test('a anotação de recurso mostra o índice só quando há headings', function () {
     $token = AccessToken::factory()->create();
-    $material = ReferenceMaterial::factory()->create(['access_token_id' => $token->id]);
+    $material = ReferenceMaterial::factory()->article()->create(['access_token_id' => $token->id]);
     ReadingNote::factory()->create([
         'reference_material_id' => $material->id,
         'access_token_id' => $token->id,

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Models\ReadingNote;
 use App\Models\ReviewLog;
 use App\Support\Outcome;
 use App\Support\ReviewSchedule;
+use App\Support\ReviewSubject;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -19,16 +20,14 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class RecordReadingNoteReview
 {
-    public function handle(int $readingNoteId, int $accessTokenId, bool $recalled, ?CarbonImmutable $today = null): Outcome
+    public function handle(int $readingNoteId, int $accessTokenId, bool $recalled, ?CarbonImmutable $today = null, string $kind = ReviewSubject::NOTE): Outcome
     {
         try {
             $today = ($today ?? CarbonImmutable::now())->startOfDay();
 
-            $note = ReadingNote::query()
-                ->whereHas('referenceMaterial', fn ($query) => $query->where('access_token_id', $accessTokenId))
-                ->find($readingNoteId);
+            $note = ReviewSubject::owned($kind, $accessTokenId)->find($readingNoteId);
 
-            if (! $note instanceof ReadingNote) {
+            if (! $note instanceof Model) {
                 return Outcome::failure('Anotação não encontrada.');
             }
 

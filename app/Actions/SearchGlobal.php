@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\DTO\SearchResultDTO;
+use App\Models\Chapter;
 use App\Models\Citation;
 use App\Models\Concepts;
 use App\Models\Notes;
@@ -58,12 +59,19 @@ final readonly class SearchGlobal
 
             $readingNotes = ReadingNote::search($term)
                 ->where('access_token_id', $accessTokenId)
+                ->query(fn ($query) => $query->whereHas('referenceMaterial', fn ($material) => $material->where('type', '!=', 'book-open')))
                 ->take($limitPerType)
                 ->get()
                 ->map(fn (ReadingNote $note): SearchResultDTO => SearchResultDTO::fromReadingNote($note));
 
+            $chapters = Chapter::search($term)
+                ->query(fn ($query) => $query->whereNotNull('body')->whereHas('referenceMaterial', fn ($material) => $material->where('access_token_id', $accessTokenId)))
+                ->take($limitPerType)
+                ->get()
+                ->map(fn (Chapter $chapter): SearchResultDTO => SearchResultDTO::fromChapter($chapter));
+
             /** @var Collection<int, SearchResultDTO> $results */
-            $results = $notes->concat($advices)->concat($concepts)->concat($references)->concat($citations)->concat($readingNotes);
+            $results = $notes->concat($advices)->concat($concepts)->concat($references)->concat($citations)->concat($readingNotes)->concat($chapters);
 
             return Outcome::noViewMessage(data: $results);
         } catch (\Exception $e) {

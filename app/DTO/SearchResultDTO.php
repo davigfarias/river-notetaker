@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DTO;
 
 use App\Enums\SearchResultType;
+use App\Models\Chapter;
 use App\Models\Citation;
 use App\Models\Concepts;
 use App\Models\Notes;
@@ -123,6 +124,17 @@ class SearchResultDTO implements Arrayable, Wireable
             title: $citation->referenceMaterial->title,
             snippet: Str::limit($citation->quote_text, 140),
             url: route('referencias.show', $citation->reference_material_id),
+        );
+    }
+
+    public static function fromChapter(Chapter $chapter): self
+    {
+        return new self(
+            type: SearchResultType::AnotacaoLeitura,
+            id: $chapter->id,
+            title: $chapter->title,
+            snippet: Str::limit(MapConcepts::strip((string) $chapter->body), 140),
+            url: route('referencias.show', $chapter->reference_material_id),
         );
     }
 

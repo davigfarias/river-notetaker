@@ -141,7 +141,7 @@
                 <flux:select wire:model.live="activeTab" aria-label="Escolher seção da obra">
                     <flux:select.option value="citacoes">Citações ({{ $this->material->citations_count }})</flux:select.option>
                     <flux:select.option value="perguntas">Capítulos e Perguntas ({{ $this->material->chapters->count() }})</flux:select.option>
-                    <flux:select.option value="anotacoes">Anotações ({{ $this->material->reading_notes_count }})</flux:select.option>
+                    <flux:select.option value="anotacoes">Anotações ({{ $this->material->isBook() ? $this->material->chapters->count() : $this->material->reading_notes_count }})</flux:select.option>
                     <flux:select.option value="mapa">Mapa mental ({{ $conceptsCount }})</flux:select.option>
                 </flux:select>
             </div>
@@ -157,7 +157,7 @@
                 </flux:radio>
                 <flux:radio value="anotacoes" icon="pencil-square">
                     Anotações
-                    <flux:badge size="sm">{{ $this->material->reading_notes_count }}</flux:badge>
+                    <flux:badge size="sm">{{ $this->material->isBook() ? $this->material->chapters->count() : $this->material->reading_notes_count }}</flux:badge>
                 </flux:radio>
                 <flux:radio value="mapa" icon="share">
                     Mapa mental
@@ -253,8 +253,8 @@
             <div class="mt-6" @if ($activeTab !== 'anotacoes') hidden @endif>
 
             <flux:heading size="lg" level="2">
-                Anotações
-                <flux:badge size="sm" class="ml-1">{{ $this->material->reading_notes_count }}</flux:badge>
+                {{ $this->material->isBook() ? 'Anotações por capítulo' : 'Anotações' }}
+                <flux:badge size="sm" class="ml-1">{{ $this->material->isBook() ? $this->material->chapters->count() : $this->material->reading_notes_count }}</flux:badge>
             </flux:heading>
 
             {{-- Resumo fixo: uma linha escrita à mão, sempre no topo da aba. --}}
@@ -286,6 +286,92 @@
                 <livewire:revisoes-da-referencia :reference-material-id="$this->id" wire:key="revisoes-referencia-{{ $this->id }}" />
             </div>
 
+            @if ($this->material->isBook())
+            <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                @foreach ($this->material->chapters as $chapter)
+                    @if ($editingChapterNoteId === $chapter->id)
+                    <form wire:submit="updateChapterNote" wire:key="edit-chapter-note-{{ $chapter->id }}" x-on:keydown.escape="$wire.set('editingChapterNoteId', null)" class="space-y-3 rounded-xl border border-primary/40 bg-surface-container-lowest p-4 lg:col-span-2">
+                        <flux:input wire:model="editChapterNoteForm.title" label="Título do capítulo" />
+                        <flux:error name="editChapterNoteForm.title" />
+                        <div wire:ignore>
+                            <div x-data="markdownEditor('editChapterNoteForm.body')">
+                                <textarea x-ref="textarea" placeholder="O que você pensou lendo este capítulo... (pode ficar vazio)"></textarea>
+                            </div>
+                        </div>
+                        <flux:error name="editChapterNoteForm.body" />
+                        <flux:text size="sm" class="text-on-surface-variant">Sem texto aqui, o capítulo fica na lista, mas não entra na revisão e não gera perguntas.</flux:text>
+                        <flux:input wire:model="editChapterNoteForm.location" placeholder="Localização (opcional: p. 42)" />
+                        @if ($this->allTags->isNotEmpty())
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($this->allTags as $tag)
+                                    <x-tag-toggle wire:key="edit-chapter-note-tag-{{ $chapter->id }}-{{ $tag->id }}"
+                                        wire:click="toggleEditChapterNoteTag('{{ $tag->title }}')"
+                                        :active="in_array($tag->title, $editChapterNoteForm->tags, true)">
+                                        {{ $tag->title }}
+                                    </x-tag-toggle>
+                                @endforeach
+                            </div>
+                        @endif
+                        <div class="flex justify-end gap-2">
+                            <flux:button type="button" size="sm" variant="ghost" wire:click="$set('editingChapterNoteId', null)">Cancelar</flux:button>
+                            <flux:button type="submit" size="sm" variant="primary">Salvar</flux:button>
+                        </div>
+                    </form>
+                    @else
+                    <div wire:key="chapter-note-{{ $chapter->id }}"
+                        class="group flex flex-col rounded-xl border border-surface-variant border-l-4 border-l-secondary bg-surface-container-lowest p-4">
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="book-open" class="size-4 shrink-0 text-on-surface" />
+                            <flux:heading size="sm">{{ $chapter->title }}</flux:heading>
+                            <flux:spacer />
+                            <div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 max-lg:opacity-100">
+                                @if ($chapter->hasNote())
+                                    <flux:button size="xs" variant="ghost" icon="chat-bubble-bottom-center-text" aria-label="Promover a citação"
+                                        wire:click="promoteChapterNote({{ $chapter->id }})" />
+                                @endif
+                                <flux:button size="xs" variant="ghost" icon="pencil" aria-label="Editar capítulo e anotação"
+                                    wire:click="editChapterNote({{ $chapter->id }})" />
+                                <flux:button size="xs" variant="ghost" icon="trash" aria-label="Remover capítulo"
+                                    wire:click="confirmDeleteChapter({{ $chapter->id }})" />
+                            </div>
+                        </div>
+                        @if ($chapter->hasNote())
+                            <div class="prose dark:prose-invert mt-2 max-w-none break-words prose-pre:overflow-x-auto leading-relaxed text-on-surface">
+                                {!! \App\Support\MapConcepts::chips(Str::markdownRich($chapter->body, [], 'capitulo-'.$chapter->id)) !!}
+                            </div>
+                            <div class="mt-3 flex flex-wrap items-center gap-2">
+                                @if ($chapter->location)
+                                    <flux:badge size="sm" color="zinc">{{ $chapter->location }}</flux:badge>
+                                @endif
+                                @if ($chapter->page_snapshot)
+                                    <flux:text size="sm" class="text-on-surface-variant/70">na p. {{ $chapter->page_snapshot }}</flux:text>
+                                @endif
+                                @foreach ($chapter->tags ?? [] as $tag)
+                                    <flux:badge size="sm" color="purple" wire:key="chapter-note-{{ $chapter->id }}-tag-{{ $loop->index }}">{{ $tag }}</flux:badge>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="mt-3 flex flex-1 flex-col items-start gap-2 rounded-lg border border-dashed border-outline-variant/60 p-3">
+                                <flux:text size="sm" class="text-on-surface-variant">Sem anotação neste capítulo ainda. Enquanto estiver vazio, ele não entra na revisão e não gera perguntas.</flux:text>
+                                <flux:button size="xs" variant="ghost" icon="pencil-square" wire:click="editChapterNote({{ $chapter->id }})">Escrever anotação</flux:button>
+                            </div>
+                        @endif
+                    </div>
+                    @endif
+                @endforeach
+
+                <button
+                    type="button"
+                    wire:click="openCreateChapter"
+                    class="group border-outline-variant/50 hover:border-primary/50 hover:bg-surface-variant/20 flex min-h-40 flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors"
+                >
+                    <div class="bg-surface-container group-hover:bg-primary-container/20 mb-3 flex h-12 w-12 items-center justify-center rounded-full transition-colors">
+                        <flux:icon name="plus" class="text-on-surface group-hover:text-primary size-6 transition-colors" />
+                    </div>
+                    <flux:text class="text-on-surface-variant group-hover:text-on-surface transition-colors">Novo capítulo</flux:text>
+                </button>
+            </div>
+            @else
             <form wire:submit="addReadingNote" class="mt-4 space-y-3 rounded-xl border border-surface-variant bg-surface-container-lowest p-4">
                 <div wire:ignore>
                     <div x-data="markdownEditor('readingNoteForm.body')">
@@ -396,6 +482,7 @@
                     <x-empty-state icon="pencil-square" heading="Nenhuma anotação nesta obra ainda." description="Citação é a palavra do autor. Anotação é a sua." />
                 @endforelse
             </div>
+            @endif
             </div>{{-- /anotacoes tab --}}
 
             <div class="mt-6" @if ($activeTab !== 'perguntas') hidden @endif>

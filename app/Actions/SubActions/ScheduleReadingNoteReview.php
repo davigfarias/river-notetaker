@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\SubActions;
 
-use App\Models\ReadingNote;
 use App\Support\Outcome;
 use App\Support\ReviewSchedule;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
  */
 final readonly class ScheduleReadingNoteReview
 {
-    public function handle(ReadingNote $note, ?CarbonImmutable $from = null): Outcome
+    public function handle(Model $note, ?CarbonImmutable $from = null): Outcome
     {
         try {
             $dueAt = ReviewSchedule::firstDueDateDaily($from ?? CarbonImmutable::now());

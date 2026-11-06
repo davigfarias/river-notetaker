@@ -20,7 +20,7 @@ beforeEach(function () {
     $this->token = AccessToken::factory()->create();
     $this->withSession(['access_token_id' => $this->token->id]);
 
-    $this->material = ReferenceMaterial::factory()->create([
+    $this->material = ReferenceMaterial::factory()->article()->create([
         'access_token_id' => $this->token->id,
         'title' => 'A Cidade de Deus',
     ]);
@@ -72,14 +72,14 @@ test('a fila da referência traz as anotações vencidas hoje', function () {
 });
 
 test('anotações de outra referência não aparecem na fila', function () {
-    $other = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+    $other = ReferenceMaterial::factory()->article()->create(['access_token_id' => $this->token->id]);
     dueReadingNote($other, RN_TODAY);
 
     expect(referenceAgenda($this->material->id)->due)->toBeEmpty();
 });
 
 test('anotações de outro token nunca aparecem na fila', function () {
-    $foreignMaterial = ReferenceMaterial::factory()->create([
+    $foreignMaterial = ReferenceMaterial::factory()->article()->create([
         'access_token_id' => AccessToken::factory()->create()->id,
     ]);
 
@@ -152,7 +152,7 @@ test('cada revisão deixa um registro polimórfico no histórico', function () {
 });
 
 test('uma anotação de outro token não pode ser revisada', function () {
-    $foreignMaterial = ReferenceMaterial::factory()->create([
+    $foreignMaterial = ReferenceMaterial::factory()->article()->create([
         'access_token_id' => AccessToken::factory()->create()->id,
     ]);
     $note = ReadingNote::factory()->dueOn(RN_TODAY)->create([

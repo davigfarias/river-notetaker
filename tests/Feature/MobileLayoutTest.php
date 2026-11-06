@@ -75,7 +75,7 @@ test('review cards are held to the screen width by an explicit column on mobile'
     $this->withSession(['access_token_id' => $token->id]);
     Livewire::withoutLazyLoading();
 
-    $material = ReferenceMaterial::factory()->create(['access_token_id' => $token->id]);
+    $material = ReferenceMaterial::factory()->article()->create(['access_token_id' => $token->id]);
     ReadingNote::factory()->create([
         'reference_material_id' => $material->id,
         'access_token_id' => $token->id,

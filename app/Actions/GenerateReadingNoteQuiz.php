@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Jobs\GenerateReadingNoteQuizJob;
-use App\Models\ReadingNote;
 use App\Support\Outcome;
+use App\Support\ReviewSubject;
 use Illuminate\Support\Facades\Log;
 
 final readonly class GenerateReadingNoteQuiz
 {
-    public function handle(int $readingNoteId): Outcome
+    public function handle(int $readingNoteId, string $kind = ReviewSubject::NOTE): Outcome
     {
         try {
-            $note = ReadingNote::findOrFail($readingNoteId);
+            $note = ReviewSubject::modelClass($kind)::findOrFail($readingNoteId);
 
-            GenerateReadingNoteQuizJob::dispatch($note);
+            GenerateReadingNoteQuizJob::dispatch($note, $kind);
 
             return Outcome::success(message: 'Perguntas sendo geradas. Aguarde alguns segundos.');
         } catch (\Exception $e) {

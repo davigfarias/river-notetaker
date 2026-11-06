@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Models\ReadingNoteQuizQuestion;
 use App\Support\Outcome;
 use Illuminate\Container\Attributes\Config;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -21,7 +21,7 @@ final readonly class SelectReadingNoteQuizQuestionsForSession
      * questão. Nunca inclui qual alternativa é a correta: isso vira estado
      * público do componente Livewire e ficaria visível no HTML.
      *
-     * @param  Collection<int, ReadingNoteQuizQuestion>  $pool
+     * @param  Collection<int, Model>  $pool
      * @return Outcome data: array<int, array{id: int, question: string, options: array<int, string>}>
      */
     public function handle(Collection $pool): Outcome
@@ -30,7 +30,7 @@ final readonly class SelectReadingNoteQuizQuestionsForSession
             $session = $pool
                 ->shuffle()
                 ->take($this->count)
-                ->map(fn (ReadingNoteQuizQuestion $question): array => [
+                ->map(fn (Model $question): array => [
                     'id' => $question->id,
                     'question' => $question->question,
                     'options' => collect([$question->correct_answer, ...$question->distractors])

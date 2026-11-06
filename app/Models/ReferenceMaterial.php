@@ -95,6 +95,14 @@ class ReferenceMaterial extends Model
     }
 
     /**
+     * Livros organizam as anotações e a revisão em capítulos; os demais tipos usam anotações soltas.
+     */
+    public function isBook(): bool
+    {
+        return $this->type === ReferencesIcon::BookOpen->value;
+    }
+
+    /**
      * Whether the tracker has enough data to show a page-based progress bar.
      */
     public function hasReadingProgress(): bool

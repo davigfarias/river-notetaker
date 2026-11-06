@@ -31,10 +31,10 @@
 
         <div class="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             @foreach ($agenda->due as $review)
-                <div wire:key="due-reading-note-{{ $review->id }}" class="relative">
+                <div wire:key="due-{{ $review->kind }}-{{ $review->id }}" class="relative">
                     <button
                         type="button"
-                        wire:click="openReview({{ $review->id }})"
+                        wire:click="openReview({{ $review->id }}, '{{ $review->kind }}')"
                         class="block h-full w-full text-left"
                         aria-label="Revisar {{ $review->title }}"
                     >
@@ -68,7 +68,7 @@
                             icon="x-mark"
                             aria-label="Tirar da fila: {{ $review->title }}"
                             title="Tirar da fila"
-                            wire:click="confirmDismiss({{ $review->id }})"
+                            wire:click="confirmDismiss({{ $review->id }}, '{{ $review->kind }}')"
                         />
                     </div>
                 </div>
@@ -105,14 +105,14 @@
             @if ($showDismissed)
                 <div class="mt-3 space-y-2">
                     @foreach ($this->dismissed as $item)
-                        <flux:card size="sm" wire:key="dismissed-reading-note-{{ $item->id }}" class="flex items-center gap-3">
+                        <flux:card size="sm" wire:key="dismissed-{{ $item->kind }}-{{ $item->id }}" class="flex items-center gap-3">
                             <div class="min-w-0 flex-1">
                                 @if ($isGlobal && $item->reference_title)
                                     <flux:text size="sm" class="text-on-surface-variant truncate">{{ $item->reference_title }}</flux:text>
                                 @endif
                                 <flux:text class="truncate font-medium">{{ $item->title }}</flux:text>
                             </div>
-                            <flux:button type="button" size="sm" icon="arrow-uturn-left" wire:click="restore({{ $item->id }})">
+                            <flux:button type="button" size="sm" icon="arrow-uturn-left" wire:click="restore({{ $item->id }}, '{{ $item->kind }}')">
                                 Voltar para a fila
                             </flux:button>
                         </flux:card>
@@ -149,7 +149,7 @@
         @if ($this->readingNoteUnderReview)
             @php($note = $this->readingNoteUnderReview)
 
-            <div class="flex max-h-[85dvh] flex-col" wire:key="review-reading-note-{{ $note->id }}">
+            <div class="flex max-h-[85dvh] flex-col" wire:key="review-{{ $kindUnderReview }}-{{ $note->id }}">
                 <div class="border-outline-variant/50 shrink-0 border-b px-6 pt-6 pb-4">
                     <flux:heading size="lg" class="pe-10">{{ $note->displayTitle() }}</flux:heading>
 
@@ -176,7 +176,12 @@
                              partir do título e do corpo da anotação. Responder é a prova
                              de recall; o placar é que decide a revisão, não a
                              autoavaliação. --}}
-                        @if ($this->awaitingQuiz)
+                        @if ($noContent)
+                            <div class="border-outline-variant/60 flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center">
+                                <flux:icon.pencil-square class="text-on-surface size-6" />
+                                <flux:text>Este capítulo ainda não tem anotação, então não há perguntas para fazer. Escreva a anotação na aba “Anotações” e ele volta para a fila.</flux:text>
+                            </div>
+                        @elseif ($this->awaitingQuiz)
                             <section
                                 class="border-surface-variant bg-primary-container/10 space-y-2 rounded-lg border p-4"
                                 wire:poll.{{ config('quiz.poll_interval', '2s') }}="pollCheckQuiz"

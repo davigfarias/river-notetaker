@@ -41,12 +41,14 @@ new class extends Component
     }
 
     /**
-     * Só as anotações da obra; a mais antiga define o rótulo de marcadores repetidos.
+     * Só as anotações da obra (capítulos, nos livros); a mais antiga define o rótulo de marcadores repetidos.
      *
      * @return iterable<int, string|null>
      */
     protected function conceptTexts(): iterable
     {
-        return $this->material->readingNotes()->reorder('id')->pluck('body');
+        return $this->material->isBook()
+            ? $this->material->chapters()->whereNotNull('body')->reorder('id')->pluck('body')
+            : $this->material->readingNotes()->reorder('id')->pluck('body');
     }
 };

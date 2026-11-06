@@ -7,9 +7,10 @@ namespace App\Jobs;
 use App\Actions\PersistReadingNoteQuizQuestions;
 use App\Actions\ValidateGeneratedQuestions;
 use App\Ai\Agents\QuizQuestionGenerator;
-use App\Models\ReadingNote;
 use App\Support\MapConcepts;
+use App\Support\ReviewSubject;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -22,14 +23,14 @@ class GenerateReadingNoteQuizJob implements ShouldQueue
 
     public int $timeout;
 
-    public function __construct(public ReadingNote $note)
+    public function __construct(public Model $note, public string $kind = ReviewSubject::NOTE)
     {
         $this->timeout = (int) config('quiz.job_timeout', 60);
     }
 
     public function handle(ValidateGeneratedQuestions $validate, PersistReadingNoteQuizQuestions $persist): void
     {
-        $content = trim(($this->note->title !== null ? "{$this->note->title}\n\n" : '').$this->note->body);
+        $content = ReviewSubject::contentFor($this->note);
 
         if ($content === '') {
             return;
@@ -49,6 +50,7 @@ class GenerateReadingNoteQuizJob implements ShouldQueue
             readingNoteId: $this->note->id,
             contentHash: hash('sha256', $content),
             questions: $validated->data,
+            kind: $this->kind,
         );
     }
 

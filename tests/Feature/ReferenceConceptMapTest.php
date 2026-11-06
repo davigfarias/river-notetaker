@@ -15,7 +15,7 @@ beforeEach(function () {
     $this->withSession(['access_token_id' => $this->token->id]);
     Livewire::withoutLazyLoading();
 
-    $this->material = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+    $this->material = ReferenceMaterial::factory()->article()->create(['access_token_id' => $this->token->id]);
     ReadingNote::factory()->create([
         'reference_material_id' => $this->material->id,
         'access_token_id' => $this->token->id,
@@ -29,7 +29,7 @@ function referenceMap(ReferenceMaterial $material): mixed
 }
 
 test('concepts come only from the reading notes of this work', function () {
-    $otherWork = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+    $otherWork = ReferenceMaterial::factory()->article()->create(['access_token_id' => $this->token->id]);
     ReadingNote::factory()->create(['reference_material_id' => $otherWork->id, 'access_token_id' => $this->token->id, 'body' => '{{no: Outra obra}}']);
     $this->material->citations()->create(['quote_text' => '{{no: Da citação}}', 'access_token_id' => $this->token->id]);
     Notes::factory()->create(['discipline_id' => Disciplines::factory()->create()->id, 'summary' => '{{no: Da disciplina}}']);
@@ -59,7 +59,7 @@ test('nodes, arrows and free concepts work and stay out of the discipline map', 
 });
 
 test('maps of two works are independent', function () {
-    $otherWork = ReferenceMaterial::factory()->create(['access_token_id' => $this->token->id]);
+    $otherWork = ReferenceMaterial::factory()->article()->create(['access_token_id' => $this->token->id]);
 
     referenceMap($this->material)->call('addCustomNode', 'Só aqui', 0, 0);
 
@@ -67,7 +67,7 @@ test('maps of two works are independent', function () {
 });
 
 test('a work of another owner returns 404', function () {
-    $foreign = ReferenceMaterial::factory()->create(['access_token_id' => AccessToken::factory()->create()->id]);
+    $foreign = ReferenceMaterial::factory()->article()->create(['access_token_id' => AccessToken::factory()->create()->id]);
 
     Livewire::test('mapa-da-referencia', ['referenceMaterialId' => $foreign->id]);
 })->throws(Illuminate\Database\Eloquent\ModelNotFoundException::class);
