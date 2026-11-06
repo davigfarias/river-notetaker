@@ -24,7 +24,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $planned_items
  * @property CarbonImmutable $started_at
  * @property CarbonImmutable|null $finished_at
- * @property list<array{principle_id: int, type: string}> $composition
+ * @property list<array{principle_id: int, type: string, retry?: bool}> $composition
+ * @property-read int|null $answered_count Só existe quando carregado por FindOpenPrincipleSession.
  */
 #[Fillable([
     'access_token_id', 'discipline_id', 'principle_category_id',

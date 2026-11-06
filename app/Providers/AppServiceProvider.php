@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use App\Http\Middleware\EnsureAccessTokenIsValid;
+use App\Support\Exercises\CreateExampleStrategy;
+use App\Support\Exercises\ExerciseStrategies;
+use App\Support\Exercises\RecallStatementToTitleStrategy;
+use App\Support\Exercises\RecallTitleToStatementStrategy;
 use App\Support\Markdown\HeadingIdsExtension;
 use App\Support\Sm2Scheduler;
 use Carbon\CarbonImmutable;
@@ -22,6 +26,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(ExerciseStrategies::class, fn (): ExerciseStrategies => new ExerciseStrategies([
+            new RecallTitleToStatementStrategy,
+            new RecallStatementToTitleStrategy,
+            new CreateExampleStrategy,
+        ]));
+
         $this->app->singleton(Sm2Scheduler::class, fn (): Sm2Scheduler => new Sm2Scheduler(
             initialEase: (float) config('principios.scheduler.initial_ease'),
             minEase: (float) config('principios.scheduler.min_ease'),

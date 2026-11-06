@@ -11,6 +11,7 @@ Route::livewire('/disciplinas/{slug}', 'pages::disciplina')->name('disciplinas.s
 Route::livewire('/disciplinas/{slug}/mapa-conceitos', 'pages::mapa-conceitos')->name('disciplinas.mapa-conceitos')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/disciplinas/{slug}/notas/nova', 'pages::create')->name('notas.criar')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/conceitos/lista', 'pages::conceitos')->name('concepts')->middleware(EnsureAccessTokenIsValid::class);
+Route::livewire('/principios/estudar', 'pages::estudar-principios')->name('principios.estudar')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/principios', 'pages::principios')->name('principios')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/principios/{slug}', 'pages::principio')->name('principios.show')->middleware(EnsureAccessTokenIsValid::class);
 Route::livewire('/conselhos/lista', 'pages::pastoral')->name('pastoral')->middleware(EnsureAccessTokenIsValid::class);

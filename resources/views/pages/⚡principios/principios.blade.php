@@ -25,7 +25,13 @@
                 <flux:text class="mt-2">Temas e os princípios reunidos em cada um.</flux:text>
             </div>
 
-            <div>
+            <div class="flex flex-wrap items-center gap-2">
+                <flux:button variant="primary" icon="academic-cap" :href="route('principios.estudar')" wire:navigate>
+                    Estudar princípios
+                    @if ($this->studyCount > 0)
+                        <flux:badge size="sm" class="ml-2">{{ $this->studyCount }} para hoje</flux:badge>
+                    @endif
+                </flux:button>
                 <flux:modal.trigger name="add-topic">
                     <flux:button icon="plus">Novo tema</flux:button>
                 </flux:modal.trigger>

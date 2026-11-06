@@ -1,8 +1,10 @@
 <?php
 
+use App\Actions\CountPrinciplesToStudy;
 use App\Actions\CreatePrincipleTopic;
 use App\Actions\GetPrincipleTopics;
 use App\DTO\PrincipleTopicForm;
+use Carbon\CarbonImmutable;
 use Flux\Flux;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -23,6 +25,12 @@ new #[Title('Princípios')] #[Lazy] class extends Component
     public function topics(): Collection
     {
         return app(GetPrincipleTopics::class)->handle()->data;
+    }
+
+    #[Computed]
+    public function studyCount(): int
+    {
+        return app(CountPrinciplesToStudy::class)->handle((int) session('access_token_id'), CarbonImmutable::now());
     }
 
     public function createTopic(CreatePrincipleTopic $action): void
