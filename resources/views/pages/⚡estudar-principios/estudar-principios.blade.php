@@ -9,38 +9,95 @@
 <main class="mx-auto flex w-full max-w-[720px] flex-col gap-6 py-8 pb-32">
 
     @if ($step === \App\Enums\StudyStep::Setup)
-        <div>
-            <flux:heading size="xl" level="1">Estudar princípios</flux:heading>
-            <flux:text class="mt-2">Uma sessão curta que mistura lembrar, explicar, aplicar e criar. Você tenta responder antes de ver o gabarito.</flux:text>
+        @php
+            $plural = fn (int $n): string => $n === 1 ? '1 princípio' : "{$n} princípios";
+            $disciplineActive = ctype_digit($disciplineId);
+            $categoryActive = ctype_digit($categoryId);
+            $cardBase = 'flex flex-col gap-4 rounded-2xl border bg-surface-container-low p-6 transition-colors';
+        @endphp
+
+        <div class="max-w-xl">
+            <flux:heading size="xl" level="1">O que você quer estudar hoje?</flux:heading>
+            <flux:text class="mt-2">Escolha um recorte ou deixe tudo em "Todas" para misturar. A sessão alterna perguntas de lembrar, explicar e criar, e você tenta responder antes de ver o gabarito.</flux:text>
         </div>
 
-        @if ($this->studyCount === 0 && ! $includeNotDue)
-            <x-empty-state icon="check-badge" heading="Nada para revisar hoje" description="Todos os princípios estão em dia, ou ainda não há princípios cadastrados. Você pode estudar mesmo assim marcando a opção abaixo.">
-            </x-empty-state>
-        @else
-            <flux:badge color="blue" class="self-start">{{ $this->studyCount }} {{ $this->studyCount === 1 ? 'princípio' : 'princípios' }} para hoje</flux:badge>
-        @endif
+        <form wire:submit="start" class="space-y-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <section @class([$cardBase, 'border-primary ring-1 ring-primary' => $disciplineActive, 'border-outline-variant' => ! $disciplineActive]) aria-labelledby="card-disciplina">
+                    <div class="flex items-center gap-3">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <flux:icon name="squares-2x2" class="size-5" />
+                        </span>
+                        <flux:heading id="card-disciplina" size="lg" level="2">Disciplina</flux:heading>
+                    </div>
 
-        <form wire:submit="start" class="space-y-5">
-            <flux:select wire:model="disciplineId" label="Disciplina (opcional)">
-                <flux:select.option value="">Todas as disciplinas</flux:select.option>
-                @foreach ($this->disciplines as $discipline)
-                    <flux:select.option value="{{ $discipline->id }}" wire:key="disc-{{ $discipline->id }}">{{ $discipline->title }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:error name="disciplineId" />
+                    <flux:text>É a matéria do seminário, como Hermenêutica. Entram só os princípios dos temas ligados a ela.</flux:text>
 
-            <flux:select wire:model="categoryId" label="Categoria (opcional)">
-                <flux:select.option value="">Todas as categorias</flux:select.option>
-                @foreach ($this->categories as $category)
-                    <flux:select.option value="{{ $category->id }}" wire:key="cat-{{ $category->id }}">{{ $category->principleTopic?->title }} › {{ $category->title }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:error name="categoryId" />
+                    <flux:select wire:model.live="disciplineId" aria-labelledby="card-disciplina">
+                        <flux:select.option value="">Todas as disciplinas</flux:select.option>
+                        @foreach ($this->disciplines as $discipline)
+                            <flux:select.option value="{{ $discipline->id }}" wire:key="disc-{{ $discipline->id }}">{{ $discipline->title }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="disciplineId" />
 
-            <flux:checkbox wire:model="includeNotDue" label="Estudar mesmo os que ainda não venceram" description="Completa a sessão com os princípios que vencem logo." />
+                    <p class="mt-auto text-sm text-on-surface-variant" aria-live="polite">
+                        @if ($disciplineActive)
+                            Filtro ativo: {{ $plural($this->disciplineCount) }} nesta disciplina.
+                        @else
+                            Sem filtro: {{ $plural($this->disciplineCount) }} no total.
+                        @endif
+                    </p>
+                </section>
 
-            <flux:button type="submit" variant="primary" icon="play" wire:loading.attr="disabled" wire:target="start">Começar sessão</flux:button>
+                <section @class([$cardBase, 'border-primary ring-1 ring-primary' => $categoryActive, 'border-outline-variant' => ! $categoryActive]) aria-labelledby="card-categoria">
+                    <div class="flex items-center gap-3">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <flux:icon name="tag" class="size-5" />
+                        </span>
+                        <flux:heading id="card-categoria" size="lg" level="2">Categoria</flux:heading>
+                    </div>
+
+                    <flux:text>É um grupo dentro de um tema, como Cristologia. Use quando quiser treinar um assunto só.</flux:text>
+
+                    <flux:select wire:model.live="categoryId" aria-labelledby="card-categoria">
+                        <flux:select.option value="">Todas as categorias</flux:select.option>
+                        @foreach ($this->categories as $category)
+                            <flux:select.option value="{{ $category->id }}" wire:key="cat-{{ $category->id }}">{{ $category->principleTopic?->title }} › {{ $category->title }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="categoryId" />
+
+                    <p class="mt-auto text-sm text-on-surface-variant" aria-live="polite">
+                        @if ($categoryActive)
+                            Filtro ativo: {{ $plural($this->categoryCount) }} nesta categoria.
+                        @else
+                            Sem filtro: {{ $plural($this->categoryCount) }} no total.
+                        @endif
+                    </p>
+                </section>
+            </div>
+
+            <div class="flex flex-col gap-5 rounded-2xl border border-outline-variant bg-surface-container-lowest p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div class="space-y-3">
+                    @if ($this->scopeCount === 0)
+                        <flux:text class="font-medium text-on-surface">Nenhum princípio neste recorte.</flux:text>
+                        <flux:text size="sm">Troque uma das caixas por "Todas" ou escolha outra combinação.</flux:text>
+                    @else
+                        <flux:text class="font-medium text-on-surface">
+                            {{ $disciplineActive || $categoryActive ? 'Neste recorte há ' : 'Há ' }}{{ $plural($this->scopeCount) }}.
+                            @if ($this->studyCount > 0)
+                                Para estudar hoje: {{ $plural($this->studyCount) }}.
+                            @else
+                                Nada para revisar hoje neste recorte.
+                            @endif
+                        </flux:text>
+                        <flux:checkbox wire:model="includeNotDue" label="Estudar também os que ainda não venceram" description="Útil quando não há nada vencido: completa a sessão com os que vencem logo." />
+                    @endif
+                </div>
+
+                <flux:button type="submit" variant="primary" icon="play" :disabled="$this->scopeCount === 0" wire:loading.attr="disabled" wire:target="start" class="shrink-0">Começar sessão</flux:button>
+            </div>
         </form>
 
     @elseif ($step === \App\Enums\StudyStep::Summary)

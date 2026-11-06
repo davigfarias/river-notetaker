@@ -7,10 +7,13 @@ use App\Enums\ExerciseType;
 use App\Enums\SelfRating;
 use App\Models\AccessToken;
 use App\Models\Concepts;
+use App\Models\Disciplines;
 use App\Models\Principle;
 use App\Models\PrincipleAttempt;
+use App\Models\PrincipleCategory;
 use App\Models\PrincipleReviewState;
 use App\Models\PrincipleSession;
+use App\Models\PrincipleTopic;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -241,5 +244,27 @@ test('a tela de estudo e o botão na aba Princípios carregam', function () {
 });
 
 test('estado vazio explica quando não há nada para estudar', function () {
-    Livewire::test('pages::estudar-principios')->assertSee('Nada para revisar hoje');
+    Livewire::test('pages::estudar-principios')
+        ->assertSee('Nenhum princípio neste recorte.')
+        ->assertSeeHtml('disabled');
+});
+
+test('os cartões de disciplina e categoria mostram quantos princípios há em cada escolha', function () {
+    $discipline = Disciplines::factory()->create();
+    $linked = PrincipleTopic::factory()->create();
+    $linked->disciplines()->attach($discipline->id);
+    $category = PrincipleCategory::factory()->create(['principle_topic_id' => $linked->id]);
+    Principle::factory()->count(2)->create(['principle_topic_id' => $linked->id, 'principle_category_id' => $category->id]);
+    Principle::factory()->count(3)->create();
+
+    Livewire::test('pages::estudar-principios')
+        ->assertSee('Sem filtro: 5 princípios no total.')
+        ->set('disciplineId', (string) $discipline->id)
+        ->assertSee('Filtro ativo: 2 princípios nesta disciplina.')
+        ->assertSee('Neste recorte há 2 princípios.')
+        ->assertSee('Para estudar hoje: 2 princípios.')
+        ->set('categoryId', (string) $category->id)
+        ->assertSee('Filtro ativo: 2 princípios nesta categoria.')
+        ->set('disciplineId', 'abc')
+        ->assertSee('Sem filtro: 5 princípios no total.');
 });

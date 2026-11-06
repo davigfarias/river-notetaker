@@ -16,6 +16,8 @@ use Illuminate\Support\Collection;
  */
 final readonly class SelectSessionPrinciples
 {
+    public function __construct(private ScopePrinciples $scope) {}
+
     /**
      * @param  list<int>|null  $onlyPrincipleIds  "Revisar só os que errei": ignora agenda e limite de novos.
      * @return Collection<int, Principle>
@@ -64,10 +66,7 @@ final readonly class SelectSessionPrinciples
      */
     private function scoped(?int $disciplineId, ?int $categoryId): Builder
     {
-        return Principle::query()
-            ->with('concept')
-            ->when($disciplineId, fn (Builder $q) => $q->whereHas('principleTopic.disciplines', fn (Builder $d) => $d->where('disciplines.id', $disciplineId)))
-            ->when($categoryId, fn (Builder $q) => $q->where('principle_category_id', $categoryId));
+        return $this->scope->handle($disciplineId, $categoryId)->with('concept');
     }
 
     /**

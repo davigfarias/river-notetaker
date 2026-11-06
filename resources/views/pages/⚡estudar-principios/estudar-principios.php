@@ -8,6 +8,7 @@ use App\Actions\Orchestrators\CompleteExerciseReviewOrchestrator;
 use App\Actions\Orchestrators\StartPrincipleSessionOrchestrator;
 use App\Actions\Orchestrators\SubmitExerciseAnswerOrchestrator;
 use App\Actions\PrepareExercise;
+use App\Actions\ScopePrinciples;
 use App\Actions\PreviewPrincipleRatingIntervals;
 use App\DTO\PreparedExercise;
 use App\DTO\PrincipleSessionSummary;
@@ -120,7 +121,12 @@ new #[Title('Estudar princípios')] class extends Component
     #[Computed]
     public function studyCount(): int
     {
-        return app(CountPrinciplesToStudy::class)->handle($this->tokenId(), CarbonImmutable::now());
+        return app(CountPrinciplesToStudy::class)->handle(
+            $this->tokenId(),
+            CarbonImmutable::now(),
+            $this->scopeId($this->disciplineId),
+            $this->scopeId($this->categoryId),
+        );
     }
 
     /** @return Collection<int, Disciplines> */
@@ -135,6 +141,33 @@ new #[Title('Estudar princípios')] class extends Component
     public function categories(): Collection
     {
         return PrincipleCategory::query()->with('principleTopic:id,title')->orderBy('title')->get();
+    }
+
+    /** Ids vindos do select: só dígitos valem, qualquer outra coisa vira "sem filtro". */
+    private function scopeId(string $value): ?int
+    {
+        return ctype_digit($value) ? (int) $value : null;
+    }
+
+    /** Quantos princípios existem só na disciplina escolhida (ou em todas). */
+    #[Computed]
+    public function disciplineCount(): int
+    {
+        return app(ScopePrinciples::class)->handle($this->scopeId($this->disciplineId), null)->count();
+    }
+
+    /** Quantos princípios existem só na categoria escolhida (ou em todas). */
+    #[Computed]
+    public function categoryCount(): int
+    {
+        return app(ScopePrinciples::class)->handle(null, $this->scopeId($this->categoryId))->count();
+    }
+
+    /** Quantos princípios sobram quando as duas escolhas valem juntas. */
+    #[Computed]
+    public function scopeCount(): int
+    {
+        return app(ScopePrinciples::class)->handle($this->scopeId($this->disciplineId), $this->scopeId($this->categoryId))->count();
     }
 
     #[Computed]
