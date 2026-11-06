@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Middleware\EnsureAccessTokenIsValid;
 use App\Support\Markdown\HeadingIdsExtension;
+use App\Support\Sm2Scheduler;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(Sm2Scheduler::class, fn (): Sm2Scheduler => new Sm2Scheduler(
+            initialEase: (float) config('principios.scheduler.initial_ease'),
+            minEase: (float) config('principios.scheduler.min_ease'),
+            maxIntervalDays: (int) config('principios.scheduler.max_interval_days'),
+        ));
     }
 
     /**
