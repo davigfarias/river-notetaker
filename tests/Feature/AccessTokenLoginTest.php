@@ -38,3 +38,11 @@ test('repeated invalid attempts are throttled', function () {
 
     expect(session('access_token_id'))->toBeNull();
 });
+
+test('the login page is a landing page without the top navigation bar', function () {
+    $this->get(route('entrar'))
+        ->assertOk()
+        ->assertSee('Acesso restrito')
+        ->assertSee('Notetaker')
+        ->assertDontSee('Abrir menu');
+});

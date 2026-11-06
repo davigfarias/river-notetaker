@@ -3,10 +3,11 @@
 use App\Actions\ValidateAccessToken;
 use Flux\Flux;
 use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Entrar')] class extends Component
+new #[Layout('layouts::entrar'), Title('Entrar')] class extends Component
 {
     public string $code = '';
 
