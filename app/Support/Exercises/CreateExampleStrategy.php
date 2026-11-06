@@ -9,7 +9,7 @@ use App\DTO\StudyPrinciple;
 use App\Enums\ExerciseType;
 
 /**
- * Sem IA (fase 2): o usuário escreve o exemplo e se compara com o princípio.
+ * O usuário cria um exemplo; a IA só comenta (sem sugerir nota). Sem IA, ele se compara com o princípio.
  */
 final readonly class CreateExampleStrategy implements ExerciseStrategy
 {
@@ -20,10 +20,10 @@ final readonly class CreateExampleStrategy implements ExerciseStrategy
 
     public function evaluatesWithAi(): bool
     {
-        return false;
+        return true;
     }
 
-    public function prepare(StudyPrinciple $principle): PreparedExercise
+    public function prepare(StudyPrinciple $principle, ?array $payload = null): PreparedExercise
     {
         return new PreparedExercise(
             type: $this->type(),

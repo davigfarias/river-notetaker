@@ -8,6 +8,7 @@ use App\Actions\Orchestrators\CompleteExerciseReviewOrchestrator;
 use App\Actions\Orchestrators\StartPrincipleSessionOrchestrator;
 use App\Actions\Orchestrators\SubmitExerciseAnswerOrchestrator;
 use App\Actions\PrepareExercise;
+use App\Actions\ResolveSessionExercise;
 use App\Actions\RetryAttemptEvaluation;
 use App\Actions\ScopePrinciples;
 use App\Actions\PreviewPrincipleRatingIntervals;
@@ -19,6 +20,7 @@ use App\Enums\SelfRating;
 use App\Enums\StudyStep;
 use App\Models\Disciplines;
 use App\Exceptions\InvalidAiEvaluation;
+use App\Exceptions\InvalidExercisePayload;
 use App\Models\PrincipleAttempt;
 use App\Models\PrincipleCategory;
 use App\Models\PrincipleSession;
@@ -55,6 +57,9 @@ new #[Title('Estudar princípios')] class extends Component
 
     public string $answer = '';
 
+    /** Id do princípio marcado no exercício de distinguir (vem do botão de opção). */
+    public string $choice = '';
+
     public string $disciplineId = '';
 
     public string $categoryId = '';
@@ -85,8 +90,15 @@ new #[Title('Estudar princípios')] class extends Component
         $this->answer = '';
         $this->attemptId = null;
         $this->aiNotice = null;
+        $this->choice = '';
         $this->shownAt = microtime(true);
-        unset($this->session, $this->exercise, $this->intervals, $this->evaluation);
+        unset($this->session, $this->item, $this->exercise, $this->intervals, $this->evaluation);
+
+        // Tipos gerados pela IA: cache, geração na hora ou troca por um exercício offline.
+        if ($this->session !== null) {
+            app(ResolveSessionExercise::class)->handle($this->tokenId(), $this->session, $this->index);
+            unset($this->session, $this->item);
+        }
     }
 
     #[Computed]
@@ -97,7 +109,7 @@ new #[Title('Estudar princípios')] class extends Component
             ->find($this->sessionId);
     }
 
-    /** @return array{principle_id: int, type: string, retry?: bool}|null */
+    /** @return array{principle_id: int, type: string, retry?: bool, exercise_id?: int, substituted?: bool}|null */
     #[Computed]
     public function item(): ?array
     {
@@ -109,7 +121,54 @@ new #[Title('Estudar princípios')] class extends Component
     {
         $item = $this->item;
 
-        return $item === null ? null : app(PrepareExercise::class)->handle($item['principle_id'], ExerciseType::from($item['type']));
+        if ($item === null) {
+            return null;
+        }
+
+        try {
+            return app(PrepareExercise::class)->handle($item['principle_id'], ExerciseType::from($item['type']), $item['exercise_id'] ?? null);
+        } catch (InvalidExercisePayload) {
+            return null;
+        }
+    }
+
+    /** O item foi trocado por um exercício sem IA porque a IA não pôde gerar o original. */
+    #[Computed]
+    public function substituted(): bool
+    {
+        return (bool) ($this->item['substituted'] ?? false);
+    }
+
+    /** Nota sugerida (pela IA ou pela correção da escolha), se o tipo sugere nota e a avaliação não é incerta. */
+    #[Computed]
+    public function suggestedRating(): ?SelfRating
+    {
+        $attempt = $this->attemptId === null ? null : PrincipleAttempt::query()->where('access_token_id', $this->tokenId())->find($this->attemptId);
+
+        if ($attempt === null || ! $attempt->type->suggestsRating()) {
+            return null;
+        }
+
+        $uncertain = $this->evaluation?->isUncertain((float) config('principios.ai.confidence_threshold')) ?? false;
+
+        return $uncertain ? null : $attempt->ai_suggested_rating;
+    }
+
+    /** Resultado da escolha no exercício de distinguir. @return array{chosen: string, correct: bool}|null */
+    #[Computed]
+    public function choiceResult(): ?array
+    {
+        $exercise = $this->exercise;
+        $attempt = $this->attemptId === null ? null : PrincipleAttempt::query()->where('access_token_id', $this->tokenId())->find($this->attemptId);
+
+        if ($exercise === null || $exercise->choices === [] || $attempt === null) {
+            return null;
+        }
+
+        return [
+            'chosen' => (string) (collect($exercise->choices)->firstWhere('principle_id', $attempt->chosen_principle_id)['title'] ?? ''),
+            'correct' => $attempt->chosen_principle_id === $exercise->correctPrincipleId,
+        ];
     }
 
     /** @return array<string, int> */
@@ -147,7 +206,7 @@ new #[Title('Estudar princípios')] class extends Component
         $check = $action->handle($this->tokenId(), $this->attemptId);
 
         $this->aiNotice = $check->success ? null : (string) $check->message;
-        unset($this->evaluation);
+        unset($this->evaluation, $this->suggestedRating);
     }
 
     #[Computed]
@@ -269,6 +328,7 @@ new #[Title('Estudar princípios')] class extends Component
             $this->index,
             $this->answer,
             (int) round((microtime(true) - $this->shownAt) * 1000),
+            chosenPrincipleId: ctype_digit($this->choice) ? (int) $this->choice : null,
         );
 
         if (! $check->success) {
@@ -279,7 +339,7 @@ new #[Title('Estudar princípios')] class extends Component
 
         $this->attemptId = $check->data->attempt->id;
         $this->aiNotice = $check->data->notice;
-        unset($this->evaluation);
+        unset($this->evaluation, $this->suggestedRating, $this->choiceResult);
         $this->step = StudyStep::Feedback;
     }
 

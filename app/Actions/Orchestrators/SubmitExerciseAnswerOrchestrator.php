@@ -6,11 +6,14 @@ namespace App\Actions\Orchestrators;
 
 use App\Actions\EvaluateAttemptAnswer;
 use App\Actions\FindOpenPrincipleSession;
-use App\Actions\LoadStudyPrinciple;
 use App\Actions\PrepareExercise;
 use App\Actions\RecordPrincipleAttempt;
+use App\DTO\PreparedExercise;
 use App\DTO\SubmittedAnswer;
+use App\Enums\AiVerdict;
 use App\Enums\ExerciseType;
+use App\Enums\SelfRating;
+use App\Exceptions\InvalidExercisePayload;
 use App\Support\Exercises\ExerciseStrategies;
 use App\Support\Outcome;
 use Carbon\CarbonImmutable;
@@ -25,7 +28,6 @@ final readonly class SubmitExerciseAnswerOrchestrator
         private PrepareExercise $prepare,
         private RecordPrincipleAttempt $record,
         private ExerciseStrategies $strategies,
-        private LoadStudyPrinciple $load,
         private EvaluateAttemptAnswer $evaluate,
     ) {}
 
@@ -33,8 +35,15 @@ final readonly class SubmitExerciseAnswerOrchestrator
      * Devolve um SubmittedAnswer em `data`: a tentativa gravada (ainda sem autoavaliação) e,
      * se a IA não pôde avaliar, o aviso para mostrar ao usuário.
      */
-    public function handle(int $accessTokenId, int $sessionId, int $index, ?string $answer, int $durationMs, ?CarbonImmutable $now = null): Outcome
-    {
+    public function handle(
+        int $accessTokenId,
+        int $sessionId,
+        int $index,
+        ?string $answer,
+        int $durationMs,
+        ?CarbonImmutable $now = null,
+        ?int $chosenPrincipleId = null,
+    ): Outcome {
         try {
             $session = $this->findSession->handle($accessTokenId);
             $item = $session?->composition[$index] ?? null;
@@ -43,15 +52,20 @@ final readonly class SubmitExerciseAnswerOrchestrator
                 return Outcome::failure(message: 'Esta sessão mudou. Recarregue a página para continuar de onde parou.');
             }
 
-            $answer = $answer === null ? null : trim($answer);
             $type = ExerciseType::from($item['type']);
+            $exerciseId = $item['exercise_id'] ?? null;
 
-            if ($this->prepare->handle($item['principle_id'], $type)->requiresAnswer && ($answer === null || $answer === '')) {
-                return Outcome::failure(message: 'Escreva sua resposta antes de continuar.');
+            try {
+                $exercise = $this->prepare->handle($item['principle_id'], $type, $exerciseId);
+            } catch (InvalidExercisePayload) {
+                return Outcome::failure(message: 'Este exercício não está mais disponível. Encerre a sessão e comece outra.');
             }
 
-            if (mb_strlen((string) $answer) > self::MAX_ANSWER_LENGTH) {
-                return Outcome::failure(message: 'A resposta está longa demais. Resuma em até '.self::MAX_ANSWER_LENGTH.' caracteres.');
+            $answer = $answer === null ? null : trim($answer);
+            $failure = $this->validate($exercise, $answer, $chosenPrincipleId);
+
+            if ($failure !== null) {
+                return Outcome::failure(message: $failure);
             }
 
             $attempt = $this->record->handle(
@@ -62,12 +76,25 @@ final readonly class SubmitExerciseAnswerOrchestrator
                 $answer === '' ? null : $answer,
                 max(0, $durationMs),
                 $now ?? CarbonImmutable::now(),
+                $exerciseId,
+                $chosenPrincipleId,
             );
+
+            $choiceIsCorrect = null;
+
+            if ($exercise->choices !== []) {
+                // A escolha é corrigida sem IA, comparando ids.
+                $choiceIsCorrect = $chosenPrincipleId === $exercise->correctPrincipleId;
+                $attempt->update([
+                    'ai_verdict' => $choiceIsCorrect ? AiVerdict::Correct : AiVerdict::Incorrect,
+                    'ai_suggested_rating' => $choiceIsCorrect ? SelfRating::Good : SelfRating::Again,
+                ]);
+            }
 
             $notice = null;
 
-            if ($answer !== null && $answer !== '' && $this->strategies->for($type)->evaluatesWithAi()) {
-                $notice = $this->evaluate->handle($attempt, $this->load->handle($item['principle_id']))->message;
+            if ($this->shouldEvaluateWithAi($type, $answer, $choiceIsCorrect)) {
+                $notice = $this->evaluate->handle($attempt)->message;
             }
 
             return Outcome::success(data: new SubmittedAnswer($attempt, is_string($notice) ? $notice : null));
@@ -76,5 +103,34 @@ final readonly class SubmitExerciseAnswerOrchestrator
 
             return Outcome::failure(message: 'Não foi possível salvar sua resposta. Tente de novo.');
         }
+    }
+
+    private function validate(PreparedExercise $exercise, ?string $answer, ?int $chosenPrincipleId): ?string
+    {
+        if ($exercise->choices !== [] && ! in_array($chosenPrincipleId, array_column($exercise->choices, 'principle_id'), true)) {
+            return 'Escolha uma das opções antes de continuar.';
+        }
+
+        if ($exercise->choices === [] && $exercise->requiresAnswer && ($answer === null || $answer === '')) {
+            return 'Escreva sua resposta antes de continuar.';
+        }
+
+        if (mb_strlen((string) $answer) > self::MAX_ANSWER_LENGTH) {
+            return 'A resposta está longa demais. Resuma em até '.self::MAX_ANSWER_LENGTH.' caracteres.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Distinguir: a IA só avalia a justificativa de quem acertou a escolha, se a config permitir.
+     */
+    private function shouldEvaluateWithAi(ExerciseType $type, ?string $answer, ?bool $choiceIsCorrect): bool
+    {
+        if ($answer === null || $answer === '' || ! $this->strategies->for($type)->evaluatesWithAi()) {
+            return false;
+        }
+
+        return $choiceIsCorrect === null || ($choiceIsCorrect && config('principios.ai.evaluate_distinction_rationale'));
     }
 }

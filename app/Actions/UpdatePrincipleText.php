@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 
 final readonly class UpdatePrincipleText
 {
+    public function __construct(private InvalidateStaleExercises $invalidate) {}
+
     public function handle(int $principleId, PrincipleTextForm $form): Outcome
     {
         try {
@@ -21,6 +23,8 @@ final readonly class UpdatePrincipleText
                 'title' => $form->title,
                 'body' => $form->body,
             ]);
+
+            $this->invalidate->handle($principle->id);
 
             return Outcome::success(message: 'Princípio atualizado.');
         } catch (\Exception $e) {

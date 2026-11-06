@@ -15,5 +15,8 @@ interface ExerciseStrategy
     /** A resposta livre deste tipo é avaliada pela IA (quando disponível). */
     public function evaluatesWithAi(): bool;
 
-    public function prepare(StudyPrinciple $principle): PreparedExercise;
+    /**
+     * @param  array<string, mixed>|null  $payload  conteúdo gerado pela IA (tipos que exigem geração)
+     */
+    public function prepare(StudyPrinciple $principle, ?array $payload = null): PreparedExercise;
 }

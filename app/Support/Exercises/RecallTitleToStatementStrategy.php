@@ -20,7 +20,7 @@ final readonly class RecallTitleToStatementStrategy implements ExerciseStrategy
         return false;
     }
 
-    public function prepare(StudyPrinciple $principle): PreparedExercise
+    public function prepare(StudyPrinciple $principle, ?array $payload = null): PreparedExercise
     {
         return new PreparedExercise(
             type: $this->type(),

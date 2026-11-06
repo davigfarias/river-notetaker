@@ -21,7 +21,7 @@ final readonly class ExplainWhyStrategy implements ExerciseStrategy
         return true;
     }
 
-    public function prepare(StudyPrinciple $principle): PreparedExercise
+    public function prepare(StudyPrinciple $principle, ?array $payload = null): PreparedExercise
     {
         return new PreparedExercise(
             type: $this->type(),

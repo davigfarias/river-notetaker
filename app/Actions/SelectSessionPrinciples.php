@@ -66,7 +66,7 @@ final readonly class SelectSessionPrinciples
      */
     private function scoped(?int $disciplineId, ?int $categoryId): Builder
     {
-        return $this->scope->handle($disciplineId, $categoryId)->with('concept');
+        return $this->scope->handle($disciplineId, $categoryId)->with(['concept', 'category']);
     }
 
     /**

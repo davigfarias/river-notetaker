@@ -22,6 +22,8 @@ final readonly class RecordPrincipleAttempt
         ?string $answer,
         int $durationMs,
         CarbonImmutable $now,
+        ?int $exerciseId = null,
+        ?int $chosenPrincipleId = null,
     ): PrincipleAttempt {
         PrincipleAttempt::query()
             ->where('access_token_id', $accessTokenId)
@@ -35,7 +37,9 @@ final readonly class RecordPrincipleAttempt
             'principle_id' => $principleId,
             'type' => $type,
             'bloom_level' => $type->bloomLevel(),
+            'principle_exercise_id' => $exerciseId,
             'user_answer' => $answer,
+            'chosen_principle_id' => $chosenPrincipleId,
             'duration_ms' => $durationMs,
             'answered_at' => $now,
         ]);

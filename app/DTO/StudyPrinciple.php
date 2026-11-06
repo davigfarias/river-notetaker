@@ -18,6 +18,7 @@ final readonly class StudyPrinciple
         public string $title,
         public string $statement,
         public string $groupKey,
+        public string $categoryTitle = '',
     ) {}
 
     public static function from(Principle $principle): self
@@ -29,7 +30,14 @@ final readonly class StudyPrinciple
             title: (string) ($isConcept ? $principle->concept?->term : $principle->title),
             statement: (string) ($isConcept ? $principle->concept?->definition : $principle->body),
             groupKey: self::groupKeyFor($principle),
+            categoryTitle: (string) $principle->category?->title,
         );
+    }
+
+    /** Impressão digital do conteúdo: se mudar, exercícios gerados antes deixam de valer. */
+    public function sourceHash(): string
+    {
+        return hash('sha256', implode("\0", [$this->title, $this->statement, $this->categoryTitle]));
     }
 
     /** Chave usada para intercalar categorias: a categoria, ou o tema quando não há. */

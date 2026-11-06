@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ExerciseType $type
  * @property BloomLevel $bloom_level
  * @property string|null $user_answer
+ * @property int|null $chosen_principle_id
  * @property array<string, mixed>|null $ai_evaluation
  * @property AiVerdict|null $ai_verdict
  * @property SelfRating|null $self_rating
@@ -37,7 +38,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[Fillable([
     'access_token_id', 'principle_session_id', 'principle_id', 'principle_exercise_id',
-    'type', 'bloom_level', 'user_answer', 'ai_evaluation', 'ai_verdict',
+    'type', 'bloom_level', 'user_answer', 'chosen_principle_id', 'ai_evaluation', 'ai_verdict',
     'self_rating', 'ai_suggested_rating', 'duration_ms', 'answered_at',
 ])]
 #[Table(name: 'principle_attempts')]

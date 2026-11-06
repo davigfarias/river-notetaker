@@ -19,5 +19,10 @@ final readonly class PreparedExercise
         public string $reference,
         public string $referenceLabel,
         public bool $requiresAnswer,
+        /** @var list<array{principle_id: int, title: string}> opções do exercício "Distinguir" (vazio nos demais) */
+        public array $choices = [],
+        public ?int $correctPrincipleId = null,
+        /** Chave de correção enviada à IA e nunca mostrada antes da resposta. */
+        public string $referenceKey = '',
     ) {}
 }

@@ -52,4 +52,10 @@ enum ExerciseType: string
             default => false,
         };
     }
+
+    /** Mostra "sugestão da IA" para a nota. Em "Criar" a IA só comenta, não sugere nota. */
+    public function suggestsRating(): bool
+    {
+        return $this->requiresAiEvaluation() && $this !== self::CreateExample;
+    }
 }

@@ -11,7 +11,6 @@ use App\Support\Outcome;
 final readonly class RetryAttemptEvaluation
 {
     public function __construct(
-        private LoadStudyPrinciple $load,
         private EvaluateAttemptAnswer $evaluate,
     ) {}
 
@@ -27,6 +26,6 @@ final readonly class RetryAttemptEvaluation
             return Outcome::failure('Não encontrei essa resposta. Recarregue a página.');
         }
 
-        return $this->evaluate->handle($attempt, $this->load->handle($attempt->principle_id));
+        return $this->evaluate->handle($attempt);
     }
 }

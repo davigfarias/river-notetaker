@@ -1,7 +1,10 @@
 <?php
 
+use App\Ai\Agents\DistinctionGenerator;
+use App\Ai\Agents\FlawedInterpretationGenerator;
 use App\Ai\Agents\PrincipleAnswerEvaluator;
 use App\Ai\Agents\QuizQuestionGenerator;
+use App\Ai\Agents\ScenarioGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -35,6 +38,9 @@ pest()->extend(TestCase::class)
         // A avaliação de princípios nunca pode chegar ao provedor real: prompt sem fake
         // explícito lança erro (a Action o trata como "IA indisponível").
         PrincipleAnswerEvaluator::fake()->preventStrayPrompts();
+        ScenarioGenerator::fake()->preventStrayPrompts();
+        DistinctionGenerator::fake()->preventStrayPrompts();
+        FlawedInterpretationGenerator::fake()->preventStrayPrompts();
     })
     ->in('Feature');
 

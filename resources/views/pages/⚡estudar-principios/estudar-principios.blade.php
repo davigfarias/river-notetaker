@@ -174,16 +174,28 @@
                     <p class="whitespace-pre-line text-lg font-medium text-on-surface">{{ $exercise->question }}</p>
                 </div>
 
+                @if ($this->substituted)
+                    <flux:text size="sm" class="italic" role="status">Sem IA agora; usando exercício offline.</flux:text>
+                @endif
+
                 <flux:text>{{ $exercise->instruction }}</flux:text>
 
                 @if ($step === \App\Enums\StudyStep::Question)
-                    <flux:textarea wire:model="answer" rows="5" maxlength="5000" autofocus wire:loading.attr="disabled" wire:target="reveal"
-                        label="Sua resposta{{ $exercise->requiresAnswer ? '' : ' (opcional)' }}"
+                    @if ($exercise->choices !== [])
+                        <flux:radio.group wire:model="choice" label="Escolha um princípio" wire:loading.attr="disabled" wire:target="reveal">
+                            @foreach ($exercise->choices as $option)
+                                <flux:radio value="{{ $option['principle_id'] }}" label="{{ $option['title'] }}" wire:key="choice-{{ $index }}-{{ $option['principle_id'] }}" />
+                            @endforeach
+                        </flux:radio.group>
+                    @endif
+
+                    <flux:textarea wire:model="answer" rows="{{ $exercise->choices !== [] ? 3 : 5 }}" maxlength="5000" @if ($exercise->choices === []) autofocus @endif wire:loading.attr="disabled" wire:target="reveal"
+                        label="{{ $exercise->choices !== [] ? 'Sua justificativa (opcional)' : 'Sua resposta'.($exercise->requiresAnswer ? '' : ' (opcional)') }}"
                         placeholder="Escreva aqui antes de ver o gabarito." />
 
                     <flux:button wire:click="reveal" variant="primary" icon="eye" wire:loading.attr="disabled" wire:target="reveal">
-                        <span wire:loading.remove wire:target="reveal">{{ $exercise->requiresAnswer ? 'Verificar' : 'Mostrar resposta' }}</span>
-                        <span wire:loading wire:target="reveal">{{ $exercise->type === \App\Enums\ExerciseType::ExplainWhy ? 'Avaliando sua resposta...' : 'Salvando...' }}</span>
+                        <span wire:loading.remove wire:target="reveal">{{ $exercise->requiresAnswer || $exercise->choices !== [] ? 'Verificar' : 'Mostrar resposta' }}</span>
+                        <span wire:loading wire:target="reveal">{{ $exercise->type->requiresAiEvaluation() ? 'Avaliando sua resposta...' : 'Salvando...' }}</span>
                     </flux:button>
                 @else
                     <div aria-live="polite" class="space-y-4">
@@ -191,6 +203,15 @@
                             <div class="rounded-xl border border-outline-variant p-4">
                                 <p class="mb-1 text-sm font-semibold text-on-surface-variant">Sua resposta</p>
                                 <p class="whitespace-pre-line">{{ $answer }}</p>
+                            </div>
+                        @endif
+
+                        @if ($this->choiceResult)
+                            <div class="rounded-xl border p-4 {{ $this->choiceResult['correct'] ? 'border-green-600/40' : 'border-red-600/40' }}">
+                                <p class="font-medium">
+                                    Você escolheu: {{ $this->choiceResult['chosen'] }}.
+                                    {{ $this->choiceResult['correct'] ? 'Acertou.' : 'Não foi essa.' }}
+                                </p>
                             </div>
                         @endif
 
@@ -202,7 +223,7 @@
                         @php
                             $evaluation = $this->evaluation;
                             $uncertain = $evaluation?->isUncertain((float) config('principios.ai.confidence_threshold')) ?? false;
-                            $suggested = $evaluation !== null && ! $uncertain ? $evaluation->suggestedRating : null;
+                            $suggested = $this->suggestedRating;
                         @endphp
 
                         @if ($evaluation)
@@ -237,14 +258,16 @@
                         @elseif ($aiNotice)
                             <div class="flex flex-col gap-3 rounded-xl border border-dashed border-outline-variant p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
                                 <flux:text size="sm">{{ $aiNotice }}</flux:text>
-                                @if ($answer !== '' && $exercise->type === \App\Enums\ExerciseType::ExplainWhy)
+                                @if ($answer !== '' && $exercise->type->requiresAiEvaluation() && $exercise->choices === [])
                                     <flux:button wire:click="retryEvaluation" size="sm" icon="arrow-path" wire:loading.attr="disabled" wire:target="retryEvaluation">Avaliar de novo</flux:button>
                                 @endif
                             </div>
                         @endif
 
-                        @if ($exercise->type === \App\Enums\ExerciseType::CreateExample)
-                            <flux:text size="sm">Sem IA por enquanto: compare seu exemplo com o princípio e escolha a nota que for honesta.</flux:text>
+                        @if ($exercise->type === \App\Enums\ExerciseType::CreateExample && $evaluation)
+                            <flux:text size="sm">A IA só comenta o seu exemplo; a nota é sua.</flux:text>
+                        @elseif ($exercise->type === \App\Enums\ExerciseType::CreateExample)
+                            <flux:text size="sm">Compare seu exemplo com o princípio e escolha a nota que for honesta.</flux:text>
                         @endif
                     </div>
 
@@ -255,7 +278,7 @@
                                 <flux:button wire:click="rate('{{ $rating->value }}')" wire:loading.attr="disabled" wire:target="rate" class="w-full justify-center" :variant="$rating === $suggested ? 'primary' : 'outline'">{{ $rating->label() }}</flux:button>
                                 <span class="text-xs text-on-surface-variant">{{ $dias($this->intervals[$rating->value] ?? 1) }}</span>
                                 @if ($rating === $suggested)
-                                    <span class="text-xs font-medium text-primary">sugestão da IA</span>
+                                    <span class="text-xs font-medium text-primary">{{ $evaluation ? 'sugestão da IA' : 'sugestão' }}</span>
                                 @endif
                             </div>
                         @endforeach

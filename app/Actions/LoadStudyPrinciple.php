@@ -11,6 +11,6 @@ final readonly class LoadStudyPrinciple
 {
     public function handle(int $principleId): StudyPrinciple
     {
-        return StudyPrinciple::from(Principle::query()->with('concept')->findOrFail($principleId));
+        return StudyPrinciple::from(Principle::query()->with(['concept', 'category'])->findOrFail($principleId));
     }
 }

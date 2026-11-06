@@ -6,9 +6,11 @@ namespace App\Actions;
 
 use App\Ai\PrincipleAiGateway;
 use App\DTO\AnswerEvaluation;
+use App\DTO\PreparedExercise;
 use App\DTO\StudyPrinciple;
 use App\Exceptions\AiUnavailable;
 use App\Exceptions\InvalidAiEvaluation;
+use App\Exceptions\InvalidExercisePayload;
 use App\Models\PrincipleAttempt;
 use App\Support\Outcome;
 use Carbon\CarbonImmutable;
@@ -25,9 +27,11 @@ final readonly class EvaluateAttemptAnswer
     public function __construct(
         private PrincipleAiGateway $gateway,
         private ReservePrincipleAiCall $reserve,
+        private PrepareExercise $prepare,
+        private LoadStudyPrinciple $load,
     ) {}
 
-    public function handle(PrincipleAttempt $attempt, StudyPrinciple $principle, ?CarbonImmutable $now = null): Outcome
+    public function handle(PrincipleAttempt $attempt, ?CarbonImmutable $now = null): Outcome
     {
         $now ??= CarbonImmutable::now();
 
@@ -40,15 +44,17 @@ final readonly class EvaluateAttemptAnswer
         }
 
         try {
-            $evaluation = $this->evaluate($principle, (string) $attempt->user_answer, (int) config('principios.ai.max_retries'));
-        } catch (AiUnavailable|InvalidAiEvaluation) {
+            $exercise = $this->prepare->handle($attempt->principle_id, $attempt->type, $attempt->principle_exercise_id);
+            $chosen = collect($exercise->choices)->firstWhere('principle_id', $attempt->chosen_principle_id)['title'] ?? null;
+            $evaluation = $this->evaluate($exercise, $this->load->handle($attempt->principle_id), (string) $attempt->user_answer, $chosen, (int) config('principios.ai.max_retries'));
+        } catch (AiUnavailable|InvalidAiEvaluation|InvalidExercisePayload) {
             return Outcome::failure('A IA não respondeu direito agora. Sua resposta está salva: compare com o gabarito ou tente avaliar de novo.');
         }
 
         $attempt->update([
             'ai_evaluation' => $evaluation->toArray(),
             'ai_verdict' => $evaluation->verdict,
-            'ai_suggested_rating' => $evaluation->suggestedRating,
+            'ai_suggested_rating' => $attempt->type->suggestsRating() ? $evaluation->suggestedRating : null,
         ]);
 
         return Outcome::noViewMessage(data: $evaluation);
@@ -58,12 +64,12 @@ final readonly class EvaluateAttemptAnswer
      * @throws AiUnavailable
      * @throws InvalidAiEvaluation
      */
-    private function evaluate(StudyPrinciple $principle, string $answer, int $retriesLeft): AnswerEvaluation
+    private function evaluate(PreparedExercise $exercise, StudyPrinciple $principle, string $answer, ?string $chosenTitle, int $retriesLeft): AnswerEvaluation
     {
         try {
-            return $this->gateway->evaluateAnswer($principle, $answer);
+            return $this->gateway->evaluateAnswer($exercise, $principle, $answer, $chosenTitle);
         } catch (InvalidAiEvaluation $e) {
-            return $retriesLeft > 0 ? $this->evaluate($principle, $answer, $retriesLeft - 1) : throw $e;
+            return $retriesLeft > 0 ? $this->evaluate($exercise, $principle, $answer, $chosenTitle, $retriesLeft - 1) : throw $e;
         }
     }
 }

@@ -5,7 +5,10 @@ namespace App\Providers;
 use App\Ai\GroqPrincipleAiGateway;
 use App\Ai\PrincipleAiGateway;
 use App\Http\Middleware\EnsureAccessTokenIsValid;
+use App\Support\Exercises\ApplyScenarioStrategy;
 use App\Support\Exercises\CreateExampleStrategy;
+use App\Support\Exercises\DistinguishPrinciplesStrategy;
+use App\Support\Exercises\EvaluateInterpretationStrategy;
 use App\Support\Exercises\ExerciseStrategies;
 use App\Support\Exercises\ExplainWhyStrategy;
 use App\Support\Exercises\RecallStatementToTitleStrategy;
@@ -35,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
             new RecallTitleToStatementStrategy,
             new RecallStatementToTitleStrategy,
             new ExplainWhyStrategy,
+            new ApplyScenarioStrategy,
+            new DistinguishPrinciplesStrategy,
+            new EvaluateInterpretationStrategy,
             new CreateExampleStrategy,
         ]));
 
