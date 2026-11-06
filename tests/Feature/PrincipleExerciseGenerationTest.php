@@ -71,7 +71,7 @@ test('gera um cenário, valida e guarda no cache com hash, versão e nível', fu
     expect($check->success)->toBeTrue()
         ->and($exercise->status)->toBe(ExerciseStatus::Ready)
         ->and($exercise->bloom_level->value)->toBe('aplicar')
-        ->and($exercise->prompt_version)->toBe('cenario-v1')
+        ->and($exercise->prompt_version)->toBe('cenario-v2')
         ->and($exercise->source_hash)->toBe(StudyPrinciple::from($principle->load('category', 'concept'))->sourceHash())
         ->and($exercise->payload['expected_application'])->toBe('Mostrar que Cristo cumpre a Lei.');
 });
@@ -402,4 +402,26 @@ test('isolamento: o exercício gerado para um token nunca é servido a outro', f
     $other = AccessToken::factory()->create();
 
     expect(app(FindCachedExercise::class)->handle($other->id, $principle->id, ExerciseType::ApplyScenario, $exercise->source_hash))->toBeNull();
+});
+
+test('todos os agentes de princípios carregam o contexto presbiteriano e reformado confessional', function (string $agent) {
+    $instructions = (string) (new $agent)->instructions();
+
+    expect($instructions)->toContain('presbiteriana')
+        ->and($instructions)->toContain('Confissão de Fé de Westminster')
+        ->and($instructions)->toContain('arminianismo')
+        ->and($instructions)->toContain('O texto do princípio continua mandando');
+})->with([PrincipleAnswerEvaluator::class, ScenarioGenerator::class, DistinctionGenerator::class, FlawedInterpretationGenerator::class]);
+
+test('exercício gerado com versão antiga do prompt não é mais servido', function () {
+    $principle = Principle::factory()->create();
+    $hash = StudyPrinciple::from($principle->load('category', 'concept'))->sourceHash();
+    $base = ['access_token_id' => $this->token->id, 'principle_id' => $principle->id, 'source_hash' => $hash];
+    PrincipleExercise::factory()->create([...$base, 'prompt_version' => 'cenario-v1']);
+    $current = PrincipleExercise::factory()->create($base);
+
+    $found = app(FindCachedExercise::class)->handle($this->token->id, $principle->id, ExerciseType::ApplyScenario, $hash);
+
+    expect($found->id)->toBe($current->id)
+        ->and($current->prompt_version)->toBe(App\Ai\PromptVersions::for(ExerciseType::ApplyScenario));
 });

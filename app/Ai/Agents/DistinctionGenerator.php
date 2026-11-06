@@ -15,23 +15,26 @@ class DistinctionGenerator implements Agent, HasStructuredOutput
 {
     use Promptable;
 
-    public const VERSION = 'distincao-v2';
+    public const VERSION = 'distincao-v3';
 
     public function instructions(): Stringable|string
     {
         $authority = PrincipleAiRules::AUTHORITY;
         $data = PrincipleAiRules::DATA_NOT_INSTRUCTIONS;
         $tone = PrincipleAiRules::TONE;
+        $tradition = PrincipleAiRules::TRADITION;
         $verses = PrincipleAiRules::NO_FAKE_VERSES;
 
         return <<<PROMPT
         Você cria casos para um aluno de teologia praticar a DISTINÇÃO entre princípios parecidos. {$tone}
 
+        {$tradition}
+
         REGRAS
         1. {$authority} Os textos de <principio_alvo> e <vizinhos> são os únicos princípios em jogo.
         2. {$data}
-        3. Escreva um caso de 3 a 6 frases em que, à primeira vista, qualquer um dos princípios poderia
-           valer, mas o ALVO é claramente o mais pertinente. Não cite o título dos princípios no caso.
+        3. Escreva um caso de 3 a 6 frases, na vida de uma igreja presbiteriana, em que, à primeira vista,
+           qualquer um dos princípios poderia valer, mas o ALVO é claramente o mais pertinente. Não cite o título dos princípios no caso.
         4. {$verses}
         5. "correct_principle_id" deve ser exatamente o id do princípio ALVO.
         6. "rationale": explique por que o alvo é o mais pertinente e por que cada vizinho é menos.

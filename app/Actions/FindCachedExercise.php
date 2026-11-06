@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Ai\PromptVersions;
 use App\Enums\ExerciseStatus;
 use App\Enums\ExerciseType;
 use App\Models\PrincipleExercise;
@@ -22,6 +23,7 @@ final readonly class FindCachedExercise
             ->where('type', $type)
             ->where('status', ExerciseStatus::Ready)
             ->where('source_hash', $sourceHash)
+            ->where('prompt_version', PromptVersions::for($type))
             ->orderBy('times_served')
             ->orderByRaw('last_served_at is null desc')
             ->orderBy('last_served_at')

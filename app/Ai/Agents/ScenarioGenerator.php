@@ -15,23 +15,27 @@ class ScenarioGenerator implements Agent, HasStructuredOutput
 {
     use Promptable;
 
-    public const VERSION = 'cenario-v1';
+    public const VERSION = 'cenario-v2';
 
     public function instructions(): Stringable|string
     {
         $authority = PrincipleAiRules::AUTHORITY;
         $data = PrincipleAiRules::DATA_NOT_INSTRUCTIONS;
         $tone = PrincipleAiRules::TONE;
+        $tradition = PrincipleAiRules::TRADITION;
         $verses = PrincipleAiRules::NO_FAKE_VERSES;
 
         return <<<PROMPT
         Você cria casos curtos para um aluno de teologia praticar a APLICAÇÃO de um princípio. {$tone}
 
+        {$tradition}
+
         REGRAS
         1. {$authority}
         2. {$data}
-        3. Escreva um caso concreto de 3 a 6 frases em que o princípio se aplica: situação pastoral,
-           estudo de um texto bíblico, objeção de um interlocutor ou decisão ministerial. Varie o contexto.
+        3. Escreva um caso concreto de 3 a 6 frases em que o princípio se aplica, na vida de uma igreja
+           presbiteriana: aconselhamento pastoral, reunião de conselho, escola dominical, estudo de um
+           texto bíblico, culto ou uma objeção vinda de outra tradição. Varie o contexto.
         4. {$verses}
         5. "question": a pergunta ao aluno (por padrão "Como este princípio se aplica aqui?").
         6. "expected_application": a aplicação esperada. NUNCA a revele dentro do caso.

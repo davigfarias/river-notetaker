@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Ai\Agents\DistinctionGenerator;
-use App\Ai\Agents\FlawedInterpretationGenerator;
-use App\Ai\Agents\ScenarioGenerator;
 use App\Ai\PrincipleAiGateway;
+use App\Ai\PromptVersions;
 use App\DTO\StudyPrinciple;
 use App\Enums\ExerciseStatus;
 use App\Enums\ExerciseType;
@@ -158,11 +156,7 @@ final readonly class GenerateExerciseForPrinciple
             'bloom_level' => $type->bloomLevel(),
             'payload' => $payload,
             'source_hash' => $principle->sourceHash(),
-            'prompt_version' => match ($type) {
-                ExerciseType::ApplyScenario => ScenarioGenerator::VERSION,
-                ExerciseType::DistinguishPrinciples => DistinctionGenerator::VERSION,
-                default => FlawedInterpretationGenerator::VERSION,
-            },
+            'prompt_version' => PromptVersions::for($type),
             'model' => (string) config('ai.default'),
             'status' => $status,
             'generated_at' => $now,

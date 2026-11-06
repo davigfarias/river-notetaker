@@ -33,3 +33,8 @@ Formato: decisão, alternativas, motivo.
 23. **Reposição em segundo plano só com fila de verdade** (`queue.default` diferente de `sync`). Sem worker o app geraria na hora, travando a tela; vale a geração sob demanda.
 24. **Coluna `chosen_principle_id`** em `principle_attempts` (migration aditiva) para guardar a opção marcada em "Distinguir".
 25. **Fase 5:** domínio por nível usa as 3 últimas respostas do nível (Bom/Fácil conta como acerto); estatísticas dos últimos 30 dias e concordância IA × usuário aparecem na tela de início; sem `arch()` porque o projeto não usa.
+
+## Contexto confessional
+
+26. **IA só no horizonte presbiteriano e reformado confessional (Westminster).** `PrincipleAiRules::TRADITION` entra nos 4 agentes (avaliação, cenário, distinção, interpretação com falha). O texto do princípio continua sendo a autoridade; o contexto escolhe exemplos, vocabulário e o que conta como erro (arminiano, dispensacionalista, pentecostal etc.), sem acrescentar doutrina. A avaliação aponta em "misconceptions" respostas que contradigam a tradição.
+27. **Cache respeita a versão do prompt.** `PromptVersions` dá a versão atual por tipo e `FindCachedExercise` só serve exercícios dessa versão; mudar o prompt descarta o estoque antigo sem apagar nada. Versões: `cenario-v2`, `distincao-v3`, `interpretacao-v2`, `avaliar-v3`.

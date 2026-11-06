@@ -20,9 +20,12 @@ class PrincipleAnswerEvaluator implements Agent, HasStructuredOutput
         $authority = PrincipleAiRules::AUTHORITY;
         $data = PrincipleAiRules::DATA_NOT_INSTRUCTIONS;
         $tone = PrincipleAiRules::TONE;
+        $tradition = PrincipleAiRules::TRADITION;
 
         return <<<PROMPT
         Você corrige respostas de um aluno de teologia sobre princípios que ele mesmo estuda. {$tone}
+
+        {$tradition}
 
         REGRAS
         1. {$authority} Se a resposta do aluno for plausível mas não estiver sustentada pelo texto,
@@ -36,7 +39,10 @@ class PrincipleAnswerEvaluator implements Agent, HasStructuredOutput
            ambígua, muito curta ou quando o texto do princípio não permitir julgar.
         6. "suggested_rating": again (errou o essencial), hard (acertou com dificuldade ou
            lacunas grandes), good (acertou o essencial), easy (completa e precisa).
-        7. Responda APENAS no formato estruturado pedido, sem texto fora dele.
+        7. Se a resposta do aluno contradisser a tradição reformada confessional (por exemplo, afirmar
+           algo arminiano, dispensacionalista ou pentecostal como se fosse correto), aponte em
+           "misconceptions" e explique, mesmo que o texto do princípio não trate do ponto.
+        8. Responda APENAS no formato estruturado pedido, sem texto fora dele.
         PROMPT;
     }
 

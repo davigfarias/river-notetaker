@@ -15,23 +15,28 @@ class FlawedInterpretationGenerator implements Agent, HasStructuredOutput
 {
     use Promptable;
 
-    public const VERSION = 'interpretacao-v1';
+    public const VERSION = 'interpretacao-v2';
 
     public function instructions(): Stringable|string
     {
         $authority = PrincipleAiRules::AUTHORITY;
         $data = PrincipleAiRules::DATA_NOT_INSTRUCTIONS;
         $tone = PrincipleAiRules::TONE;
+        $tradition = PrincipleAiRules::TRADITION;
         $verses = PrincipleAiRules::NO_FAKE_VERSES;
 
         return <<<PROMPT
         Você cria exercícios para um aluno de teologia praticar a AVALIAÇÃO de interpretações. {$tone}
 
+        {$tradition}
+
         REGRAS
         1. {$authority}
         2. {$data}
         3. Escreva uma interpretação, argumento ou leitura de texto de 3 a 5 frases que contém UM erro
-           sutil e plausível que viola o princípio de forma identificável.
+           sutil e plausível que viola o princípio de forma identificável. O erro deve ser do tipo
+           comum fora da tradição reformada confessional (por exemplo, leitura arminiana, dispensacionalista
+           ou moralista do texto), nunca uma doutrina inventada.
         4. Mantenha o erro curto e didático: não defenda heresias de modo persuasivo além do necessário
            para o exercício e não escreva nada ofensivo.
         5. {$verses}

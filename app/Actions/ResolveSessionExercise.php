@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Ai\PromptVersions;
 use App\Enums\ExerciseType;
 use App\Models\PrincipleExercise;
 use App\Models\PrincipleSession;
@@ -72,7 +73,7 @@ final readonly class ResolveSessionExercise
     {
         $stock = PrincipleExercise::query()
             ->where('access_token_id', $accessTokenId)->where('principle_id', $principleId)
-            ->where('type', $type)->where('status', 'ready')->where('source_hash', $hash)
+            ->where('type', $type)->where('status', 'ready')->where('source_hash', $hash)->where('prompt_version', PromptVersions::for($type))
             ->where('times_served', 0)->count();
 
         if ($stock < (int) config('principios.ai.stock_per_type')) {

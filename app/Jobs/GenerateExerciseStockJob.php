@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Actions\GenerateExerciseForPrinciple;
 use App\Actions\LoadStudyPrinciple;
+use App\Ai\PromptVersions;
 use App\Enums\ExerciseType;
 use App\Models\PrincipleExercise;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -46,7 +47,7 @@ final class GenerateExerciseStockJob implements ShouldBeUnique, ShouldQueue
 
         $unserved = PrincipleExercise::query()
             ->where('access_token_id', $this->accessTokenId)->where('principle_id', $this->principleId)
-            ->where('type', $this->type)->where('status', 'ready')->where('source_hash', $current)
+            ->where('type', $this->type)->where('status', 'ready')->where('source_hash', $current)->where('prompt_version', PromptVersions::for($this->type))
             ->where('times_served', 0)->count();
 
         if ($unserved < (int) config('principios.ai.stock_per_type')) {

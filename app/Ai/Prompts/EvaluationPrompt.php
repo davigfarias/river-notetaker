@@ -13,7 +13,7 @@ use App\Enums\ExerciseType;
  */
 final class EvaluationPrompt
 {
-    public const VERSION = 'avaliar-v2';
+    public const VERSION = 'avaliar-v3';
 
     public static function build(PreparedExercise $exercise, StudyPrinciple $principle, string $userAnswer, ?string $chosenTitle = null): string
     {

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Ai\PromptVersions;
 use App\Enums\BloomLevel;
 use App\Enums\ExerciseStatus;
 use App\Enums\ExerciseType;
@@ -34,7 +35,7 @@ class PrincipleExerciseFactory extends Factory
                 'key_points' => [$this->faker->sentence()],
             ],
             'source_hash' => hash('sha256', $this->faker->unique()->sentence()),
-            'prompt_version' => 'v1',
+            'prompt_version' => PromptVersions::for(ExerciseType::ApplyScenario),
             'model' => 'fake',
             'status' => ExerciseStatus::Ready,
             'times_served' => 0,
