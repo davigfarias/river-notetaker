@@ -90,10 +90,18 @@ class PrincipleStudyDemoSeeder extends Seeder
         if ($token !== null) {
             Principle::query()->whereIn('title', ['Cristo é a chave hermenêutica', 'Deus é um em três pessoas', 'Justificação pela fé'])
                 ->get()
-                ->each(fn (Principle $p) => PrincipleReviewState::query()->firstOrCreate(
-                    ['access_token_id' => $token->id, 'principle_id' => $p->id],
-                    ['due_at' => now()->subDay(), 'last_reviewed_at' => now()->subDays(4), 'interval_days' => 3, 'ease' => 2.5, 'repetitions' => 2, 'lapses' => 0],
-                ));
+                ->each(function (Principle $p) use ($token): void {
+                    $state = PrincipleReviewState::query()->firstOrNew(['access_token_id' => $token->id, 'principle_id' => $p->id]);
+
+                    if (! $state->exists) {
+                        // created_at no passado: senão o estado conta como "novo hoje" e esgota o limite diário.
+                        $state->forceFill([
+                            'due_at' => now()->subDay(), 'last_reviewed_at' => now()->subDays(4),
+                            'interval_days' => 3, 'ease' => 2.5, 'repetitions' => 2, 'lapses' => 0,
+                            'created_at' => now()->subDays(4), 'updated_at' => now()->subDays(4),
+                        ])->save();
+                    }
+                });
         }
     }
 }

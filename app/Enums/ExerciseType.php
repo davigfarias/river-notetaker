@@ -43,4 +43,13 @@ enum ExerciseType: string
             default => true,
         };
     }
+
+    /** Funciona sem IA: é o que a sessão usa quando a IA está desligada ou fora do ar. */
+    public function isOfflineCapable(): bool
+    {
+        return match ($this) {
+            self::RecallTitleToStatement, self::RecallStatementToTitle, self::CreateExample => true,
+            default => false,
+        };
+    }
 }

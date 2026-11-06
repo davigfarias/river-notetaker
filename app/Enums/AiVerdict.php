@@ -9,4 +9,13 @@ enum AiVerdict: string
     case Correct = 'correct';
     case Partial = 'partial';
     case Incorrect = 'incorrect';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Correct => 'Correta',
+            self::Partial => 'Parcial',
+            self::Incorrect => 'Incorreta',
+        };
+    }
 }

@@ -18,6 +18,11 @@ final readonly class CreateExampleStrategy implements ExerciseStrategy
         return ExerciseType::CreateExample;
     }
 
+    public function evaluatesWithAi(): bool
+    {
+        return false;
+    }
+
     public function prepare(StudyPrinciple $principle): PreparedExercise
     {
         return new PreparedExercise(

@@ -8,14 +8,18 @@ use App\Actions\Orchestrators\CompleteExerciseReviewOrchestrator;
 use App\Actions\Orchestrators\StartPrincipleSessionOrchestrator;
 use App\Actions\Orchestrators\SubmitExerciseAnswerOrchestrator;
 use App\Actions\PrepareExercise;
+use App\Actions\RetryAttemptEvaluation;
 use App\Actions\ScopePrinciples;
 use App\Actions\PreviewPrincipleRatingIntervals;
+use App\DTO\AnswerEvaluation;
 use App\DTO\PreparedExercise;
 use App\DTO\PrincipleSessionSummary;
 use App\Enums\ExerciseType;
 use App\Enums\SelfRating;
 use App\Enums\StudyStep;
 use App\Models\Disciplines;
+use App\Exceptions\InvalidAiEvaluation;
+use App\Models\PrincipleAttempt;
 use App\Models\PrincipleCategory;
 use App\Models\PrincipleSession;
 use Carbon\CarbonImmutable;
@@ -44,6 +48,10 @@ new #[Title('Estudar princípios')] class extends Component
     /** Momento (em segundos, com fração) em que a pergunta apareceu, para medir o tempo de resposta. */
     #[Locked]
     public float $shownAt = 0.0;
+
+    /** Por que a IA não avaliou (desligada, limite do dia ou falha); nulo quando avaliou. */
+    #[Locked]
+    public ?string $aiNotice = null;
 
     public string $answer = '';
 
@@ -76,8 +84,9 @@ new #[Title('Estudar princípios')] class extends Component
         $this->step = StudyStep::Question;
         $this->answer = '';
         $this->attemptId = null;
+        $this->aiNotice = null;
         $this->shownAt = microtime(true);
-        unset($this->session, $this->exercise, $this->intervals);
+        unset($this->session, $this->exercise, $this->intervals, $this->evaluation);
     }
 
     #[Computed]
@@ -110,6 +119,35 @@ new #[Title('Estudar princípios')] class extends Component
         $item = $this->item;
 
         return $item === null ? [] : app(PreviewPrincipleRatingIntervals::class)->handle($this->tokenId(), $item['principle_id'], CarbonImmutable::now());
+    }
+
+    /** Avaliação da IA gravada na tentativa atual, se houver. */
+    #[Computed]
+    public function evaluation(): ?AnswerEvaluation
+    {
+        if ($this->attemptId === null) {
+            return null;
+        }
+
+        $data = PrincipleAttempt::query()->where('access_token_id', $this->tokenId())->find($this->attemptId)?->ai_evaluation;
+
+        try {
+            return $data === null ? null : AnswerEvaluation::fromArray($data);
+        } catch (InvalidAiEvaluation) {
+            return null;
+        }
+    }
+
+    public function retryEvaluation(RetryAttemptEvaluation $action): void
+    {
+        if ($this->step !== StudyStep::Feedback || $this->attemptId === null) {
+            return;
+        }
+
+        $check = $action->handle($this->tokenId(), $this->attemptId);
+
+        $this->aiNotice = $check->success ? null : (string) $check->message;
+        unset($this->evaluation);
     }
 
     #[Computed]
@@ -239,7 +277,9 @@ new #[Title('Estudar princípios')] class extends Component
             return;
         }
 
-        $this->attemptId = $check->data->id;
+        $this->attemptId = $check->data->attempt->id;
+        $this->aiNotice = $check->data->notice;
+        unset($this->evaluation);
         $this->step = StudyStep::Feedback;
     }
 

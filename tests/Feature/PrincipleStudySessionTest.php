@@ -20,6 +20,8 @@ beforeEach(function () {
     $this->token = AccessToken::factory()->create();
     $this->withSession(['access_token_id' => $this->token->id]);
     Livewire::withoutLazyLoading();
+    // Estes testes cobrem a sessão offline; a avaliação por IA tem arquivo próprio.
+    config(['principios.ai.enabled' => false]);
 });
 
 function startSession(int $tokenId, array $args = []): PrincipleSession

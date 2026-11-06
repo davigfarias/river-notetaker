@@ -1,5 +1,6 @@
 <?php
 
+use App\Ai\Agents\PrincipleAnswerEvaluator;
 use App\Ai\Agents\QuizQuestionGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -30,6 +31,10 @@ pest()->extend(TestCase::class)
                 'explanation' => 'Explicação de teste.',
             ])],
         ]);
+
+        // A avaliação de princípios nunca pode chegar ao provedor real: prompt sem fake
+        // explícito lança erro (a Action o trata como "IA indisponível").
+        PrincipleAnswerEvaluator::fake()->preventStrayPrompts();
     })
     ->in('Feature');
 

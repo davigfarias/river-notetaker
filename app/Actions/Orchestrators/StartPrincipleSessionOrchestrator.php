@@ -54,7 +54,7 @@ final readonly class StartPrincipleSessionOrchestrator
                 ->whereIn('principle_id', $ids)
                 ->get()->keyBy('principle_id');
             $stats = $this->loadStats->handle($accessTokenId, $ids);
-            $available = $this->strategies->availableTypes();
+            $available = $this->strategies->availableTypes((bool) config('principios.ai.enabled'));
             $higherOrderTarget = (int) ceil((float) config('principios.session.min_higher_order_ratio') * $principles->count());
 
             $items = $principles->values()->map(fn (Principle $p, int $i): SessionItem => new SessionItem(

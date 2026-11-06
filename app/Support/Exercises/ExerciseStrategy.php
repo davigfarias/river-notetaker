@@ -12,5 +12,8 @@ interface ExerciseStrategy
 {
     public function type(): ExerciseType;
 
+    /** A resposta livre deste tipo é avaliada pela IA (quando disponível). */
+    public function evaluatesWithAi(): bool;
+
     public function prepare(StudyPrinciple $principle): PreparedExercise;
 }

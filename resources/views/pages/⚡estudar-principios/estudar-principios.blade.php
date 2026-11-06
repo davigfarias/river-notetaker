@@ -177,12 +177,13 @@
                 <flux:text>{{ $exercise->instruction }}</flux:text>
 
                 @if ($step === \App\Enums\StudyStep::Question)
-                    <flux:textarea wire:model="answer" rows="5" maxlength="5000" autofocus
+                    <flux:textarea wire:model="answer" rows="5" maxlength="5000" autofocus wire:loading.attr="disabled" wire:target="reveal"
                         label="Sua resposta{{ $exercise->requiresAnswer ? '' : ' (opcional)' }}"
                         placeholder="Escreva aqui antes de ver o gabarito." />
 
                     <flux:button wire:click="reveal" variant="primary" icon="eye" wire:loading.attr="disabled" wire:target="reveal">
-                        {{ $exercise->requiresAnswer ? 'Verificar' : 'Mostrar resposta' }}
+                        <span wire:loading.remove wire:target="reveal">{{ $exercise->requiresAnswer ? 'Verificar' : 'Mostrar resposta' }}</span>
+                        <span wire:loading wire:target="reveal">{{ $exercise->type === \App\Enums\ExerciseType::ExplainWhy ? 'Avaliando sua resposta...' : 'Salvando...' }}</span>
                     </flux:button>
                 @else
                     <div aria-live="polite" class="space-y-4">
@@ -198,6 +199,50 @@
                             <p class="whitespace-pre-line text-on-surface">{{ $exercise->reference }}</p>
                         </div>
 
+                        @php
+                            $evaluation = $this->evaluation;
+                            $uncertain = $evaluation?->isUncertain((float) config('principios.ai.confidence_threshold')) ?? false;
+                            $suggested = $evaluation !== null && ! $uncertain ? $evaluation->suggestedRating : null;
+                        @endphp
+
+                        @if ($evaluation)
+                            <div class="space-y-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-5" wire:key="evaluation-{{ $attemptId }}">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <flux:heading size="md" level="3">Avaliação da IA</flux:heading>
+                                    <flux:badge :color="match ($evaluation->verdict) { \App\Enums\AiVerdict::Correct => 'green', \App\Enums\AiVerdict::Partial => 'amber', \App\Enums\AiVerdict::Incorrect => 'red' }">{{ $evaluation->verdict->label() }}</flux:badge>
+                                    @if ($uncertain)
+                                        <flux:badge color="zinc">Avaliação incerta</flux:badge>
+                                    @endif
+                                </div>
+
+                                <p class="whitespace-pre-line text-on-surface">{{ $evaluation->feedback }}</p>
+
+                                @foreach ([['Você cobriu', $evaluation->coveredPoints], ['Faltou', $evaluation->missingPoints], ['Cuidado com', $evaluation->misconceptions]] as [$label, $points])
+                                    @if ($points !== [])
+                                        <div wire:key="points-{{ $label }}">
+                                            <p class="text-sm font-semibold text-on-surface-variant">{{ $label }}</p>
+                                            <ul class="list-disc space-y-1 pl-5 text-sm">
+                                                @foreach ($points as $point)
+                                                    <li>{{ $point }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+                                @endforeach
+
+                                @if ($uncertain)
+                                    <flux:text size="sm">A IA não ficou segura desta vez, então não sugeri nota. Decida você.</flux:text>
+                                @endif
+                            </div>
+                        @elseif ($aiNotice)
+                            <div class="flex flex-col gap-3 rounded-xl border border-dashed border-outline-variant p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
+                                <flux:text size="sm">{{ $aiNotice }}</flux:text>
+                                @if ($answer !== '' && $exercise->type === \App\Enums\ExerciseType::ExplainWhy)
+                                    <flux:button wire:click="retryEvaluation" size="sm" icon="arrow-path" wire:loading.attr="disabled" wire:target="retryEvaluation">Avaliar de novo</flux:button>
+                                @endif
+                            </div>
+                        @endif
+
                         @if ($exercise->type === \App\Enums\ExerciseType::CreateExample)
                             <flux:text size="sm">Sem IA por enquanto: compare seu exemplo com o princípio e escolha a nota que for honesta.</flux:text>
                         @endif
@@ -207,8 +252,11 @@
                     <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                         @foreach (\App\Enums\SelfRating::cases() as $rating)
                             <div class="flex flex-col items-center gap-1" wire:key="rate-{{ $index }}-{{ $rating->value }}">
-                                <flux:button wire:click="rate('{{ $rating->value }}')" wire:loading.attr="disabled" wire:target="rate" class="w-full justify-center" :variant="$rating === \App\Enums\SelfRating::Good ? 'primary' : 'outline'">{{ $rating->label() }}</flux:button>
+                                <flux:button wire:click="rate('{{ $rating->value }}')" wire:loading.attr="disabled" wire:target="rate" class="w-full justify-center" :variant="$rating === $suggested ? 'primary' : 'outline'">{{ $rating->label() }}</flux:button>
                                 <span class="text-xs text-on-surface-variant">{{ $dias($this->intervals[$rating->value] ?? 1) }}</span>
+                                @if ($rating === $suggested)
+                                    <span class="text-xs font-medium text-primary">sugestão da IA</span>
+                                @endif
                             </div>
                         @endforeach
                     </div>

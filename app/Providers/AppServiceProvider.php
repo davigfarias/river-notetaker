@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Ai\GroqPrincipleAiGateway;
+use App\Ai\PrincipleAiGateway;
 use App\Http\Middleware\EnsureAccessTokenIsValid;
 use App\Support\Exercises\CreateExampleStrategy;
 use App\Support\Exercises\ExerciseStrategies;
+use App\Support\Exercises\ExplainWhyStrategy;
 use App\Support\Exercises\RecallStatementToTitleStrategy;
 use App\Support\Exercises\RecallTitleToStatementStrategy;
 use App\Support\Markdown\HeadingIdsExtension;
@@ -26,9 +29,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(PrincipleAiGateway::class, GroqPrincipleAiGateway::class);
+
         $this->app->singleton(ExerciseStrategies::class, fn (): ExerciseStrategies => new ExerciseStrategies([
             new RecallTitleToStatementStrategy,
             new RecallStatementToTitleStrategy,
+            new ExplainWhyStrategy,
             new CreateExampleStrategy,
         ]));
 

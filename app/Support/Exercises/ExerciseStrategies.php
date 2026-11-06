@@ -31,10 +31,15 @@ final readonly class ExerciseStrategies
     }
 
     /**
+     * Tipos que podem ser sorteados. Sem IA, só os que funcionam offline.
+     *
      * @return list<ExerciseType>
      */
-    public function availableTypes(): array
+    public function availableTypes(bool $aiEnabled): array
     {
-        return array_map(fn (ExerciseStrategy $s): ExerciseType => $s->type(), array_values($this->byType));
+        return array_values(array_filter(
+            array_map(fn (ExerciseStrategy $s): ExerciseType => $s->type(), array_values($this->byType)),
+            fn (ExerciseType $t): bool => $aiEnabled || $t->isOfflineCapable(),
+        ));
     }
 }

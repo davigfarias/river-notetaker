@@ -15,6 +15,11 @@ final readonly class RecallTitleToStatementStrategy implements ExerciseStrategy
         return ExerciseType::RecallTitleToStatement;
     }
 
+    public function evaluatesWithAi(): bool
+    {
+        return false;
+    }
+
     public function prepare(StudyPrinciple $principle): PreparedExercise
     {
         return new PreparedExercise(

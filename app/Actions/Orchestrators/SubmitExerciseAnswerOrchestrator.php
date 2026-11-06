@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Orchestrators;
 
+use App\Actions\EvaluateAttemptAnswer;
 use App\Actions\FindOpenPrincipleSession;
+use App\Actions\LoadStudyPrinciple;
 use App\Actions\PrepareExercise;
 use App\Actions\RecordPrincipleAttempt;
+use App\DTO\SubmittedAnswer;
 use App\Enums\ExerciseType;
+use App\Support\Exercises\ExerciseStrategies;
 use App\Support\Outcome;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
@@ -20,10 +24,14 @@ final readonly class SubmitExerciseAnswerOrchestrator
         private FindOpenPrincipleSession $findSession,
         private PrepareExercise $prepare,
         private RecordPrincipleAttempt $record,
+        private ExerciseStrategies $strategies,
+        private LoadStudyPrinciple $load,
+        private EvaluateAttemptAnswer $evaluate,
     ) {}
 
     /**
-     * Devolve o PrincipleAttempt gravado (ainda sem autoavaliação) em `data`.
+     * Devolve um SubmittedAnswer em `data`: a tentativa gravada (ainda sem autoavaliação) e,
+     * se a IA não pôde avaliar, o aviso para mostrar ao usuário.
      */
     public function handle(int $accessTokenId, int $sessionId, int $index, ?string $answer, int $durationMs, ?CarbonImmutable $now = null): Outcome
     {
@@ -46,7 +54,7 @@ final readonly class SubmitExerciseAnswerOrchestrator
                 return Outcome::failure(message: 'A resposta está longa demais. Resuma em até '.self::MAX_ANSWER_LENGTH.' caracteres.');
             }
 
-            return Outcome::success(data: $this->record->handle(
+            $attempt = $this->record->handle(
                 $accessTokenId,
                 $sessionId,
                 $item['principle_id'],
@@ -54,7 +62,15 @@ final readonly class SubmitExerciseAnswerOrchestrator
                 $answer === '' ? null : $answer,
                 max(0, $durationMs),
                 $now ?? CarbonImmutable::now(),
-            ));
+            );
+
+            $notice = null;
+
+            if ($answer !== null && $answer !== '' && $this->strategies->for($type)->evaluatesWithAi()) {
+                $notice = $this->evaluate->handle($attempt, $this->load->handle($item['principle_id']))->message;
+            }
+
+            return Outcome::success(data: new SubmittedAnswer($attempt, is_string($notice) ? $notice : null));
         } catch (\Exception $e) {
             Log::error("Erro ao gravar resposta de princípio: {$e->getMessage()}");
 
