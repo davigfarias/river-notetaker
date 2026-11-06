@@ -1,4 +1,4 @@
-@props(['principle', 'editing' => false])
+@props(['principle', 'editing' => false, 'mastery' => null])
 
 <x-timeline.item {{ $attributes }}>
     @if ($principle->type === \App\Enums\PrincipleType::Concept)
@@ -64,6 +64,29 @@
                         <flux:heading size="lg" class="mt-2">{{ $principle->title }}</flux:heading>
                         <div class="prose dark:prose-invert max-w-none mt-2 leading-relaxed">
                             {!! Str::markdownRich($principle->body) !!}
+                        </div>
+                    @endif
+
+                    @if ($mastery !== null)
+                        <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-on-surface-variant">
+                            <ul class="flex items-center gap-1" aria-label="Domínio por nível de estudo">
+                                @foreach (\App\Enums\BloomLevel::cases() as $level)
+                                    @php
+                                        $value = $mastery['levels'][$level->value] ?? null;
+                                        $state = $value === null ? 'ainda não praticado' : ($value >= 0.67 ? 'bem dominado' : ($value > 0 ? 'em andamento' : 'precisa de reforço'));
+                                    @endphp
+                                    <li class="size-3 rounded-full border border-outline {{ $value === null ? '' : ($value >= 0.67 ? 'border-primary bg-primary' : ($value > 0 ? 'border-primary bg-primary/40' : 'border-red-500 bg-red-500/30')) }}" title="{{ $level->label() }}: {{ $state }}">
+                                        <span class="sr-only">{{ $level->label() }}: {{ $state }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <span>
+                                @if ($mastery['dueAt'])
+                                    {{ $mastery['dueAt']->isPast() ? 'Revisão vencida' : 'Próxima revisão: '.$mastery['dueAt']->translatedFormat('d \d\e M') }}
+                                @else
+                                    Ainda não estudado
+                                @endif
+                            </span>
                         </div>
                     @endif
                 </div>

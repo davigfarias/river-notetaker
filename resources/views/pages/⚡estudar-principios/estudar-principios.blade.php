@@ -100,6 +100,44 @@
             </div>
         </form>
 
+        @php $stats = $this->stats; @endphp
+        <section class="space-y-4 rounded-2xl border border-outline-variant bg-surface-container-low p-6" aria-labelledby="desempenho">
+            <flux:heading id="desempenho" size="lg" level="2">Seu desempenho nos últimos 30 dias</flux:heading>
+
+            @if ($stats->answered === 0)
+                <flux:text>Ainda não há respostas nos últimos 30 dias. Faça uma sessão e seu desempenho por nível aparece aqui.</flux:text>
+            @else
+                <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($stats->levels as $label => $level)
+                        <li wire:key="stat-{{ $label }}" class="flex items-baseline justify-between gap-3 rounded-xl border border-outline-variant px-4 py-3">
+                            <span class="font-medium">{{ $label }}</span>
+                            <span class="text-sm text-on-surface-variant">
+                                @if ($level['goodRate'] === null)
+                                    ainda sem respostas
+                                @else
+                                    {{ (int) round($level['goodRate'] * 100) }}% de acerto em {{ $level['answered'] }}
+                                @endif
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+
+                @if ($stats->agreement)
+                    <flux:text size="sm">
+                        Em {{ $stats->agreement['compared'] }} {{ $stats->agreement['compared'] === 1 ? 'resposta' : 'respostas' }} com sugestão da IA, você escolheu a mesma nota em {{ $stats->agreement['same'] }}.
+                        A IA sugeriu nota maior em {{ $stats->agreement['aiHigher'] }} e menor em {{ $stats->agreement['aiLower'] }}.
+                        @if ($stats->agreement['compared'] >= 5 && $stats->agreement['aiHigher'] > $stats->agreement['same'])
+                            Ela pode estar generosa demais: confie mais na sua nota.
+                        @elseif ($stats->agreement['compared'] >= 5 && $stats->agreement['aiLower'] > $stats->agreement['same'])
+                            Ela pode estar rígida demais: confie mais na sua nota.
+                        @endif
+                    </flux:text>
+                @else
+                    <flux:text size="sm">Nenhuma resposta teve sugestão da IA ainda.</flux:text>
+                @endif
+            @endif
+        </section>
+
     @elseif ($step === \App\Enums\StudyStep::Summary)
         @php $summary = $this->summary; @endphp
         <div>

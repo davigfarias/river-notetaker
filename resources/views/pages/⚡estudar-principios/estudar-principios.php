@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\BuildPrincipleSessionSummary;
+use App\Actions\BuildPrincipleStudyStats;
 use App\Actions\CountPrinciplesToStudy;
 use App\Actions\FindOpenPrincipleSession;
 use App\Actions\FinishPrincipleSession;
@@ -15,6 +16,7 @@ use App\Actions\PreviewPrincipleRatingIntervals;
 use App\DTO\AnswerEvaluation;
 use App\DTO\PreparedExercise;
 use App\DTO\PrincipleSessionSummary;
+use App\DTO\PrincipleStudyStats;
 use App\Enums\ExerciseType;
 use App\Enums\SelfRating;
 use App\Enums\StudyStep;
@@ -213,6 +215,12 @@ new #[Title('Estudar princípios')] class extends Component
     public function summary(): ?PrincipleSessionSummary
     {
         return $this->sessionId === null ? null : app(BuildPrincipleSessionSummary::class)->handle($this->tokenId(), $this->sessionId);
+    }
+
+    #[Computed]
+    public function stats(): PrincipleStudyStats
+    {
+        return app(BuildPrincipleStudyStats::class)->handle($this->tokenId(), CarbonImmutable::now());
     }
 
     #[Computed]

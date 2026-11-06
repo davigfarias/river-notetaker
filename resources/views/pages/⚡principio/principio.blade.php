@@ -95,6 +95,7 @@
                     <x-principle-item
                         :principle="$principle"
                         :editing="$editingPrincipleId === $principle->id"
+                        :mastery="$this->mastery[$principle->id] ?? null"
                         wire:key="principle-{{ $principle->id }}"
                         wire:sort:item="{{ $principle->id }}"
                     />
@@ -121,6 +122,7 @@
                                 <x-principle-item
                                     :principle="$principle"
                                     :editing="$editingPrincipleId === $principle->id"
+                        :mastery="$this->mastery[$principle->id] ?? null"
                                     wire:key="principle-{{ $principle->id }}"
                                     wire:sort:item="{{ $principle->id }}"
                                 />

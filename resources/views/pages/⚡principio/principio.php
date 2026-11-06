@@ -66,6 +66,19 @@ new #[Title('Princípios')] #[Lazy] class extends Component
     }
 
     /**
+     * Domínio por nível de Bloom e próxima revisão de cada princípio do tema, para o token atual.
+     *
+     * @return array<int, array{levels: array<string, float|null>, dueAt: \Carbon\CarbonImmutable|null}>
+     */
+    #[Computed]
+    public function mastery(): array
+    {
+        $ids = $this->topic?->principles->map(fn (\App\Models\Principle $p): int => $p->id)->values()->all() ?? [];
+
+        return app(\App\Actions\GetPrincipleMastery::class)->handle((int) session('access_token_id'), $ids);
+    }
+
+    /**
      * @return Collection<int, \App\DTO\ConceptsDTO>
      */
     #[Computed]

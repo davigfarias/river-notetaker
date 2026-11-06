@@ -15,7 +15,7 @@ class DistinctionGenerator implements Agent, HasStructuredOutput
 {
     use Promptable;
 
-    public const VERSION = 'distincao-v1';
+    public const VERSION = 'distincao-v2';
 
     public function instructions(): Stringable|string
     {
@@ -35,6 +35,8 @@ class DistinctionGenerator implements Agent, HasStructuredOutput
         4. {$verses}
         5. "correct_principle_id" deve ser exatamente o id do princípio ALVO.
         6. "rationale": explique por que o alvo é o mais pertinente e por que cada vizinho é menos.
+           Refira-se aos princípios SEMPRE pelo título, nunca pelo id nem por "vizinho 11" ou similar:
+           o aluno não vê os ids.
         7. Responda APENAS no formato estruturado pedido.
         PROMPT;
     }

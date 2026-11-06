@@ -11,6 +11,17 @@ enum SelfRating: string
     case Good = 'good';
     case Easy = 'easy';
 
+    /** Ordem de generosidade: errei < difícil < bom < fácil. Usada para comparar IA e usuário. */
+    public function score(): int
+    {
+        return match ($this) {
+            self::Again => 0,
+            self::Hard => 1,
+            self::Good => 2,
+            self::Easy => 3,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {
