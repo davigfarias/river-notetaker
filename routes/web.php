@@ -38,6 +38,8 @@ Route::middleware(EnsureAccessTokenIsValid::class)->group(function () {
 
     Route::livewire('/referencias/lista', 'pages::referencias')->name('referencias');
     Route::livewire('/referencias/busca', 'pages::buscar-referencias')->name('referencias.busca');
+    Route::livewire('/referencias/planners', 'pages::planners')->name('referencias.planners');
+    Route::livewire('/referencias/planners/{id}', 'pages::planner')->whereNumber('id')->name('referencias.planners.show');
     Route::livewire('/referencias/exportacoes', 'pages::exportacoes')->name('referencias.exportacoes');
     Route::get('/referencias/exportacoes/{export}/download', DownloadExportController::class)->name('referencias.exportacoes.download');
     Route::livewire('/referencias/{id}/capitulos/{chapterId}/estudar', 'pages::estudar')

@@ -12,6 +12,8 @@
     </x-slot:headerActions>
 
     <div class="w-full py-8">
+        @include('partials.referencias-nav', ['active' => 'obras'])
+
         <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
                 <flux:heading size="xl" level="1">Materiais de Referência</flux:heading>
@@ -34,6 +36,8 @@
 @endplaceholder
 
 <div class="w-full py-8">
+
+    @include('partials.referencias-nav', ['active' => 'obras'])
 
     <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
