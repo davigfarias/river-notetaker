@@ -147,7 +147,6 @@ new #[Title('Planner')] class extends Component
         $this->toast($check->success, $check->message);
 
         if ($check->success) {
-            $this->adding = false;
             $this->selection = [];
             unset($this->planner, $this->groups, $this->taken);
         }

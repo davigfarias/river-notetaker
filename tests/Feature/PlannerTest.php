@@ -78,6 +78,8 @@ test('o seletor da tela adiciona o que foi marcado', function () {
         ->call('openAdd')
         ->set('selection', ['c'.$this->chapters[2]->id])
         ->call('addItems')
+        ->assertSet('adding', true)
+        ->assertSet('selection', [])
         ->assertSee('Livro III');
 
     expect($this->planner->items()->count())->toBe(1);

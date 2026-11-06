@@ -120,14 +120,18 @@
         </form>
     </flux:modal>
 
-    {{-- Seletor de obras e capítulos. --}}
-    <flux:modal name="add-items" wire:model.self="adding" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-xl">
-        <form wire:submit="addItems" class="space-y-4">
-            <flux:heading size="lg">Adicionar ao planner</flux:heading>
+    {{-- Seletor de obras e capítulos: painel lateral, a barra do planner continua à vista e avança a cada adição. --}}
+    <flux:modal name="add-items" flyout wire:model.self="adding" class="w-full max-w-[calc(100vw-2rem)] md:w-[28rem]">
+        <div class="space-y-5">
+            <div>
+                <flux:heading size="lg">Adicionar ao planner</flux:heading>
+                <flux:text class="mt-2">Marque os capítulos (ou as obras sem capítulos) que entram em “{{ $planner->name }}”.</flux:text>
+            </div>
+
             <flux:input icon="magnifying-glass" wire:model.live.debounce.300ms="search" placeholder="Buscar por título ou autor..." clearable />
 
-            <div class="max-h-[50dvh] space-y-5 overflow-y-auto pe-1">
-                <flux:checkbox.group wire:model="selection" class="space-y-5">
+            <form id="add-items-form" wire:submit="addItems">
+                <flux:checkbox.group wire:model.live="selection" class="space-y-6">
                     @forelse ($this->library as $material)
                         <div wire:key="pick-{{ $material->id }}">
                             <flux:heading size="sm">{{ $material->title }}</flux:heading>
@@ -135,7 +139,7 @@
                                 <flux:text size="sm">{{ $material->author }}</flux:text>
                             @endif
 
-                            <div class="mt-2 space-y-2">
+                            <div class="border-surface-variant mt-2 space-y-2 border-s-2 ps-3">
                                 @forelse ($material->chapters as $chapter)
                                     <flux:checkbox
                                         wire:key="pick-c-{{ $chapter->id }}"
@@ -163,14 +167,19 @@
                         @endif
                     @endforelse
                 </flux:checkbox.group>
-            </div>
+            </form>
+        </div>
 
-            <div class="flex items-center gap-2">
-                <flux:text size="sm" class="tabular-nums">{{ count($selection) }} {{ count($selection) === 1 ? 'selecionado' : 'selecionados' }}</flux:text>
-                <flux:spacer />
-                <flux:button type="submit" variant="primary" icon="plus">Adicionar</flux:button>
-            </div>
-        </form>
+        <x-slot name="footer" class="flex items-center gap-2">
+            <flux:text size="sm" class="tabular-nums">{{ count($selection) }} {{ count($selection) === 1 ? 'selecionado' : 'selecionados' }}</flux:text>
+            <flux:spacer />
+            <flux:modal.close>
+                <flux:button variant="ghost">Fechar</flux:button>
+            </flux:modal.close>
+            <flux:button type="submit" form="add-items-form" variant="primary" icon="plus" :disabled="count($selection) === 0">
+                {{ count($selection) > 0 ? 'Adicionar '.count($selection) : 'Adicionar' }}
+            </flux:button>
+        </x-slot>
     </flux:modal>
 
     <flux:modal name="remove-item" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
