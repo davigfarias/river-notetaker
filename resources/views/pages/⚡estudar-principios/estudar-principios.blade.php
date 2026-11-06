@@ -6,7 +6,7 @@
     <flux:button variant="ghost" icon="arrow-left" href="{{ route('principios') }}" wire:navigate>Princípios</flux:button>
 </x-slot:headerActions>
 
-<main class="mx-auto flex w-full max-w-[720px] flex-col gap-6 py-8 pb-32">
+<main class="flex w-full flex-col gap-6 py-8 pb-32">
 
     @if ($step === \App\Enums\StudyStep::Setup)
         @php
