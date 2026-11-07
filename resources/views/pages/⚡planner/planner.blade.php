@@ -130,7 +130,7 @@
 
             <flux:input icon="magnifying-glass" wire:model.live.debounce.300ms="search" placeholder="Buscar por título ou autor..." clearable />
 
-            <form id="add-items-form" wire:submit="addItems">
+            <div>
                 <flux:checkbox.group wire:model.live="selection" class="space-y-6">
                     @forelse ($this->library as $material)
                         <div wire:key="pick-{{ $material->id }}">
@@ -167,19 +167,20 @@
                         @endif
                     @endforelse
                 </flux:checkbox.group>
-            </form>
+            </div>
         </div>
 
-        <x-slot name="footer" class="flex items-center gap-2">
+        {{-- Barra fixa no fim do painel: contador e botão ficam sempre à vista, mesmo com a lista rolando. --}}
+        <div class="sticky bottom-0 -mx-6 -mb-6 mt-5 flex items-center gap-2 border-t border-zinc-200 bg-white px-6 py-4 dark:border-white/10 dark:bg-zinc-800">
             <flux:text size="sm" class="tabular-nums">{{ count($selection) }} {{ count($selection) === 1 ? 'selecionado' : 'selecionados' }}</flux:text>
             <flux:spacer />
             <flux:modal.close>
                 <flux:button variant="ghost">Fechar</flux:button>
             </flux:modal.close>
-            <flux:button type="submit" form="add-items-form" variant="primary" icon="plus" :disabled="count($selection) === 0">
+            <flux:button type="button" wire:click="addItems" wire:loading.attr="disabled" wire:target="addItems" variant="primary" icon="plus" :disabled="count($selection) === 0">
                 {{ count($selection) > 0 ? 'Adicionar '.count($selection) : 'Adicionar' }}
             </flux:button>
-        </x-slot>
+        </div>
     </flux:modal>
 
     <flux:modal name="remove-item" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-sm">
