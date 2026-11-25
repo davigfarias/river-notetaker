@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\NoteType;
+use App\Support\MindMap;
 use App\Support\ReviewSchedule;
 use App\ValueObjects\Date;
 use Carbon\CarbonImmutable;
@@ -33,6 +35,8 @@ use Laravel\Scout\Searchable;
  * @property string|null $life_experiences
  * @property string|null $summary
  * @property string|null $ai_summary
+ * @property NoteType $type
+ * @property array{nodes: list<array{key: string, label: string, x: float, y: float}>, edges: list<array{from: string, to: string, bend: float}>}|null $mind_map
  * @property int $review_stage
  * @property CarbonImmutable|null $next_review_at
  * @property CarbonImmutable|null $consolidated_at
@@ -47,6 +51,8 @@ use Laravel\Scout\Searchable;
     'life_experiences',
     'summary',
     'ai_summary',
+    'type',
+    'mind_map',
     'review_stage',
     'next_review_at',
     'consolidated_at',
@@ -58,12 +64,19 @@ class Notes extends Model
     /** @use HasFactory<DisciplineFactory> */
     use HasFactory, Searchable;
 
+    /**
+     * @var array<string, string>
+     */
+    protected $attributes = ['type' => 'text'];
+
     public function casts(): array
     {
         return [
             'tags' => 'array',
             'summary' => 'string',
             'ai_summary' => 'string',
+            'type' => NoteType::class,
+            'mind_map' => 'json:unicode',
             'review_stage' => 'integer',
             'next_review_at' => 'immutable_date',
             'consolidated_at' => 'immutable_datetime',
@@ -204,7 +217,8 @@ class Notes extends Model
      *     discipline_id: int,
      *     impressions: string|null,
      *     life_experiences: string|null,
-     *     summary: string|null
+     *     summary: string|null,
+     *     mind_map: string
      * }
      */
     public function toSearchableArray(): array
@@ -216,6 +230,7 @@ class Notes extends Model
             'impressions' => $this->impressions,
             'life_experiences' => $this->life_experiences,
             'summary' => $this->summary,
+            'mind_map' => MindMap::text($this->mind_map),
         ];
     }
 }

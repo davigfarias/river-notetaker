@@ -1,7 +1,36 @@
 <div>
     <x-slot:headerActions>
-        <flux:button variant="primary" icon="plus" href="{{ route('notas.criar', $disciplineSlug) }}" wire:navigate> Nova nota </flux:button>
+        <flux:modal.trigger name="choose-note-type">
+            <flux:button variant="primary" icon="plus"> Nova nota </flux:button>
+        </flux:modal.trigger>
     </x-slot:headerActions>
+
+    <flux:modal name="choose-note-type" class="w-full max-w-[calc(100vw-2rem)] sm:max-w-xl">
+        <div class="space-y-5">
+            <div>
+                <flux:heading size="lg">Que tipo de nota você quer criar?</flux:heading>
+                <flux:text class="mt-2">Tags, conceitos, conselhos pastorais e referências são iguais nos dois tipos. Só a parte das anotações muda. O tipo não pode ser trocado depois.</flux:text>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                @foreach (\App\Enums\NoteType::cases() as $type)
+                    <a
+                        href="{{ route('notas.criar', ['slug' => $disciplineSlug, 'tipo' => $type->value]) }}"
+                        wire:navigate
+                        class="border-surface-variant bg-surface-container-lowest hover:border-primary focus-visible:ring-primary flex flex-col gap-2 rounded-xl border p-4 shadow-sm transition-colors outline-none focus-visible:ring-2"
+                    >
+                        <flux:icon :name="$type === \App\Enums\NoteType::MindMap ? 'share' : 'document-text'" class="text-primary size-6" />
+                        <flux:heading>{{ $type->label() }}</flux:heading>
+                        <flux:text size="sm">
+                            {{ $type === \App\Enums\NoteType::MindMap
+                                ? 'Um espaço livre para criar tópicos e ligar uns aos outros com setas.'
+                                : 'Impressões e experiências de vida escritas em texto, como sempre.' }}
+                        </flux:text>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </flux:modal>
 
     <div class="-m-6 flex h-[calc(100vh-7rem)] overflow-hidden lg:-m-8">
         <div class="border-outline-variant bg-surface-container-lowest/30 min-h-0 w-full flex-col border-r @if ($this->mobileDetail) hidden @else flex @endif md:flex md:w-1/3 lg:w-1/4">
@@ -300,6 +329,16 @@
                             </div>
                         </section>
 
+                        @if ($this->selectedNote->isMindMap())
+                            <section>
+                                <div class="border-surface-variant mb-3 flex items-center gap-2 border-b pb-2">
+                                    <flux:icon name="share" class="text-on-surface size-5" />
+                                    <flux:heading size="sm">MAPA MENTAL</flux:heading>
+                                </div>
+
+                                <livewire:mapa-da-nota :note-id="$this->selectedNote->id" wire:key="mapa-nota-{{ $this->selectedNote->id }}" />
+                            </section>
+                        @else
                         @php
                             $hasImpressions = filled($this->selectedNote->impressions);
                             $hasLifeExperiences = filled($this->selectedNote->life_experiences);
@@ -364,6 +403,7 @@
                                     </section>
                                 @endif
                             </div>
+                        @endif
                         @endif
 
                         @if(filled($this->selectedNote->reference_materials))

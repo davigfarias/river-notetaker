@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Notes;
 use App\Support\MapConcepts;
+use App\Support\MindMap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -68,6 +69,17 @@ final class ExportNoteMarkdownController extends Controller
             $lines[] = '## Experiências de Vida';
             $lines[] = '';
             $lines[] = $note->life_experiences;
+            $lines[] = '';
+        }
+
+        $mindMap = MindMap::text($note->mind_map);
+
+        if (filled($mindMap)) {
+            $lines[] = '## Mapa Mental';
+            $lines[] = '';
+            foreach (explode("\n", $mindMap) as $topic) {
+                $lines[] = "- {$topic}";
+            }
             $lines[] = '';
         }
 

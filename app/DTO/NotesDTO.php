@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
+use App\Enums\NoteType;
 use App\Models\Notes as NotesModel;
 use App\ValueObjects\Date;
 use Illuminate\Contracts\Support\Arrayable;
@@ -17,6 +18,7 @@ class NotesDTO implements Arrayable, Wireable
      * @param  AdvicesDTO[]|null  $pastoral_advice
      * @param  array<int, int>|null  $reference_material_ids
      * @param  array<int, array{id: int, title: string, author: string|null, year: int|null, type: string}>|null  $reference_materials
+     * @param  array{nodes: list<array<string, mixed>>, edges: list<array<string, mixed>>}|null  $mind_map
      */
     public function __construct(
         public int|string|null $id = null,
@@ -32,8 +34,15 @@ class NotesDTO implements Arrayable, Wireable
         public ?string $ai_summary = null,
         public ?array $reference_material_ids = null,
         public ?array $reference_materials = null,
-        public ?Date $updated_at = null
+        public ?Date $updated_at = null,
+        public string $type = 'text',
+        public ?array $mind_map = null,
     ) {}
+
+    public function isMindMap(): bool
+    {
+        return $this->type === NoteType::MindMap->value;
+    }
 
     public function date(): ?string
     {
@@ -73,6 +82,8 @@ class NotesDTO implements Arrayable, Wireable
             'summary' => $this->summary,
             'ai_summary' => $this->ai_summary,
             'updated_at' => $this->updated_at,
+            'type' => $this->type,
+            'mind_map' => $this->mind_map,
             'date' => $this->date(),
             'day' => $this->day(),
             'year' => $this->year(),
@@ -105,6 +116,8 @@ class NotesDTO implements Arrayable, Wireable
                 ])->all()
                 : [],
             updated_at: $model->updated_at,
+            type: $model->type->value,
+            mind_map: $model->mind_map,
         );
     }
 
@@ -141,6 +154,8 @@ class NotesDTO implements Arrayable, Wireable
             updated_at: is_string($value['updated_at'] ?? null)
                 ? new Date($value['updated_at'])
                 : ($value['updated_at'] ?? null),
+            type: NoteType::tryFrom((string) ($value['type'] ?? ''))?->value ?? NoteType::Text->value,
+            mind_map: $value['mind_map'] ?? null,
         );
     }
 }

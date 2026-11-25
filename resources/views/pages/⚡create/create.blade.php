@@ -31,6 +31,11 @@
                     <flux:icon :name="$discipline->icon" class="size-4" />
                     <flux:text size="sm">{{ $discipline->title }}</flux:text>
                 </div>
+
+                <div class="border-surface-variant bg-surface-container flex items-center gap-1.5 rounded border px-2 py-1">
+                    <flux:icon :name="$this->isMindMap ? 'share' : 'document-text'" class="size-4" />
+                    <flux:text size="sm">{{ \App\Enums\NoteType::from($noteType)->label() }}</flux:text>
+                </div>
             </div>
         </div>
 
@@ -159,6 +164,16 @@
             </div>
         </section>
 
+        @if ($this->isMindMap)
+        <section class="space-y-4">
+            <div class="border-surface-variant flex items-center gap-2 border-b pb-2">
+                <flux:icon name="share" class="text-on-surface size-5" />
+                <flux:heading size="sm">MAPA MENTAL</flux:heading>
+            </div>
+
+            @include('partials.note-mind-map', ['map' => $mindMap, 'mode' => 'draft'])
+        </section>
+        @else
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
             <section class="border-surface-variant bg-surface-container-lowest flex flex-col overflow-hidden rounded-xl border shadow-sm transition-colors duration-300">
                 <div class="border-surface-variant bg-surface-container-low/80 flex items-center gap-2 border-b p-3">
@@ -206,6 +221,7 @@
                 </div>
             </section>
         </div>
+        @endif
 
         <section class="space-y-4">
             <div class="border-surface-variant flex items-center gap-2 border-b pb-2">

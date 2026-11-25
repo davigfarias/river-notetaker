@@ -3,7 +3,9 @@
 use App\DTO\{AdvicesDTO, ConceptsDTO, DisciplinesDTO, NotesDTO, ReferenceMaterialForm, SoleConceptDTO};
 use App\Actions\{AddReferenceMaterial, GetSingleDisciplineData, GetTags, ObserveTerm};
 use App\Actions\{SearchReferenceMaterials, UpdateConcept};
-use Livewire\Attributes\{Computed, On, Title};
+use Livewire\Attributes\{Computed, Locked, On, Title};
+use App\Enums\NoteType;
+use App\Support\MindMap;
 use App\Actions\Orchestrators\SaveNote;
 use Illuminate\Support\Collection;
 use App\Models\ReferenceMaterial;
@@ -31,6 +33,19 @@ new #[Title('Criar uma Nova Nota')] class extends Component
     public string $refSearch = '';
 
     public ReferenceMaterialForm $refForm;
+
+    /**
+     * Escolhido no modal "Nova nota" da disciplina (?tipo=); fixo depois de criada.
+     */
+    #[Locked]
+    public string $noteType = 'text';
+
+    /**
+     * Canvas do mapa mental, em memória até o Salvar (resources/js/mapa-da-nota.js grava via $wire.mindMap).
+     *
+     * @var array<string, mixed>
+     */
+    public array $mindMap = ['nodes' => [], 'edges' => []];
 
     #TODO: write this as a Form Object. 
     protected function rules(): array
@@ -67,6 +82,13 @@ new #[Title('Criar uma Nova Nota')] class extends Component
 
         $this->discipline = $discipline;
         $this->notes->discipline_id = (int) $discipline->id;
+        $this->noteType = NoteType::tryFrom((string) request()->query('tipo'))?->value ?? NoteType::Text->value;
+    }
+
+    #[Computed]
+    public function isMindMap(): bool
+    {
+        return $this->noteType === NoteType::MindMap->value;
     }
 
     public function boot(GetTags $getTagsAction): void
@@ -271,6 +293,13 @@ new #[Title('Criar uma Nova Nota')] class extends Component
         $this->notes->concepts = $this->filterConcepts();
         $this->notes->pastoral_advice = $this->filterPastoralAdvice();
         $this->notes->access_token_id = (int) session('access_token_id');
+        $this->notes->type = $this->noteType;
+
+        if ($this->isMindMap) {
+            $this->notes->impressions = null;
+            $this->notes->life_experiences = null;
+            $this->notes->mind_map = MindMap::sanitize($this->mindMap);
+        }
 
         $outcome = $action->handle($this->notes);
 

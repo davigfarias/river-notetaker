@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Ai\Agents\Summarizer;
 use App\Models\Notes;
 use App\Support\MapConcepts;
+use App\Support\MindMap;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -96,6 +97,12 @@ class GenerateNoteSummaryJob implements ShouldQueue
 
         if (filled($this->note->life_experiences)) {
             $sections[] = "Experiências de vida:\n{$this->note->life_experiences}";
+        }
+
+        $mindMap = MindMap::text($this->note->mind_map);
+
+        if (filled($mindMap)) {
+            $sections[] = "Mapa mental (um tópico por linha):\n{$mindMap}";
         }
 
         return implode("\n\n", $sections);

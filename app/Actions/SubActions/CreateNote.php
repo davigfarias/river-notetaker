@@ -6,6 +6,7 @@ namespace App\Actions\SubActions;
 
 use App\DTO\NotesDTO;
 use App\Models\Notes;
+use App\Support\MindMap;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
@@ -21,6 +22,8 @@ final readonly class CreateNote
                 'impressions' => $data->impressions,
                 'life_experiences' => $data->life_experiences,
                 'access_token_id' => $data->access_token_id,
+                'type' => $data->type,
+                'mind_map' => $data->isMindMap() ? MindMap::sanitize($data->mind_map) : null,
             ]);
 
             return Outcome::noViewMessage(data: $note);

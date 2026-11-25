@@ -6,6 +6,7 @@ import './session-modal';
 import './mermaid';
 import { enableNativeKeyboard } from './native-keyboard';
 import './mapa-conceitos';
+import './mapa-da-nota';
 import './modal-scroll-hint';
 import './tabs';
 
