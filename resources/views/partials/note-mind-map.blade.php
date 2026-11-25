@@ -5,6 +5,7 @@
 <div
     wire:ignore
     x-data="noteMindMap(@js(['map' => $map, 'mode' => $mode]))"
+    x-on:keydown="keydown($event)"
     :class="fullscreen ? 'fixed inset-0 z-50 rounded-none' : 'rounded-xl'"
     class="bg-surface-container-lowest border-surface-variant flex flex-col overflow-hidden border shadow-sm"
 >
@@ -39,7 +40,6 @@
         aria-label="Mapa mental. Tab cria tópico filho, Enter cria tópico irmão, F2 renomeia, Delete apaga, setas navegam."
         :class="fullscreen ? 'flex-1' : 'h-[60vh]'"
         class="relative touch-none overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
-        x-on:keydown="keydown($event)"
         x-on:pointerdown="startPan($event)"
         x-on:pointermove="move($event)"
         x-on:pointerup="end($event)"
@@ -98,21 +98,10 @@
                     x-on:dblclick.stop="startEdit(node)"
                     :style="`left: ${node.x}px; top: ${node.y}px`"
                     :class="current === node.key ? 'ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-zinc-900' : ''"
-                    class="absolute flex max-w-xs cursor-move items-center gap-2 rounded-xl bg-zinc-200 px-4 py-1.5 text-sm text-zinc-900 select-none"
+                    class="absolute flex w-max max-w-xs cursor-move items-center gap-2 rounded-xl bg-zinc-200 px-4 py-1.5 text-sm text-zinc-900 select-none"
                     title="Duplo clique para editar o texto"
                 >
-                    <span x-show="editing !== node.key" x-text="node.label" class="break-words whitespace-normal"></span>
-                    <input
-                        x-show="editing === node.key"
-                        x-model="editText"
-                        x-on:pointerdown.stop
-                        x-on:keydown.stop="editKeydown($event)"
-                        x-on:blur="editBlur()"
-                        maxlength="200"
-                        placeholder="Escreva o tópico"
-                        aria-label="Texto do tópico. Enter confirma, Tab confirma e cria um filho, Esc cancela."
-                        class="w-56 rounded bg-white px-1 text-zinc-900 outline-none"
-                    />
+                    <span x-text="node.label || '\u00a0'" :class="editing === node.key && 'invisible'" class="min-w-8 break-words whitespace-normal"></span>
                     <span
                         x-show="editing !== node.key"
                         x-on:pointerdown.stop="startEdge($event, node)"
@@ -123,6 +112,25 @@
                     ></span>
                 </div>
             </template>
+
+            {{--
+                Um único campo de edição, fora do x-for, posto sobre o tópico em edição.
+                Fica sempre no DOM para receber o foco na hora (sem esperar o Alpine
+                desenhar o tópico novo): tecla digitada rápido não se perde.
+            --}}
+            <input
+                x-ref="editor"
+                style="display: none"
+                x-model="editText"
+                x-on:pointerdown.stop
+                x-on:dblclick.stop
+                x-on:keydown.stop="editKeydown($event)"
+                x-on:blur="editBlur()"
+                maxlength="200"
+                placeholder="Escreva o tópico"
+                aria-label="Texto do tópico. Enter confirma, Tab confirma e cria um filho, Esc cancela."
+                class="absolute z-10 w-64 rounded-xl border-2 border-zinc-900 bg-white px-4 py-1.5 text-sm text-zinc-900 shadow-lg outline-none dark:border-white"
+            />
         </div>
     </div>
 

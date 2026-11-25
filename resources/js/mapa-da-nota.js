@@ -10,6 +10,15 @@ const GAP_X = 60;
 const GAP_Y = 16;
 const UNDO_LIMIT = 50;
 
+// Largura do tópico pelo texto (o DOM ainda não foi redesenhado quando o Tab
+// cria o filho logo após confirmar o pai). 14px = text-sm; 64 = padding + bolinha.
+const measureContext = document.createElement('canvas').getContext('2d');
+const labelWidth = (node) => {
+    measureContext.font = '14px ' + getComputedStyle(document.body).fontFamily;
+
+    return Math.min(320, Math.max(node.w ?? 0, measureContext.measureText(node.label).width + 64));
+};
+
 const newKey = () => Math.random().toString(36).slice(2, 12).padEnd(10, '0');
 
 document.addEventListener('alpine:init', () => {
@@ -73,13 +82,14 @@ document.addEventListener('alpine:init', () => {
             const state = JSON.parse(previous);
 
             this.editing = null;
+            this.hideEditorSoon();
             this.freshKey = null;
             this.confirmingDelete = null;
             this.selected = null;
             this.nodes = state.nodes;
             this.edges = state.edges;
 
-            if (!this.node(this.current)) {
+            if (!this.findNode(this.current)) {
                 this.current = null;
             }
 
@@ -150,7 +160,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         childrenOf(key) {
-            return this.edges.filter((edge) => edge.from === key).map((edge) => this.node(edge.to)).filter(Boolean);
+            return this.edges.filter((edge) => edge.from === key).map((edge) => this.findNode(edge.to)).filter(Boolean);
         },
 
         // Nó e tudo que sai dele pelas setas (protegido contra ciclos).
@@ -173,6 +183,11 @@ document.addEventListener('alpine:init', () => {
         },
 
         addNode(x, y, parentKey = null) {
+            // Fecha a edição em curso antes (tópico novo vazio é descartado).
+            if (this.editing && !this.commitEdit()) {
+                parentKey = this.findNode(parentKey) ? parentKey : null;
+            }
+
             this.remember();
 
             const node = { key: newKey(), label: '', x: Math.round(x), y: Math.round(y), w: 120, h: 32 };
@@ -198,7 +213,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         addChild() {
-            const parent = this.node(this.current);
+            const parent = this.findNode(this.current);
 
             if (!parent) {
                 this.addRoot();
@@ -208,14 +223,14 @@ document.addEventListener('alpine:init', () => {
 
             const siblings = this.childrenOf(parent.key);
             const last = siblings.reduce((low, node) => (!low || node.y > low.y ? node : low), null);
-            const x = last ? last.x : parent.x + (parent.w ?? 120) + GAP_X;
+            const x = last ? last.x : parent.x + labelWidth(parent) + GAP_X;
             const y = last ? last.y + (last.h ?? 32) + GAP_Y : parent.y;
 
             this.addNode(x, y, parent.key);
         },
 
         addSibling() {
-            const node = this.node(this.current);
+            const node = this.findNode(this.current);
 
             if (!node) {
                 this.addRoot();
@@ -231,24 +246,30 @@ document.addEventListener('alpine:init', () => {
         },
 
         startEdit(node, text = node.label) {
+            const editor = this.$refs.editor;
+
             this.editing = node.key;
             this.editText = text;
-            this.$nextTick(() => {
-                const input = this.$root.querySelector(`[data-node-key="${node.key}"] input`);
 
-                input?.focus();
-                input?.select();
-            });
+            // Tudo síncrono, no mesmo evento da tecla/clique: o foco já está no campo
+            // quando a próxima tecla chegar.
+            editor.value = text;
+            editor.style.left = `${node.x}px`;
+            editor.style.top = `${node.y}px`;
+            editor.style.display = '';
+            editor.focus({ preventScroll: true });
+            editor.select();
         },
 
         // Fecha a edição. Devolve false se o nó novo ficou vazio (e foi descartado).
         commitEdit() {
-            const node = this.node(this.editing);
+            const node = this.findNode(this.editing);
             const label = this.editText.replace(/\s+/g, ' ').trim().slice(0, 200);
             const fresh = this.freshKey === this.editing;
 
             this.editing = null;
             this.freshKey = null;
+            this.hideEditorSoon();
 
             if (!node) {
                 return false;
@@ -278,11 +299,12 @@ document.addEventListener('alpine:init', () => {
 
         // Esc na edição: nó novo some; nó existente volta ao texto anterior.
         cancelEdit() {
-            const node = this.node(this.editing);
+            const node = this.findNode(this.editing);
             const fresh = this.freshKey === this.editing;
 
             this.editing = null;
             this.freshKey = null;
+            this.hideEditorSoon();
 
             if (node && fresh) {
                 this.discard(node);
@@ -321,6 +343,17 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        // Esconde só no fim do evento: se o mesmo Tab/Enter já abriu outra edição,
+        // o campo continua visível e focado, sem blur que descarte o tópico novo.
+        hideEditorSoon() {
+            queueMicrotask(() => {
+                if (!this.editing) {
+                    this.$refs.editor.style.display = 'none';
+                }
+            });
+        },
+
+        // Clicou fora do campo: confirma o texto.
         editBlur() {
             if (this.editing) {
                 this.commitEdit();
@@ -328,7 +361,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         askDelete() {
-            const node = this.node(this.current);
+            const node = this.findNode(this.current);
 
             if (!node) {
                 return;
@@ -358,7 +391,7 @@ document.addEventListener('alpine:init', () => {
 
         // Vai para o nó mais próximo na direção da seta do teclado.
         moveSelection(direction) {
-            const from = this.node(this.current);
+            const from = this.findNode(this.current);
 
             if (!from) {
                 this.current = this.nodes[0]?.key ?? null;
@@ -382,7 +415,8 @@ document.addEventListener('alpine:init', () => {
                 const along = { ArrowRight: dx, ArrowLeft: -dx, ArrowDown: dy, ArrowUp: -dy }[direction];
                 const across = direction === 'ArrowRight' || direction === 'ArrowLeft' ? Math.abs(dy) : Math.abs(dx);
 
-                if (along <= 0) {
+                // Só conta o que está dentro de um cone na direção da seta.
+                if (along <= 0 || across > along * 2) {
                     continue;
                 }
 
@@ -400,8 +434,32 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        // Ouve o mapa inteiro (barra de botões inclusive). Tecla que chega antes de o
+        // campo do tópico novo ganhar foco vai para a edição em vez de se perder.
         keydown(event) {
             if (event.target.matches('input, textarea') || event.isComposing) {
+                return;
+            }
+
+            if (this.editing) {
+                const typed = event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey;
+
+                if (typed || ['Enter', 'Tab', 'Escape', 'Backspace'].includes(event.key)) {
+                    event.preventDefault();
+
+                    if (typed) {
+                        this.editText += event.key;
+                    } else if (event.key === 'Backspace') {
+                        this.editText = this.editText.slice(0, -1);
+                    } else {
+                        this.editKeydown(event);
+                    }
+                }
+
+                return;
+            }
+
+            if (event.target !== this.$refs.canvas) {
                 return;
             }
 
@@ -416,9 +474,9 @@ document.addEventListener('alpine:init', () => {
             } else if (event.key === 'Enter') {
                 event.preventDefault();
                 this.addSibling();
-            } else if (event.key === 'F2' && this.node(this.current)) {
+            } else if (event.key === 'F2' && this.findNode(this.current)) {
                 event.preventDefault();
-                this.startEdit(this.node(this.current));
+                this.startEdit(this.findNode(this.current));
             } else if (event.key === 'Delete' || event.key === 'Backspace') {
                 event.preventDefault();
 
@@ -446,7 +504,7 @@ document.addEventListener('alpine:init', () => {
         toggleFullscreen() {
             this.fullscreen = !this.fullscreen;
             this.$nextTick(() => {
-                this.centerOn(this.node(this.current) ?? this.nodes[0]);
+                this.centerOn(this.findNode(this.current) ?? this.nodes[0]);
                 this.focusCanvas();
             });
         },
@@ -593,7 +651,7 @@ document.addEventListener('alpine:init', () => {
             if (drag.type === 'pan') {
                 this.pan = { x: event.clientX - drag.sx, y: event.clientY - drag.sy };
             } else if (drag.type === 'node') {
-                const node = this.node(drag.key);
+                const node = this.findNode(drag.key);
                 const { x, y } = this.toWorld(event);
 
                 node.x = Math.round(x - drag.dx);
@@ -617,7 +675,7 @@ document.addEventListener('alpine:init', () => {
             if (drag?.type === 'bend') {
                 this.persist();
             } else if (drag?.type === 'node') {
-                const node = this.node(drag.key);
+                const node = this.findNode(drag.key);
 
                 if (node && (node.x !== drag.ox || node.y !== drag.oy)) {
                     // O Desfazer guarda a posição de antes do arrasto.

@@ -2,7 +2,9 @@
 // Espalhado (...mapCanvas) dentro do Alpine.data; espera `nodes`, `edges`, `pan`, `scale`,
 // `drag`, `ghost`, `linking`, `selected` e o x-ref `canvas`.
 export const mapCanvas = {
-    node(key) {
+    // Não pode se chamar node(): dentro de x-for="node in nodes" o `this` do Alpine
+    // mistura o escopo do laço, e `this.node` vira o item do laço, não o método.
+    findNode(key) {
         return this.nodes.find((node) => node.key === key);
     },
 
@@ -35,8 +37,8 @@ export const mapCanvas = {
 
     // Seta como curva quadrática: o controle fica a 2*bend do meio da corda (a curva passa a `bend`).
     geometry(edge) {
-        const a = this.node(edge.from);
-        const b = this.node(edge.to);
+        const a = this.findNode(edge.from);
+        const b = this.findNode(edge.to);
 
         if (!a || !b) {
             return null;
@@ -82,7 +84,7 @@ export const mapCanvas = {
     },
 
     ghostLine() {
-        const a = this.node(this.drag?.type === 'edge' ? this.drag.key : this.linking);
+        const a = this.findNode(this.drag?.type === 'edge' ? this.drag.key : this.linking);
 
         if (!a || !this.ghost) {
             return null;

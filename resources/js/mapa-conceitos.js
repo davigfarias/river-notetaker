@@ -132,7 +132,7 @@ document.addEventListener('alpine:init', () => {
         dropPill(event) {
             const key = event.dataTransfer.getData('text/plain');
 
-            if (!(key in this.concepts) || this.node(key)) {
+            if (!(key in this.concepts) || this.findNode(key)) {
                 return;
             }
 
@@ -205,7 +205,7 @@ document.addEventListener('alpine:init', () => {
             if (drag.type === 'pan') {
                 this.pan = { x: event.clientX - drag.sx, y: event.clientY - drag.sy };
             } else if (drag.type === 'node') {
-                const node = this.node(drag.key);
+                const node = this.findNode(drag.key);
                 const { x, y } = this.toWorld(event);
 
                 node.x = Math.round(x - drag.dx);
@@ -229,7 +229,7 @@ document.addEventListener('alpine:init', () => {
             if (drag?.type === 'bend') {
                 this.$wire.bendEdge(drag.edge.from, drag.edge.to, drag.edge.bend);
             } else if (drag?.type === 'node') {
-                const node = this.node(drag.key);
+                const node = this.findNode(drag.key);
 
                 this.$wire.placeNode(node.key, node.x, node.y);
             } else if (drag?.type === 'edge') {
